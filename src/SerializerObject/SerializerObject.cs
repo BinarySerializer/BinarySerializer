@@ -25,7 +25,8 @@ namespace BinarySerializer
         /// The serialize context, containing all the open files and the settings
         /// </summary>
         public Context Context { get; }
-        public bool IsLogEnabled => Context.Log.IsEnabled;
+        public bool IsLogEnabled => Context.Log.IsEnabled && !DisableLogForObject;
+        protected bool DisableLogForObject { get; set; }
 
         #region Abstraction
 

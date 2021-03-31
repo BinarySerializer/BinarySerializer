@@ -20,7 +20,7 @@ namespace BinarySerializer
         protected HashSet<BinarySerializable> WrittenObjects { get; }
         protected Writer Writer { get; set; }
         protected BinaryFile CurrentFile { get; set; }
-        private string LogPrefix => IsLogEnabled ? ("(WRITE) " + CurrentPointer + ":" + new string(' ', (Depth + 1) * 2)) : null;
+        private string LogPrefix => IsLogEnabled ? ($"(WRITE) {CurrentPointer}:{new string(' ', (Depth + 1) * 2)}") : null;
 
         public override Pointer CurrentPointer 
         {
@@ -197,8 +197,14 @@ namespace BinarySerializer
                 return obj;
             }
 
-            if (IsLogEnabled)
-                Context.Log.Log($"{LogPrefix}(Object: {typeof(T)}) {(name ?? "<no name>")}");
+
+            string logString = IsLogEnabled ? LogPrefix : null;
+            bool isLogTemporarilyDisabled = false;
+            if (!DisableLogForObject && (obj?.IsShortLog ?? false)) {
+                DisableLogForObject = true;
+                isLogTemporarilyDisabled = true;
+            }
+            if (IsLogEnabled) Context.Log.Log($"{logString}(Object: {typeof(T)}) {(name ?? "<no name>")}");
 
             Depth++;
             onPreSerialize?.Invoke(obj);
@@ -210,6 +216,12 @@ namespace BinarySerializer
 
             obj.Serialize(this);
             Depth--;
+
+            if (isLogTemporarilyDisabled) {
+                DisableLogForObject = false;
+                if (IsLogEnabled)
+                    Context.Log.Log($"{logString}({typeof(T)}) {(name ?? "<no name>")}: {(obj?.ShortLog ?? "null")}");
+            }
 
             WrittenObjects.Add(obj);
 

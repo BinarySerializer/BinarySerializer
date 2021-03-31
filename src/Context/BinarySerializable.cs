@@ -19,11 +19,21 @@
         /// The struct offset
         /// </summary>
         public Pointer Offset { get; protected set; }
-        
+
         /// <summary>
         /// The struct size
         /// </summary>
         public virtual uint Size { get; protected set; }
+
+        /// <summary>
+        /// Indicates whether this object should be logged on one line
+        /// </summary>
+        public virtual bool IsShortLog { get; } = false;
+
+        /// <summary>
+        /// The string for displaying this object on one line
+        /// </summary>
+        public virtual string ShortLog { get; }
 
         /// <summary>
         /// Initializes the struct from an offset

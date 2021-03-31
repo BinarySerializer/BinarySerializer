@@ -28,7 +28,7 @@ namespace BinarySerializer
         }
 
         public override uint CurrentLength => (uint)Reader.BaseStream.Length;
-        private string LogPrefix => IsLogEnabled ? ("(READ) " + CurrentPointer + ":" + new string(' ', (Depth + 1) * 2)) : null;
+        private string LogPrefix => IsLogEnabled ? ($"(READ) {CurrentPointer}:{new string(' ', (Depth + 1) * 2)}") : null;
 
         protected Dictionary<BinaryFile, Reader> Readers { get; }
         protected Reader Reader { get; set; }
@@ -235,15 +235,25 @@ namespace BinarySerializer
                 if (newInstance)
                     Context.Cache.Add<T>(instance);
                 
-                if (IsLogEnabled) 
-                {
-                    string logString = LogPrefix;
-                    Context.Log.Log($"{logString}(Object: {typeof(T)}) {(name ?? "<no name>")}");
+                string logString = IsLogEnabled ? LogPrefix : null;
+                bool isLogTemporarilyDisabled = false;
+                if (!DisableLogForObject && instance.IsShortLog) {
+                    DisableLogForObject = true;
+                    isLogTemporarilyDisabled = true;
                 }
+
+                if (IsLogEnabled) Context.Log.Log($"{logString}(Object: {typeof(T)}) {(name ?? "<no name>")}");
+
                 Depth++;
                 onPreSerialize?.Invoke(instance);
                 instance.Serialize(this);
                 Depth--;
+
+                if (isLogTemporarilyDisabled) {
+                    DisableLogForObject = false;
+                    if (IsLogEnabled)
+                        Context.Log.Log($"{logString}({typeof(T)}) {(name ?? "<no name>")}: {(instance.ShortLog ?? "null")}");
+                }
             } 
             else 
             {
