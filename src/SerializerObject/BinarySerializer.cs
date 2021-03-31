@@ -61,7 +61,7 @@ namespace BinarySerializer
                 foreach (var item in a)
                     Write(item);
 
-            else if (value.GetType().IsEnum)
+            else if (value?.GetType().IsEnum == true)
                 Write(Convert.ChangeType(value, Enum.GetUnderlyingType(value.GetType())));
 
             else if (value is bool bo)
@@ -113,7 +113,6 @@ namespace BinarySerializer
                     } else {
                         Writer.Write((byte)0xFF);
                     }
-                    return;
                 } else {
                     throw new NotSupportedException($"The specified type {typeof(T).Name} is not supported.");
                 }
