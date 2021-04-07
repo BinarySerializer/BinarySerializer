@@ -38,6 +38,12 @@ namespace BinarySerializer
 
         public abstract uint CurrentLength { get; }
         public abstract Pointer CurrentPointer { get; }
+        protected class EncodedState {
+            public Stream Stream { get; set; }
+            public StreamFile File { get; set; }
+            public IStreamEncoder Encoder { get; set; }
+        }
+        protected List<EncodedState> EncodedFiles { get; } = new List<EncodedState>();
 
         public int Depth { get; protected set; } = 0;
 
@@ -70,6 +76,8 @@ namespace BinarySerializer
             return default;
         }
 
+        public abstract Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false);
+        public abstract void EndEncoded(Pointer endPointer);
         public abstract void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false);
         public abstract void DoEndian(Endian endianness, Action action);
 

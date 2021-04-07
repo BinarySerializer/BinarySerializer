@@ -8,6 +8,11 @@ namespace BinarySerializer
     public interface IStreamEncoder
     {
         /// <summary>
+        /// The name of the encoder, for use in logging
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
         /// Decodes the data and returns it in a stream
         /// </summary>
         /// <param name="s">The serializer object</param>

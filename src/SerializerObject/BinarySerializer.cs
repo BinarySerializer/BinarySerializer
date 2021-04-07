@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace BinarySerializer
@@ -370,7 +371,7 @@ namespace BinarySerializer
             Stream encoded = null;
             using(MemoryStream memStream = new MemoryStream()) {
                 // Stream key
-                string key = $"{CurrentPointer}_decoded";
+                string key = $"{CurrentPointer}_{encoder.Name}";
 
                 // Add the stream
                 StreamFile sf = new StreamFile(key, memStream, Context)
@@ -397,7 +398,49 @@ namespace BinarySerializer
                 encoded.Close();
             }
         }
-        public override void DoEndian(Endian endianness, Action action) {
+		public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false) {
+            // Stream key
+            string key = $"{CurrentPointer}_{encoder.Name}";
+
+            // Add the stream
+            MemoryStream memStream = new MemoryStream();
+            StreamFile sf = new StreamFile(key, memStream, Context) {
+                Endianness = endianness ?? CurrentFile.Endianness,
+                AllowLocalPointers = allowLocalPointers
+            };
+            Context.AddFile(sf);
+            EncodedFiles.Add(new EncodedState() {
+                File = sf,
+                Stream = memStream,
+                Encoder = encoder
+            });
+
+            return sf.StartPointer;
+        }
+		public override void EndEncoded(Pointer endPointer) {
+			var encodedFile = EncodedFiles.FirstOrDefault(ef => ef.File == endPointer.File);
+            if (encodedFile != null) {
+                EncodedFiles.Remove(encodedFile);
+
+                encodedFile.Stream.Position = 0;
+                Stream encoded = null;
+                encoded = encodedFile.Encoder.EncodeStream(encodedFile.Stream);
+                encodedFile.Stream.Close();
+                Context.RemoveFile(encodedFile.File);
+
+                // Turn stream into array & write bytes
+                if (encoded != null) {
+                    using (MemoryStream ms = new MemoryStream()) {
+                        encoded.CopyTo(ms);
+                        Writer.Write(ms.ToArray());
+                    }
+                    encoded.Close();
+                }
+            }
+		}
+
+
+		public override void DoEndian(Endian endianness, Action action) {
             Writer w = Writer;
             bool isLittleEndian = w.IsLittleEndian;
             if (isLittleEndian != (endianness == Endian.Little)) {

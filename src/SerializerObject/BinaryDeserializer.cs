@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -458,7 +460,7 @@ namespace BinarySerializer
 
         public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false) {
             // Stream key
-            string key = $"{CurrentPointer}_decoded";
+            string key = $"{CurrentPointer}_{encoder.Name}";
             // Decode the data into a stream
             using (var memStream = encoder.DecodeStream(Reader.BaseStream)) {
 
@@ -481,7 +483,43 @@ namespace BinarySerializer
 
             }
         }
-        public override void DoEndian(Endian endianness, Action action) {
+		public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false) {
+            // Stream key
+            string key = $"{CurrentPointer}_{encoder.Name}";
+
+            // Add the stream
+            Stream memStream = encoder.DecodeStream(Reader.BaseStream);
+            StreamFile sf = new StreamFile(key, memStream, Context) {
+                Endianness = endianness ?? CurrentFile.Endianness,
+                AllowLocalPointers = allowLocalPointers
+            };
+            Context.AddFile(sf);
+            EncodedFiles.Add(new EncodedState() {
+                File = sf,
+                Stream = memStream,
+                Encoder = encoder
+            });
+
+            return sf.StartPointer;
+        }
+		public override void EndEncoded(Pointer endPointer) {
+            var encodedFile = EncodedFiles.FirstOrDefault(ef => ef.File == endPointer.File);
+            if (encodedFile != null) {
+                EncodedFiles.Remove(encodedFile);
+
+                var sf = encodedFile.File;
+                var key = sf.FilePath;
+                if (endPointer != sf.StartPointer + sf.Length) {
+                    Logger.LogWarning($"Encoded block {key} was not fully deserialized: Serialized size: {endPointer - sf.StartPointer} != Total size: {sf.Length}");
+                }
+
+                Context.RemoveFile(sf);
+                encodedFile.Stream.Close();
+            }
+        }
+
+
+		public override void DoEndian(Endian endianness, Action action) {
             Reader r = Reader;
             bool isLittleEndian = r.IsLittleEndian;
             if (isLittleEndian != (endianness == Endian.Little)) {
