@@ -32,5 +32,13 @@
 
             return result;
         }
+
+        public static void CopyBits(ref byte b1, ref byte b2, int count, int offset1, int offset2, bool setB1)
+        {
+            if (setB1)
+                b1 = (byte)SetBits(b1, ExtractBits(b2, count, offset2), count, offset1);
+            else
+                b2 = (byte)SetBits(b2, ExtractBits(b1, count, offset1), count, offset2);
+        }
     }
 }
