@@ -69,7 +69,7 @@ namespace BinarySerializer
                             Context.Log.Log($"{LogPrefix} ({typeof(T)}): Binary boolean was not correctly formatted ({b})");
                     }
 
-                    return b == 1;
+                    return b != 0;
 
                 case TypeCode.SByte:
                     return Reader.ReadSByte();
