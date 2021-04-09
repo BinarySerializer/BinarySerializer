@@ -30,7 +30,7 @@ namespace BinarySerializer
         }
 
         public override uint CurrentLength => (uint)Reader.BaseStream.Length;
-        private string LogPrefix => IsLogEnabled ? ($"(READ) {CurrentPointer}:{new string(' ', (Depth + 1) * 2)}") : null;
+        private string LogPrefix => IsLogEnabled ? ($"(R) {CurrentPointer}:{new string(' ', (Depth + 1) * 2)}") : null;
 
         protected Dictionary<BinaryFile, Reader> Readers { get; }
         protected Reader Reader { get; set; }
@@ -66,7 +66,7 @@ namespace BinarySerializer
                         Logger.LogWarning($"Binary boolean '{name}' ({b}) was not correctly formatted");
 
                         if (IsLogEnabled)
-                            Context.Log.Log(LogPrefix + "(" + typeof(T) + "): Binary boolean was not correctly formatted (" + b + ")");
+                            Context.Log.Log($"{LogPrefix} ({typeof(T)}): Binary boolean was not correctly formatted ({b})");
                     }
 
                     return b == 1;
@@ -458,9 +458,9 @@ namespace BinarySerializer
             Readers.Remove(file);
         }
 
-        public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false) {
+        public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null) {
             // Stream key
-            string key = $"{CurrentPointer}_{encoder.Name}";
+            string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
             // Decode the data into a stream
             using (var memStream = encoder.DecodeStream(Reader.BaseStream)) {
 
@@ -483,9 +483,9 @@ namespace BinarySerializer
 
             }
         }
-		public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false) {
+		public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false, string filename = null) {
             // Stream key
-            string key = $"{CurrentPointer}_{encoder.Name}";
+            string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
 
             // Add the stream
             Stream memStream = encoder.DecodeStream(Reader.BaseStream);

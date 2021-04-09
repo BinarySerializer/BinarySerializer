@@ -47,11 +47,11 @@ namespace BinarySerializer
         public override Pointer CurrentPointer => CurrentSerializer.CurrentPointer;
         public override void Goto(Pointer offset) => CurrentSerializer.Goto(offset);
 
-		public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false) {
+		public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null) {
             SwitchSerializer(Deserializer);
-            CurrentSerializer.DoEncoded(encoder, action, endianness, allowLocalPointers);
+            CurrentSerializer.DoEncoded(encoder, action, endianness: endianness, allowLocalPointers: allowLocalPointers, filename: filename);
         }
-		public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false) {
+		public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false, string filename = null) {
 			throw new NotSupportedException("BeginEncoded and EndEncoded are not supported in ToggleSerializer");
         }
         public override void EndEncoded(Pointer endPointer) {

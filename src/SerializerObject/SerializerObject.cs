@@ -76,9 +76,9 @@ namespace BinarySerializer
             return default;
         }
 
-        public abstract Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false);
+        public abstract Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false, string filename = null);
         public abstract void EndEncoded(Pointer endPointer);
-        public abstract void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false);
+        public abstract void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null);
         public abstract void DoEndian(Endian endianness, Action action);
 
         public void DoEncodedIf(IStreamEncoder encoder, bool isEncoded, Action action, Endian? endianness = null)

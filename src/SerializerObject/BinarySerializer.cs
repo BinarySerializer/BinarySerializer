@@ -21,7 +21,7 @@ namespace BinarySerializer
         protected HashSet<BinarySerializable> WrittenObjects { get; }
         protected Writer Writer { get; set; }
         protected BinaryFile CurrentFile { get; set; }
-        private string LogPrefix => IsLogEnabled ? ($"(WRITE) {CurrentPointer}:{new string(' ', (Depth + 1) * 2)}") : null;
+        private string LogPrefix => IsLogEnabled ? ($"(W) {CurrentPointer}:{new string(' ', (Depth + 1) * 2)}") : null;
 
         public override Pointer CurrentPointer 
         {
@@ -115,7 +115,7 @@ namespace BinarySerializer
                         Writer.Write((byte)0xFF);
                     }
                 } else {
-                    throw new NotSupportedException($"The specified type {typeof(T).Name} is not supported.");
+                    throw new NotSupportedException($"The specified type {typeof(T)} is not supported.");
                 }
             }
             else if ((object)value is null)
@@ -366,12 +366,12 @@ namespace BinarySerializer
                 Writers.Remove(file);
             }
         }
-        public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false) {
+        public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null) {
             // Encode the data into a stream
             Stream encoded = null;
             using(MemoryStream memStream = new MemoryStream()) {
                 // Stream key
-                string key = $"{CurrentPointer}_{encoder.Name}";
+                string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
 
                 // Add the stream
                 StreamFile sf = new StreamFile(key, memStream, Context)
@@ -398,9 +398,9 @@ namespace BinarySerializer
                 encoded.Close();
             }
         }
-		public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false) {
+		public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false, string filename = null) {
             // Stream key
-            string key = $"{CurrentPointer}_{encoder.Name}";
+            string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
 
             // Add the stream
             MemoryStream memStream = new MemoryStream();
