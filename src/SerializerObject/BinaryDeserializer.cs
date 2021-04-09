@@ -280,13 +280,13 @@ namespace BinarySerializer
             if (ptr == null && value != 0 && !allowInvalid && !CurrentFile.AllowInvalidPointer(value, anchor: anchor)) 
             {
                 if (IsLogEnabled)
-                    Context.Log.Log(logString + "(Pointer) " + (name ?? "<no name>") + ": InvalidPointerException - " + string.Format("{0:X8}", value));
+                    Context.Log.Log($"{logString}(Pointer) {(name ?? "<no name>")}: InvalidPointerException - {value:X8}");
 
                 throw new PointerException("Not a valid pointer at " + (current) + ": " + string.Format("{0:X8}", value), "SerializePointer");
             }
 
             if (IsLogEnabled)
-                Context.Log.Log(logString + "(Pointer) " + (name ?? "<no name>") + ": " + ptr?.ToString());
+                Context.Log.Log($"{logString}(Pointer) {(name ?? "<no name>")}: {ptr?.ToString()}");
 
             return ptr;
         }
