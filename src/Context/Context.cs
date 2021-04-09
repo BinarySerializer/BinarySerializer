@@ -180,7 +180,7 @@ namespace BinarySerializer
             foreach (var file in MemoryMap.Files)
                 file?.Dispose();
 
-            Log.WriteLog();
+            Log.Dispose();
         }
         public void Dispose() => Close();
 
