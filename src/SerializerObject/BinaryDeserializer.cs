@@ -154,7 +154,7 @@ namespace BinarySerializer
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = SerializeString(default, length, encoding, name: name == null ? null : name + "[" + i + "]");
+                buffer[i] = SerializeString(default, length, encoding, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
 
             return buffer;
         }
@@ -336,7 +336,7 @@ namespace BinarySerializer
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = Serialize<T>(buffer[i], name: name == null ? null : name + "[" + i + "]");
+                buffer[i] = Serialize<T>(buffer[i], name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
 
             return buffer;
         }
@@ -358,7 +358,7 @@ namespace BinarySerializer
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = SerializeObject<T>(buffer[i], onPreSerialize: onPreSerialize, name: name == null ? null : name + "[" + i + "]");
+                buffer[i] = SerializeObject<T>(buffer[i], onPreSerialize: onPreSerialize, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
 
             return buffer;
         }
@@ -380,7 +380,7 @@ namespace BinarySerializer
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = SerializePointer(buffer[i], anchor: anchor, allowInvalid: allowInvalid, name: name == null ? null : $"{name}[{i}]");
+                buffer[i] = SerializePointer(buffer[i], anchor: anchor, allowInvalid: allowInvalid, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
 
             return buffer;
         }
@@ -402,7 +402,7 @@ namespace BinarySerializer
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = SerializePointer<T>(buffer[i], anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid, name: name == null ? null : $"{name}[{i}]");
+                buffer[i] = SerializePointer<T>(buffer[i], anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
 
             return buffer;
         }
