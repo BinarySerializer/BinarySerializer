@@ -354,6 +354,22 @@ namespace BinarySerializer
             return DoAt(Context.GetFile(key).StartPointer, func);
         }
 
+        public T DoAtEncoded<T>(Pointer offset, IStreamEncoder encoder, Func<T> action)
+        {
+            return DoAt(offset, () =>
+            {
+                var obj = default(T);
+
+                DoEncoded(encoder, () => obj = action());
+
+                return obj;
+            });
+        }
+        public void DoAtEncoded(Pointer offset, IStreamEncoder encoder, Action action)
+        {
+            DoAt(offset, () => DoEncoded(encoder, action));
+        }
+
         public abstract void DoEndian(Endian endianness, Action action);
 
         public abstract void SerializeBitValues<T>(Action<SerializeBits> serializeFunc) where T : new();
