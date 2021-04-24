@@ -57,9 +57,10 @@ namespace BinarySerializer
             return default;
         }
 
-        public void StoreObject<T>(string id, T obj)
+        public T StoreObject<T>(string id, T obj)
         {
             ObjectStorage[id] = obj;
+            return obj;
         }
 
         #endregion
