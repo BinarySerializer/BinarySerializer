@@ -5,7 +5,7 @@ namespace BinarySerializer
     /// <summary>
     /// A standard ARGB color wrapper with serializing support for the encoding RGB-565
     /// </summary>
-    public class RGB565Color : BaseColor
+    public class RGB565Color : BaseBitwiseColor
     {
         public RGB565Color() { }
         public RGB565Color(float r, float g, float b, float a = 1f) : base(r, g, b, a) { }

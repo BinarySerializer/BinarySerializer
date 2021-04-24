@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BinarySerializer
+﻿namespace BinarySerializer
 {
     /// <summary>
     /// A standard ARGB color wrapper with serializing support for the encoding RGB-888
@@ -9,15 +7,37 @@ namespace BinarySerializer
     {
         public RGB888Color() { }
         public RGB888Color(float r, float g, float b, float a = 1f) : base(r, g, b, a) { }
-        public RGB888Color(uint colorValue) : base(colorValue) { }
 
-        protected override IReadOnlyDictionary<ColorChannel, ColorChannelFormat> ColorFormatting => Format;
+        public byte R { get; set; }
+        public byte G { get; set; }
+        public byte B { get; set; }
 
-        protected static IReadOnlyDictionary<ColorChannel, ColorChannelFormat> Format = new Dictionary<ColorChannel, ColorChannelFormat>()
+        public override float Red
         {
-            [ColorChannel.Red] = new ColorChannelFormat(0, 8),
-            [ColorChannel.Green] = new ColorChannelFormat(8, 8),
-            [ColorChannel.Blue] = new ColorChannelFormat(16, 8),
-        };
+            get => R / 255f;
+            set => R = (byte)(value * 255);
+        }
+        public override float Green
+        {
+            get => G / 255f;
+            set => G = (byte)(value * 255);
+        }
+        public override float Blue
+        {
+            get => B / 255f;
+            set => B = (byte)(value * 255);
+        }
+        public override float Alpha
+        {
+            get => 1f;
+            set => _ = value;
+        }
+
+        public override void SerializeImpl(SerializerObject s)
+        {
+            R = s.Serialize<byte>(R, name: nameof(R));
+            G = s.Serialize<byte>(G, name: nameof(G));
+            B = s.Serialize<byte>(B, name: nameof(B));
+        }
     }
 }

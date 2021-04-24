@@ -5,7 +5,7 @@ namespace BinarySerializer
     /// <summary>
     /// A standard ARGB color wrapper with serializing support for the encoding BGRA-4441
     /// </summary>
-    public class BGRA4441Color : BaseColor
+    public class BGRA4441Color : BaseBitwiseColor
     {
         public BGRA4441Color() { }
         public BGRA4441Color(float r, float g, float b, float a = 1f) : base(r, g, b, a) { }

@@ -5,7 +5,7 @@ namespace BinarySerializer
     /// <summary>
     /// A standard ARGB color wrapper with serializing support for the encoding RGBA-5551
     /// </summary>
-    public class RGBA5551Color : BaseColor
+    public class RGBA5551Color : BaseBitwiseColor
     {
         public RGBA5551Color() { }
         public RGBA5551Color(float r, float g, float b, float a = 1f) : base(r, g, b, a) { }

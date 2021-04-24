@@ -5,7 +5,7 @@ namespace BinarySerializer
     /// <summary>
     /// A standard ARGB color wrapper with serializing support for the encoding GBR-655
     /// </summary>
-    public class GBR655Color : BaseColor
+    public class GBR655Color : BaseBitwiseColor
     {
         public GBR655Color() { }
         public GBR655Color(float r, float g, float b, float a = 1f) : base(r, g, b, a) { }
