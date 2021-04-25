@@ -57,6 +57,11 @@ namespace BinarySerializer
             return default;
         }
 
+        public void RemoveStoredObject(string id)
+        {
+            ObjectStorage.Remove(id);
+        }
+
         public T StoreObject<T>(string id, T obj)
         {
             ObjectStorage[id] = obj;
@@ -169,6 +174,12 @@ namespace BinarySerializer
 
         #endregion
 
+        #region Events
+
+        public event EventHandler Disposed;
+
+        #endregion
+
         #region Dispose
 
         public void Close()
@@ -183,7 +194,11 @@ namespace BinarySerializer
 
             Log.Dispose();
         }
-        public void Dispose() => Close();
+        public void Dispose()
+        {
+            Close();
+            Disposed?.Invoke(this, EventArgs.Empty);
+        }
 
         #endregion
     }
