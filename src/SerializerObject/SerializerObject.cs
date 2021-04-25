@@ -382,5 +382,11 @@ namespace BinarySerializer
         public virtual Task FillCacheForReadAsync(int length) => Task.CompletedTask;
 
         #endregion
+
+        #region Settings
+
+        public T GetSettings<T>() where T : class, ISerializerSettings => Context.GetSettings<T>();
+
+        #endregion
     }
 }

@@ -10,13 +10,13 @@ namespace BinarySerializer
     {
         #region Constructors
 
-        public Context(string basePath, Encoding defaultEncoding = null, ISerializerLog serializerLog = null, IFileManager fileManager = null, ILogger logger = null)
+        public Context(string basePath, ISerializerSettings settings = null, ISerializerLog serializerLog = null, IFileManager fileManager = null, ILogger logger = null)
         {
             // Set properties from parameters
             FileManager = fileManager ?? new DefaultFileManager();
             Logger = logger ?? new DefaultLogger();
             BasePath = FileManager.NormalizePath(basePath, true);
-            DefaultEncoding = defaultEncoding ?? Encoding.ASCII;
+            Settings = settings ?? new DefaultSerializerSettings();
             Log = serializerLog ?? new DefaultSerializerLog();
 
             // Initialize properties
@@ -40,8 +40,16 @@ namespace BinarySerializer
         public MemoryMap MemoryMap { get; }
         public SerializableCache Cache { get; }
         public ISerializerLog Log { get; }
-        public virtual bool CreateBackupOnWrite => false;
-        public Encoding DefaultEncoding { get; }
+
+        #endregion
+
+        #region Settings
+
+        public ISerializerSettings Settings { get; }
+        public T GetSettings<T>() where T : class, ISerializerSettings => (T)Settings;
+
+        public Encoding DefaultEncoding => Settings.DefaultStringEncoding;
+        public bool CreateBackupOnWrite => Settings.CreateBackupOnWrite;
 
         #endregion
 
