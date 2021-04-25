@@ -3,14 +3,10 @@
     /// <summary>
     /// A standard ARGB color wrapper with serializing support for the encoding RGB-666
     /// </summary>
-    public class RGB666Color : BaseColor
+    public class RGB666Color : BaseBytewiseRGBColor
     {
         public RGB666Color() { }
         public RGB666Color(float r, float g, float b, float a = 1f) : base(r, g, b, a) { }
-
-        public byte R { get; set; }
-        public byte G { get; set; }
-        public byte B { get; set; }
 
         public override float Red
         {

@@ -3,15 +3,10 @@
     /// <summary>
     /// A standard ARGB color wrapper with serializing support for the encoding RGBA-8888
     /// </summary>
-    public class RGBA8888Color : BaseColor
+    public class RGBA8888Color : BaseBytewiseRGBAColor
     {
         public RGBA8888Color() { }
         public RGBA8888Color(float r, float g, float b, float a = 1f) : base(r, g, b, a) { }
-
-        public byte R { get; set; }
-        public byte G { get; set; }
-        public byte B { get; set; }
-        public byte A { get; set; }
 
         public override float Red
         {
