@@ -90,6 +90,17 @@ namespace BinarySerializer
         public abstract Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false, string filename = null);
         public abstract void EndEncoded(Pointer endPointer);
         public abstract void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null);
+        public virtual T DoEncoded<T>(IStreamEncoder encoder, Func<T> action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null)
+        {
+            var obj = default(T);
+
+            DoEncoded(encoder, () =>
+            {
+                obj = action();
+            });
+
+            return obj;
+        }
         public void DoEncodedIf(IStreamEncoder encoder, bool isEncoded, Action action, Endian? endianness = null)
         {
             if (isEncoded)
@@ -357,14 +368,7 @@ namespace BinarySerializer
 
         public T DoAtEncoded<T>(Pointer offset, IStreamEncoder encoder, Func<T> action)
         {
-            return DoAt(offset, () =>
-            {
-                var obj = default(T);
-
-                DoEncoded(encoder, () => obj = action());
-
-                return obj;
-            });
+            return DoAt(offset, () => DoEncoded(encoder, action));
         }
         public void DoAtEncoded(Pointer offset, IStreamEncoder encoder, Action action)
         {
