@@ -10,11 +10,7 @@ namespace BinarySerializer
     {
         #region Constructors
 
-        public Reader(Stream stream) : base(stream)
-        {
-            IsLittleEndian = true;
-        }
-        public Reader(Stream stream, bool isLittleEndian) : base(stream)
+        public Reader(Stream stream, bool isLittleEndian = true, bool leaveOpen = false) : base(stream, new UTF8Encoding(), leaveOpen)
         {
             IsLittleEndian = isLittleEndian;
         }

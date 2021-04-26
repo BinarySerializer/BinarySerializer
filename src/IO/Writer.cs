@@ -8,11 +8,7 @@ namespace BinarySerializer
     {
         #region Constructors
 
-        public Writer(Stream stream) : base(stream)
-        {
-            IsLittleEndian = true;
-        }
-        public Writer(Stream stream, bool isLittleEndian) : base(stream)
+        public Writer(Stream stream, bool isLittleEndian = true, bool leaveOpen = false) : base(stream, new UTF8Encoding(), leaveOpen)
         {
             IsLittleEndian = isLittleEndian;
         }
