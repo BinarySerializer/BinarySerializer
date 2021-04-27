@@ -10,7 +10,7 @@ namespace BinarySerializer
     {
         #region Constructors
 
-        public Reader(Stream stream, bool isLittleEndian = true, bool leaveOpen = false) : base(stream, new UTF8Encoding(), leaveOpen)
+        public Reader(Stream stream, bool isLittleEndian = true, bool leaveOpen = false) : base(new StreamWrapper(stream), new UTF8Encoding(), leaveOpen)
         {
             IsLittleEndian = isLittleEndian;
         }
@@ -20,6 +20,7 @@ namespace BinarySerializer
         #region Public Properties
 
         public bool IsLittleEndian { get; set; }
+        public new StreamWrapper BaseStream => (StreamWrapper)base.BaseStream;
 
         #endregion
 
@@ -27,8 +28,17 @@ namespace BinarySerializer
 
         protected uint BytesSinceAlignStart { get; set; }
         protected bool AutoAlignOn { get; set; }
-        protected IXORCalculator XORCalculator { get; set; }
-        protected IChecksumCalculator ChecksumCalculator { get; set; }
+
+        protected IXORCalculator XORCalculator
+        {
+            get => BaseStream.XORCalculator;
+            set => BaseStream.XORCalculator = value;
+        }
+        protected IChecksumCalculator ChecksumCalculator
+        {
+            get => BaseStream.ChecksumCalculator;
+            set => BaseStream.ChecksumCalculator = value;
+        }
 
         #endregion
 
@@ -111,20 +121,6 @@ namespace BinarySerializer
             if (AutoAlignOn)
                 BytesSinceAlignStart += (uint)bytes.Length;
 
-            if (ChecksumCalculator?.CalculateForDecryptedData == false)
-                ChecksumCalculator?.AddBytes(bytes);
-
-            if (XORCalculator != null)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    bytes[i] = XORCalculator.XORByte(bytes[i]);
-                }
-            }
-
-            if (ChecksumCalculator?.CalculateForDecryptedData == true)
-                ChecksumCalculator?.AddBytes(bytes);
-
             return bytes;
         }
 
@@ -136,15 +132,6 @@ namespace BinarySerializer
 
             if (AutoAlignOn)
                 BytesSinceAlignStart++;
-
-            if (ChecksumCalculator?.CalculateForDecryptedData == false)
-                ChecksumCalculator?.AddByte(result);
-
-            if (XORCalculator != null)
-                result = XORCalculator.XORByte(result);
-
-            if (ChecksumCalculator?.CalculateForDecryptedData == true)
-                ChecksumCalculator?.AddByte(result);
 
             return result;
         }

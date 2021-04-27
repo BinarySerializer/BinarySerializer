@@ -8,7 +8,7 @@ namespace BinarySerializer
     {
         #region Constructors
 
-        public Writer(Stream stream, bool isLittleEndian = true, bool leaveOpen = false) : base(stream, new UTF8Encoding(), leaveOpen)
+        public Writer(Stream stream, bool isLittleEndian = true, bool leaveOpen = false) : base(new StreamWrapper(stream), new UTF8Encoding(), leaveOpen)
         {
             IsLittleEndian = isLittleEndian;
         }
@@ -18,15 +18,25 @@ namespace BinarySerializer
         #region Public Properties
 
         public bool IsLittleEndian { get; set; }
+        public new StreamWrapper BaseStream => (StreamWrapper)base.BaseStream;
 
         #endregion
 
         #region Protected Properties
 
-        protected IXORCalculator XORCalculator { get; set; }
-        protected IChecksumCalculator ChecksumCalculator { get; set; }
         protected uint BytesSinceAlignStart { get; set; }
         protected bool AutoAlignOn { get; set; }
+
+        protected IXORCalculator XORCalculator
+        {
+            get => BaseStream.XORCalculator;
+            set => BaseStream.XORCalculator = value;
+        }
+        protected IChecksumCalculator ChecksumCalculator
+        {
+            get => BaseStream.ChecksumCalculator;
+            set => BaseStream.ChecksumCalculator = value;
+        }
 
         #endregion
 
@@ -130,43 +140,14 @@ namespace BinarySerializer
             if (buffer == null)
                 return;
 
-            var data = buffer;
-
-            if (ChecksumCalculator?.CalculateForDecryptedData == true)
-                ChecksumCalculator?.AddBytes(data);
-
-            if (XORCalculator != null)
-            {
-                // Avoid changing data in array, so create a copy
-                data = new byte[buffer.Length];
-                Array.Copy(buffer, 0, data, 0, buffer.Length);
-
-                for (int i = 0; i < data.Length; i++)
-                {
-                    data[i] = XORCalculator.XORByte(data[i]);
-                }
-            }
-
-            if (ChecksumCalculator?.CalculateForDecryptedData == false)
-                ChecksumCalculator?.AddBytes(data);
-
-            base.Write(data);
+            base.Write(buffer);
 
             if (AutoAlignOn)
-                BytesSinceAlignStart += (uint)data.Length;
+                BytesSinceAlignStart += (uint)buffer.Length;
         }
 
         public override void Write(byte value)
         {
-            if (ChecksumCalculator?.CalculateForDecryptedData == true)
-                ChecksumCalculator?.AddByte(value);
-
-            if (XORCalculator != null)
-                value = XORCalculator.XORByte(value);
-
-            if (ChecksumCalculator?.CalculateForDecryptedData == false)
-                ChecksumCalculator?.AddByte(value);
-
             base.Write(value);
 
             if (AutoAlignOn)

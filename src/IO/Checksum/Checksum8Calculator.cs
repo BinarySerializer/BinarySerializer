@@ -32,10 +32,12 @@
         /// Adds an array of bytes to the checksum
         /// </summary>
         /// <param name="bytes">The bytes to add</param>
-        public void AddBytes(byte[] bytes)
+        /// <param name="offset">The offset in the array to start reading from</param>
+        /// <param name="count">The amount of bytes to read from the array</param>
+        public void AddBytes(byte[] bytes, int offset, int count)
         {
-            foreach (var b in bytes)
-                AddByte(b);
+            for (int i = 0; i < count; i++)
+                AddByte(bytes[offset + i]);
         }
 
         /// <summary>
