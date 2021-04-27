@@ -101,12 +101,19 @@ namespace BinarySerializer
 
             return obj;
         }
-        public void DoEncodedIf(IStreamEncoder encoder, bool isEncoded, Action action, Endian? endianness = null)
+        public virtual void DoEncodedIf(IStreamEncoder encoder, bool isEncoded, Action action, Endian? endianness = null)
         {
             if (isEncoded)
                 DoEncoded(encoder, action, endianness);
             else
                 action();
+        }
+        public virtual T DoEncodedIf<T>(IStreamEncoder encoder, bool isEncoded, Func<T> action, Endian? endianness = null)
+        {
+            if (isEncoded)
+                return DoEncoded(encoder, action, endianness);
+            else
+                return action();
         }
 
         #endregion
