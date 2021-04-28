@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.Remoting;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -182,7 +181,6 @@ namespace BinarySerializer
         }
 
         // Other
-        public override ObjRef CreateObjRef(Type requestedType) => InnerStream.CreateObjRef(requestedType);
         public override object InitializeLifetimeService() => InnerStream.InitializeLifetimeService();
         public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => InnerStream.CopyToAsync(destination, bufferSize, cancellationToken);
 
