@@ -74,6 +74,12 @@ namespace BinarySerializer
         /// <param name="logString">The string to log</param>
         public abstract void Log(string logString);
 
+        /// <summary>
+        /// Logs a warning message (to log to the serializer log use <see cref="Log"/> instead)
+        /// </summary>
+        /// <param name="message">The message to log</param>
+        public void LogWarning(string message) => Logger?.LogWarning(message);
+
         #endregion
 
         #region Encoding
