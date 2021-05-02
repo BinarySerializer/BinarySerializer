@@ -18,7 +18,7 @@ namespace BinarySerializer
             File = file;
             Context = file.Context;
 
-            if (Context != null && file.SavePointersToMemoryMap)
+            if (Context != null && Context.SavePointersForRelocation && file.SavePointersToMemoryMap)
                 Context.MemoryMap.AddPointer(this);
         }
 

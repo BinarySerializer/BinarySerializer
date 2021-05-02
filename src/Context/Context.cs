@@ -50,6 +50,7 @@ namespace BinarySerializer
 
         public Encoding DefaultEncoding => Settings.DefaultStringEncoding;
         public bool CreateBackupOnWrite => Settings.CreateBackupOnWrite;
+        public bool SavePointersForRelocation => Settings.SavePointersForRelocation;
 
         #endregion
 

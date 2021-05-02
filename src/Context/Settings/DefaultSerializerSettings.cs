@@ -27,5 +27,10 @@ namespace BinarySerializer
         /// Indicates if a backup file should be created when writing to a file
         /// </summary>
         public virtual bool CreateBackupOnWrite { get; }
+
+        /// <summary>
+        /// Indicates if pointers should be saved in the Memory Map for relocation
+        /// </summary>
+        public virtual bool SavePointersForRelocation { get; }
     }
 }
