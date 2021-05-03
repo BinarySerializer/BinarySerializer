@@ -6,18 +6,14 @@ namespace BinarySerializer
 {
     public class MemoryMappedFile : BinaryFile 
     {
-		public MemoryMappedFile(Context context, uint baseAddress) : base(context) 
+        public MemoryMappedFile(Context context, string filePath, uint baseAddress, Endian endianness = Endian.Little, long fileLength = 0) : base(context, filePath, endianness, baseAddress)
         {
-			BaseAddress = baseAddress;
-		}
-
-        public override long BaseAddress { get; }
-
-        public override Pointer StartPointer => new Pointer((uint)BaseAddress, this);
+            length = fileLength;
+        }
 
 		public override Reader CreateReader() {
 			Stream s = FileManager.GetFileReadStream(AbsolutePath);
-			length = (uint)s.Length;
+			length = s.Length;
 			Reader reader = new Reader(s, isLittleEndian: Endianness == Endian.Little);
 			return reader;
 		}
@@ -25,23 +21,24 @@ namespace BinarySerializer
 		public override Writer CreateWriter() {
 			CreateBackupFile();
 			Stream s = FileManager.GetFileWriteStream(AbsolutePath, RecreateOnWrite);
-			length = (uint)s.Length;
+			length = s.Length;
 			Writer writer = new Writer(s, isLittleEndian: Endianness == Endian.Little);
 			return writer;
 		}
 
-		private uint length = 0;
-		public virtual uint Length {
-			get {
-				if (length == 0) {
-					using (Stream s = FileManager.GetFileReadStream(AbsolutePath)) {
-						length = (uint)s.Length;
-					}
-				}
-				return length;
-			}
-			set => length = value;
-        }
+		private long length;
+        public override long Length
+        {
+			get
+            {
+                if (length == 0)
+                {
+                    using Stream s = FileManager.GetFileReadStream(AbsolutePath);
+                    length = s.Length;
+                }
+                return length;
+            }
+		}
 
 		public virtual Pointer GetPointerInThisFileOnly(uint serializedValue, Pointer anchor = null) {
 			uint anchorOffset = anchor?.AbsoluteOffset ?? 0;
@@ -58,5 +55,5 @@ namespace BinarySerializer
 			files.Sort((a, b) => b.BaseAddress.CompareTo(a.BaseAddress));
             return files.Select(f => f.GetPointerInThisFileOnly(serializedValue, anchor: anchor)).FirstOrDefault(p => p != null);
         }
-	}
+    }
 }

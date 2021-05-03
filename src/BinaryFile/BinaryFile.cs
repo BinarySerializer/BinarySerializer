@@ -9,10 +9,23 @@ namespace BinarySerializer
     {
         #region Constructor
 
-        protected BinaryFile(Context context)
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="context">The context the file belongs to</param>
+        /// <param name="filePath">The file path relative to the main directory in the context</param>
+        /// <param name="endianness">The endianness to use when serializing the file</param>
+        /// <param name="baseAddress">The base address for the file. If the file is not memory mapped this should be 0.</param>
+        /// <param name="startPointer">The start pointer for the file. If null it will be the same as <see cref="BaseAddress"/></param>
+        protected BinaryFile(Context context, string filePath, Endian endianness = Endian.Little, long baseAddress = 0, Pointer startPointer = null)
         {
-            Context = context;
-            PredefinedPointers = new Dictionary<uint, Pointer>();
+            Context = context ?? throw new ArgumentNullException(nameof(context));
+            FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
+            AbsolutePath = Context.GetAbsoluteFilePath(filePath);
+            Endianness = endianness;
+            RecreateOnWrite = true;
+            BaseAddress = baseAddress;
+            StartPointer = startPointer ?? new Pointer((uint)baseAddress, this);
         }
 
         #endregion
@@ -26,16 +39,19 @@ namespace BinarySerializer
         #region Public Properties
 
         /// <summary>
-        /// The context the file is included in
+        /// The context the file belongs to
         /// </summary>
         public Context Context { get; }
 
-        public Endian Endianness { get; set; } = Endian.Little;
+        /// <summary>
+        /// The endianness to use when serializing the file
+        /// </summary>
+        public Endian Endianness { get; }
 
         /// <summary>
         /// Indicates if the file should be recreated when writing to it
         /// </summary>
-        public bool RecreateOnWrite { get; set; } = true;
+        public bool RecreateOnWrite { get; set; }
 
         /// <summary>
         /// Files can be identified with an alias besides <see cref="FilePath"/>
@@ -45,20 +61,37 @@ namespace BinarySerializer
         /// <summary>
         /// The file path relative to the main directory in the context
         /// </summary>
-        public string FilePath { get; set; }
-        public string AbsolutePath => Context.BasePath + FilePath;
+        public string FilePath { get; }
 
-        public virtual long BaseAddress => 0;
-        public abstract Pointer StartPointer { get; }
+        /// <summary>
+        /// The absolute path to the file
+        /// </summary>
+        public string AbsolutePath { get; }
+
+        /// <summary>
+        /// The base address for the file. If the file is not memory mapped this should be 0.
+        /// </summary>
+        public long BaseAddress { get; }
+
+        /// <summary>
+        /// The length of the file
+        /// </summary>
+        public abstract long Length { get; }
+
+        /// <summary>
+        /// The start pointer for the file
+        /// </summary>
+        public Pointer StartPointer { get; }
+
+        /// <summary>
+        /// Indicates if pointers leading to this file should be saved to the Memory Map
+        /// </summary>
         public virtual bool SavePointersToMemoryMap => true;
+
+        /// <summary>
+        /// Indicates if objects read from this file should not be cached
+        /// </summary>
         public virtual bool IgnoreCacheOnRead => false;
-
-        #endregion
-
-        #region Protected Properties
-
-        protected Dictionary<uint, Pointer> PredefinedPointers { get; }
-        protected SortedList<long, Region> Regions { get; set; }
 
         #endregion
 
@@ -70,13 +103,10 @@ namespace BinarySerializer
         public virtual Pointer GetPointer(uint serializedValue, Pointer anchor = null) => new Pointer(serializedValue, this, anchor: anchor);
         public virtual bool AllowInvalidPointer(uint serializedValue, Pointer anchor = null) => false;
 
-        public virtual Pointer GetPreDefinedPointer(uint offset) => PredefinedPointers.ContainsKey(offset) ? PredefinedPointers[offset] : null;
-
         public virtual void EndRead(Reader reader)
         {
             reader?.Dispose();
         }
-
         public virtual void EndWrite(Writer writer)
         {
             writer?.Flush();
@@ -85,19 +115,32 @@ namespace BinarySerializer
 
         protected void CreateBackupFile()
         {
-            if (Context.CreateBackupOnWrite && !FileManager.FileExists(AbsolutePath + ".BAK") && FileManager.FileExists(AbsolutePath))
+            var backupPath = AbsolutePath + ".BAK";
+
+            if (Context.CreateBackupOnWrite && !FileManager.FileExists(backupPath) && FileManager.FileExists(AbsolutePath))
             {
-                using (Stream s = FileManager.GetFileReadStream(AbsolutePath))
-                {
-                    using (Stream sb = FileManager.GetFileWriteStream(AbsolutePath + ".BAK"))
-                    {
-                        s.CopyTo(sb);
-                    }
-                }
+                using Stream s = FileManager.GetFileReadStream(AbsolutePath);
+                using Stream sb = FileManager.GetFileWriteStream(backupPath);
+                s.CopyTo(sb);
             }
         }
 
         public virtual void Dispose() { }
+
+        #endregion
+
+        #region Pre-Defined Pointers
+
+        protected Dictionary<uint, Pointer> PredefinedPointers { get; set; }
+
+        public virtual void AddPreDefinedPointer(uint offset, Pointer pointer)
+        {
+            if (PredefinedPointers == null)
+                PredefinedPointers = new Dictionary<uint, Pointer>();
+
+            PredefinedPointers.Add(offset, pointer);
+        }
+        public virtual Pointer GetPreDefinedPointer(uint offset) => PredefinedPointers?.ContainsKey(offset) == true ? PredefinedPointers[offset] : null;
 
         #endregion
 
@@ -132,6 +175,8 @@ namespace BinarySerializer
         #endregion
 
         #region Region
+
+        protected SortedList<long, Region> Regions { get; set; }
 
         public void AddRegion(long offset, long length, string name)
         {

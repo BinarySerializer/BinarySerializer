@@ -15,7 +15,7 @@ namespace BinarySerializer
             // Set properties from parameters
             FileManager = fileManager ?? new DefaultFileManager();
             Logger = logger ?? new DefaultLogger();
-            BasePath = FileManager.NormalizePath(basePath, true);
+            BasePath = NormalizePath(basePath, true);
             Settings = settings ?? new DefaultSerializerSettings();
             Log = serializerLog ?? new DefaultSerializerLog();
 
@@ -83,19 +83,31 @@ namespace BinarySerializer
 
         public Stream GetFileStream(string relativePath)
         {
-            Stream str = FileManager.GetFileReadStream(BasePath + FileManager.NormalizePath(relativePath, false));
+            Stream str = FileManager.GetFileReadStream(GetAbsoluteFilePath(NormalizePath(relativePath, false)));
             return str;
         }
         public BinaryFile GetFile(string relativePath)
         {
-            string path = FileManager.NormalizePath(relativePath, false);
+            string path = NormalizePath(relativePath, false);
             return MemoryMap.Files.FirstOrDefault<BinaryFile>(f => f.FilePath?.ToLower() == path?.ToLower() || f.Alias?.ToLower() == relativePath?.ToLower());
+        }
+
+        public virtual string GetAbsoluteFilePath(string relativePath) => BasePath + relativePath;
+        public virtual string NormalizePath(string path, bool isDirectory)
+        {
+            string newPath = path.Replace("\\", "/");
+            
+            if (isDirectory && !newPath.EndsWith("/")) 
+                newPath += "/";
+            
+            return newPath;
         }
 
         public void AddFile(BinaryFile file)
         {
             MemoryMap.Files.Add(file);
         }
+        public void RemoveFile(string filePath) => RemoveFile(GetFile(filePath));
         public void RemoveFile(BinaryFile file)
         {
             MemoryMap.Files.Remove(file);

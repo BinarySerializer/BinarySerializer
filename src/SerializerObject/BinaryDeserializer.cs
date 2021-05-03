@@ -70,28 +70,33 @@ namespace BinarySerializer
         {
             // Stream key
             string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
-            // Decode the data into a stream
-            using (var memStream = encoder.DecodeStream(Reader.BaseStream))
-            {
 
-                // Add the stream
-                StreamFile sf = new StreamFile(key, memStream, Context)
-                {
-                    Endianness = endianness ?? CurrentFile.Endianness,
-                    AllowLocalPointers = allowLocalPointers
-                };
+            // Decode the data into a stream
+            using var memStream = encoder.DecodeStream(Reader.BaseStream);
+
+            // Add the stream
+            StreamFile sf = new StreamFile(
+                context: Context,
+                name: key,
+                stream: memStream,
+                endianness: endianness ?? CurrentFile.Endianness,
+                allowLocalPointers: allowLocalPointers);
+
+            try
+            {
                 Context.AddFile(sf);
 
-                DoAt(sf.StartPointer, () => {
+                DoAt(sf.StartPointer, () =>
+                {
                     action();
+
                     if (CurrentPointer != sf.StartPointer + sf.Length)
-                    {
                         Logger.LogWarning($"Encoded block {key} was not fully deserialized: Serialized size: {CurrentPointer - sf.StartPointer} != Total size: {sf.Length}");
-                    }
                 });
-
+            }
+            finally
+            {
                 Context.RemoveFile(sf);
-
             }
         }
 
@@ -102,11 +107,12 @@ namespace BinarySerializer
 
             // Add the stream
             Stream memStream = encoder.DecodeStream(Reader.BaseStream);
-            StreamFile sf = new StreamFile(key, memStream, Context)
-            {
-                Endianness = endianness ?? CurrentFile.Endianness,
-                AllowLocalPointers = allowLocalPointers
-            };
+            StreamFile sf = new StreamFile(
+                context: Context, 
+                name: key, 
+                stream: memStream, 
+                endianness: endianness ?? CurrentFile.Endianness,
+                allowLocalPointers: allowLocalPointers);
             Context.AddFile(sf);
             EncodedFiles.Add(new EncodedState()
             {

@@ -351,32 +351,31 @@ namespace BinarySerializer
             return t;
             //return Context.FilePointer<T>(relativePath)?.Resolve(this, onPreSerialize: onPreSerialize).Value;
         }
-        public T SerializeFromBytes<T>(byte[] bytes, string key, Action<T> onPreSerialize = null, string name = null)
+        public T SerializeFromBytes<T>(byte[] bytes, string key, Action<T> onPreSerialize = null, bool removeFile = true, string name = null)
             where T : BinarySerializable, new()
         {
-            if (bytes == null)
-                return default;
-
-            if (!Context.FileExists(key))
-            {
-                var typeStream = new MemoryStream(bytes);
-                Context.AddFile(new StreamFile(key, typeStream, Context));
-            }
-
-            return DoAt(Context.GetFile(key).StartPointer, () => SerializeObject<T>(default, onPreSerialize, name: name ?? key));
+            return DoAtBytes(bytes, key, () => SerializeObject<T>(default, onPreSerialize, name: name ?? key), removeFile);
         }
-        public T DoAtBytes<T>(byte[] bytes, string key, Func<T> func)
+        public T DoAtBytes<T>(byte[] bytes, string key, Func<T> func, bool removeFile = true)
         {
             if (bytes == null)
                 return default;
 
-            if (!Context.FileExists(key))
+            try
             {
-                var typeStream = new MemoryStream(bytes);
-                Context.AddFile(new StreamFile(key, typeStream, Context));
-            }
+                if (!Context.FileExists(key))
+                {
+                    var typeStream = new MemoryStream(bytes);
+                    Context.AddFile(new StreamFile(Context, key, typeStream));
+                }
 
-            return DoAt(Context.GetFile(key).StartPointer, func);
+                return DoAt(Context.GetFile(key).StartPointer, func);
+            }
+            finally
+            {
+                if (removeFile)
+                    Context.RemoveFile(key);
+            }
         }
 
         public T DoAtEncoded<T>(Pointer offset, IStreamEncoder encoder, Func<T> action)

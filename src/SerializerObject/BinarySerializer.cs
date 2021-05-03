@@ -77,20 +77,28 @@ namespace BinarySerializer
                 string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
 
                 // Add the stream
-                StreamFile sf = new StreamFile(key, memStream, Context)
+                StreamFile sf = new StreamFile(
+                    context: Context,
+                    name: key,
+                    stream: memStream,
+                    endianness: endianness ?? CurrentFile.Endianness,
+                    allowLocalPointers: allowLocalPointers);
+
+                try
                 {
-                    Endianness = endianness ?? CurrentFile.Endianness,
-                    AllowLocalPointers = allowLocalPointers
-                };
-                Context.AddFile(sf);
+                    Context.AddFile(sf);
 
-                DoAt(sf.StartPointer, () => {
-                    action();
-                    memStream.Position = 0;
-                    encoded = encoder.EncodeStream(memStream);
-                });
-
-                Context.RemoveFile(sf);
+                    DoAt(sf.StartPointer, () =>
+                    {
+                        action();
+                        memStream.Position = 0;
+                        encoded = encoder.EncodeStream(memStream);
+                    });
+                }
+                finally
+                {
+                    Context.RemoveFile(sf);
+                }
             }
             // Turn stream into array & write bytes
             if (encoded != null)
@@ -111,12 +119,16 @@ namespace BinarySerializer
 
             // Add the stream
             MemoryStream memStream = new MemoryStream();
-            StreamFile sf = new StreamFile(key, memStream, Context)
-            {
-                Endianness = endianness ?? CurrentFile.Endianness,
-                AllowLocalPointers = allowLocalPointers
-            };
+
+            StreamFile sf = new StreamFile(
+                context: Context,
+                name: key,
+                stream: memStream,
+                endianness: endianness ?? CurrentFile.Endianness,
+                allowLocalPointers: allowLocalPointers);
+
             Context.AddFile(sf);
+
             EncodedFiles.Add(new EncodedState()
             {
                 File = sf,

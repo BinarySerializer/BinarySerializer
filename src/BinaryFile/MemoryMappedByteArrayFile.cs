@@ -5,20 +5,25 @@ namespace BinarySerializer
 {
     public class MemoryMappedByteArrayFile : MemoryMappedFile
     {
-        public MemoryMappedByteArrayFile(string name, uint length, Context context, uint baseAddress) : base(context, baseAddress)
+        public MemoryMappedByteArrayFile(Context context, string name, uint baseAddress, uint length, Endian endianness = Endian.Little) : base(context, name, baseAddress, endianness)
         {
-            FilePath = name;
             Bytes = new byte[length];
         }
-        public MemoryMappedByteArrayFile(string name, byte[] bytes, Context context, uint baseAddress) : base(context, baseAddress) 
+
+        public MemoryMappedByteArrayFile(Context context, string name, uint baseAddress, byte[] bytes, Endian endianness = Endian.Little) : base(context, name, baseAddress, endianness)
         {
-            FilePath = name;
-            Bytes = bytes;
+            Bytes = bytes ?? throw new ArgumentNullException(nameof(bytes));
         }
 
-        public override uint Length => (uint)Bytes.Length;
+        public override long Length => Bytes.Length;
 
-        public byte[] Bytes { get; }
+        private byte[] _bytes;
+
+        protected byte[] Bytes
+        {
+            get => _bytes ?? throw new ObjectDisposedException(nameof(Stream));
+            set => _bytes = value;
+        }
 
         public override Reader CreateReader()
         {
@@ -34,6 +39,13 @@ namespace BinarySerializer
 
         public void WriteBytes(uint position, byte[] source) {
             Array.Copy(source, 0, Bytes, position, Math.Min(source.Length, Bytes.Length-position));
+        }
+
+        public override void Dispose()
+        {
+            // Dispose base file
+            base.Dispose();
+            Bytes = null;
         }
     }
 }
