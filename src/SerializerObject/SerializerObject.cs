@@ -397,7 +397,7 @@ namespace BinarySerializer
             var a = SerializeArray<byte>(new byte[length], length, name: name);
 
             if (logIfNotNull && a.Any(x => x != 0))
-                Logger.LogWarning($"Padding at {CurrentPointer - length} contains data! Data: {a.ToHexString()}");
+                LogWarning($"Padding at {CurrentPointer - length} contains data! Data: {a.ToHexString()}");
         }
 
         #endregion

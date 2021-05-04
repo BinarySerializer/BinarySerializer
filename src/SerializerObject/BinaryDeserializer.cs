@@ -91,7 +91,7 @@ namespace BinarySerializer
                     action();
 
                     if (CurrentPointer != sf.StartPointer + sf.Length)
-                        Logger.LogWarning($"Encoded block {key} was not fully deserialized: Serialized size: {CurrentPointer - sf.StartPointer} != Total size: {sf.Length}");
+                        LogWarning($"Encoded block {key} was not fully deserialized: Serialized size: {CurrentPointer - sf.StartPointer} != Total size: {sf.Length}");
                 });
             }
             finally
@@ -135,7 +135,7 @@ namespace BinarySerializer
                 var key = sf.FilePath;
                 if (endPointer != sf.StartPointer + sf.Length)
                 {
-                    Logger.LogWarning($"Encoded block {key} was not fully deserialized: Serialized size: {endPointer - sf.StartPointer} != Total size: {sf.Length}");
+                    LogWarning($"Encoded block {key} was not fully deserialized: Serialized size: {endPointer - sf.StartPointer} != Total size: {sf.Length}");
                 }
 
                 Context.RemoveFile(sf);
@@ -181,7 +181,7 @@ namespace BinarySerializer
             CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             if (!checksum.Equals(calculatedChecksum))
-                Logger.LogWarning($"Checksum {name} did not match!");
+                LogWarning($"Checksum {name} did not match!");
 
             if (IsLogEnabled)
                 Context.Log.Log($"{logString}({typeof(T)}) {(name ?? "<no name>")}: {checksum} - Checksum to match: {calculatedChecksum} - Matched? {checksum.Equals(calculatedChecksum)}");
@@ -583,7 +583,7 @@ namespace BinarySerializer
 
                     if (b != 0 && b != 1)
                     {
-                        Logger.LogWarning($"Binary boolean '{name}' ({b}) was not correctly formatted");
+                        LogWarning($"Binary boolean '{name}' ({b}) was not correctly formatted");
 
                         if (IsLogEnabled)
                             Context.Log.Log($"{LogPrefix} ({typeof(T)}): Binary boolean was not correctly formatted ({b})");

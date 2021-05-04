@@ -14,7 +14,7 @@ namespace BinarySerializer
         {
             // Set properties from parameters
             FileManager = fileManager ?? new DefaultFileManager();
-            Logger = logger ?? new DefaultLogger();
+            Logger = logger;
             BasePath = NormalizePath(basePath, true);
             Settings = settings ?? new DefaultSerializerSettings();
             Log = serializerLog ?? new DefaultSerializerLog();
