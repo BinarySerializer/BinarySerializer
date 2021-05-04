@@ -12,9 +12,13 @@ namespace BinarySerializer
         /// </summary>
         /// <param name="defaultStringEncoding">The default string encoding to use when none is specified. Set to null for <see cref="Encoding.UTF8"/></param>
         /// <param name="createBackupOnWrite">Indicates if a backup file should be created when writing to a file</param>
-        public DefaultSerializerSettings(Encoding defaultStringEncoding = null, bool createBackupOnWrite = false)
+        /// <param name="savePointersForRelocation">Indicates if pointers should be saved in the Memory Map for relocation</param>
+        /// <param name="ignoreCacheOnRead">Indicates if caching read objects should be ignored</param>
+        public DefaultSerializerSettings(Encoding defaultStringEncoding = null, bool createBackupOnWrite = false, bool savePointersForRelocation = false, bool ignoreCacheOnRead = false)
         {
             DefaultStringEncoding = defaultStringEncoding ?? Encoding.UTF8;
+            SavePointersForRelocation = savePointersForRelocation;
+            IgnoreCacheOnRead = ignoreCacheOnRead;
             CreateBackupOnWrite = createBackupOnWrite;
         }
 
@@ -32,5 +36,10 @@ namespace BinarySerializer
         /// Indicates if pointers should be saved in the Memory Map for relocation
         /// </summary>
         public virtual bool SavePointersForRelocation { get; }
+
+        /// <summary>
+        /// Indicates if caching read objects should be ignored
+        /// </summary>
+        public bool IgnoreCacheOnRead { get; }
     }
 }

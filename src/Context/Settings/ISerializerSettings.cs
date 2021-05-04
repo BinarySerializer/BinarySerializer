@@ -21,5 +21,10 @@ namespace BinarySerializer
         /// Indicates if pointers should be saved in the Memory Map for relocation
         /// </summary>
         bool SavePointersForRelocation { get; }
+
+        /// <summary>
+        /// Indicates if caching read objects should be ignored
+        /// </summary>
+        bool IgnoreCacheOnRead { get; }
     }
 }

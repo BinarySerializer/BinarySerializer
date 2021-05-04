@@ -140,11 +140,13 @@ namespace BinarySerializer
             return f != null;
         }
 
-        public T GetMainFileObject<T>(string relativePath) where T : BinarySerializable
+        public T GetMainFileObject<T>(string relativePath) 
+            where T : BinarySerializable
         {
             return GetMainFileObject<T>(GetFile(relativePath));
         }
-        public T GetMainFileObject<T>(BinaryFile file) where T : BinarySerializable
+        public T GetMainFileObject<T>(BinaryFile file) 
+            where T : BinarySerializable
         {
             if (file == null)
                 return default;

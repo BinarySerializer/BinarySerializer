@@ -224,20 +224,25 @@ namespace BinarySerializer
 
         public override T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null)
         {
+            var ignoreCacheOnRead = CurrentFile.IgnoreCacheOnRead || Context.Settings.IgnoreCacheOnRead;
+
+            // Get the current pointer
             Pointer current = CurrentPointer;
-            T instance = Context.Cache.FromOffset<T>(current);
-            if (instance == null || CurrentFile.IgnoreCacheOnRead)
+
+            // Attempt to get a cached instance of the object if caching is enabled
+            T instance = ignoreCacheOnRead ? null : Context.Cache.FromOffset<T>(current);
+
+            // If we did not get a cached object we create a new one
+            if (instance == null)
             {
-                bool newInstance = false;
-                if (instance == null)
-                {
-                    newInstance = true;
-                    instance = new T();
-                }
+                // Create a new instance
+                instance = new T();
+
+                // Initialize the instance
                 instance.Init(current);
 
-                // Do not cache already created objects
-                if (newInstance)
+                // Cache the object if caching is enabled
+                if (!ignoreCacheOnRead)
                     Context.Cache.Add<T>(instance);
 
                 string logString = IsLogEnabled ? LogPrefix : null;
@@ -248,7 +253,8 @@ namespace BinarySerializer
                     isLogTemporarilyDisabled = true;
                 }
 
-                if (IsLogEnabled) Context.Log.Log($"{logString}(Object: {typeof(T)}) {(name ?? "<no name>")}");
+                if (IsLogEnabled) 
+                    Context.Log.Log($"{logString}(Object: {typeof(T)}) {(name ?? "<no name>")}");
 
                 Depth++;
                 onPreSerialize?.Invoke(instance);
