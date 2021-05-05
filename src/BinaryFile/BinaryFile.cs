@@ -136,7 +136,7 @@ namespace BinarySerializer
         public virtual void AddPreDefinedPointer(uint offset, Pointer pointer)
         {
             if (PredefinedPointers == null)
-                PredefinedPointers = new Dictionary<uint, Pointer>();
+                PredefinedPointers = new Dictionary<long, Pointer>();
 
             PredefinedPointers.Add(offset, pointer);
         }
