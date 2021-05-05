@@ -5,7 +5,7 @@ namespace BinarySerializer
     /// <summary>
     /// Default class for serializer settings
     /// </summary>
-    public class DefaultSerializerSettings : ISerializerSettings
+    public class SerializerSettings : ISerializerSettings
     {
         /// <summary>
         /// Default constructor
@@ -14,7 +14,7 @@ namespace BinarySerializer
         /// <param name="createBackupOnWrite">Indicates if a backup file should be created when writing to a file</param>
         /// <param name="savePointersForRelocation">Indicates if pointers should be saved in the Memory Map for relocation</param>
         /// <param name="ignoreCacheOnRead">Indicates if caching read objects should be ignored</param>
-        public DefaultSerializerSettings(Encoding defaultStringEncoding = null, bool createBackupOnWrite = false, bool savePointersForRelocation = false, bool ignoreCacheOnRead = false)
+        public SerializerSettings(Encoding defaultStringEncoding = null, bool createBackupOnWrite = false, bool savePointersForRelocation = false, bool ignoreCacheOnRead = false)
         {
             DefaultStringEncoding = defaultStringEncoding ?? Encoding.UTF8;
             SavePointersForRelocation = savePointersForRelocation;

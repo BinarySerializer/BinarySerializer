@@ -16,13 +16,14 @@ namespace BinarySerializer
             FileManager = fileManager ?? new DefaultFileManager();
             Logger = logger;
             BasePath = NormalizePath(basePath, true);
-            Settings = settings ?? new DefaultSerializerSettings();
+            Settings = settings ?? new SerializerSettings();
             Log = serializerLog ?? new DefaultSerializerLog();
 
             // Initialize properties
             MemoryMap = new MemoryMap();
             Cache = new SerializableCache(Logger);
             ObjectStorage = new Dictionary<string, object>();
+            AdditionalSettings = new Dictionary<Type, object>();
         }
 
         #endregion
@@ -46,7 +47,29 @@ namespace BinarySerializer
         #region Settings
 
         public ISerializerSettings Settings { get; }
-        public T GetSettings<T>() where T : class, ISerializerSettings => (T)Settings;
+
+        protected Dictionary<Type, object> AdditionalSettings { get; }
+        public T GetSettings<T>(bool throwIfNotFound = true) 
+        {
+            var s = AdditionalSettings.TryGetValue(typeof(T), out object settings) ? settings : null;
+
+            if (s != null) 
+                return (T)s;
+
+            if (throwIfNotFound)
+                throw new Exception($"The requested serializer settings of type {typeof(T)} could not be found");
+
+            return default;
+        }
+        public T AddSettings<T>(T settings)
+        {
+            AdditionalSettings[typeof(T)] = settings;
+            return settings;
+        }
+        public void RemoveSettings<T>()
+        {
+            AdditionalSettings.Remove(typeof(T));
+        }
 
         public Encoding DefaultEncoding => Settings.DefaultStringEncoding;
         public bool CreateBackupOnWrite => Settings.CreateBackupOnWrite;
