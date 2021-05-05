@@ -37,19 +37,14 @@ namespace BinarySerializer
         public override uint CurrentLength => (uint)Reader.BaseStream.Length;
 
         /// <summary>
-        /// The current pointer
+        /// The current binary file being used by the serializer
         /// </summary>
-        public override Pointer CurrentPointer
-        {
-            get
-            {
-                if (CurrentFile == null)
-                    return null;
+        public override BinaryFile CurrentBinaryFile => CurrentFile;
 
-                uint curPos = (uint)Reader.BaseStream.Position;
-                return new Pointer((uint)(curPos + CurrentFile.BaseAddress), CurrentFile);
-            }
-        }
+        /// <summary>
+        /// The current file offset
+        /// </summary>
+        public override long CurrentFileOffset => Reader.BaseStream.Position;
 
         #endregion
 
@@ -278,9 +273,8 @@ namespace BinarySerializer
         public override Pointer SerializePointer(Pointer obj, Pointer anchor = null, bool allowInvalid = false, string name = null)
         {
             string logString = LogPrefix;
-            Pointer current = CurrentPointer;
             uint value = Reader.ReadUInt32();
-            Pointer ptr = CurrentFile.GetPreDefinedPointer(current.AbsoluteOffset);
+            Pointer ptr = CurrentFile.GetPreDefinedPointer(CurrentAbsoluteOffset);
 
             if (ptr != null)
                 ptr = ptr.SetAnchor(anchor);
@@ -291,13 +285,13 @@ namespace BinarySerializer
             if (ptr == null && value != 0 && !allowInvalid && !CurrentFile.AllowInvalidPointer(value, anchor: anchor))
             {
                 if (IsLogEnabled)
-                    Context.Log.Log($"{logString}(Pointer) {(name ?? "<no name>")}: InvalidPointerException - {value:X8}");
+                    Context.Log.Log($"{logString}(Pointer) {name ?? "<no name>"}: InvalidPointerException - {value:X8}");
 
-                throw new PointerException("Not a valid pointer at " + (current) + ": " + string.Format("{0:X8}", value), "SerializePointer");
+                throw new PointerException($"Not a valid pointer at {CurrentPointer - 4}: {value:X8}", "SerializePointer");
             }
 
             if (IsLogEnabled)
-                Context.Log.Log($"{logString}(Pointer) {(name ?? "<no name>")}: {ptr?.ToString()}");
+                Context.Log.Log($"{logString}(Pointer) {name ?? "<no name>"}: {ptr}");
 
             return ptr;
         }

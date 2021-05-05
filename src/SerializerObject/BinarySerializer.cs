@@ -38,19 +38,14 @@ namespace BinarySerializer
         public override uint CurrentLength => (uint)Writer.BaseStream.Length; // can be modified!
 
         /// <summary>
-        /// The current pointer
+        /// The current binary file being used by the serializer
         /// </summary>
-        public override Pointer CurrentPointer
-        {
-            get
-            {
-                if (CurrentFile == null)
-                    return null;
+        public override BinaryFile CurrentBinaryFile => CurrentFile;
 
-                uint curPos = (uint)Writer.BaseStream.Position;
-                return new Pointer((uint)(curPos + CurrentFile.BaseAddress), CurrentFile);
-            }
-        }
+        /// <summary>
+        /// The current file offset
+        /// </summary>
+        public override long CurrentFileOffset => Writer.BaseStream.Position;
 
         #endregion
 

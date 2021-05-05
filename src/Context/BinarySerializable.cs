@@ -23,7 +23,7 @@
         /// <summary>
         /// The struct size
         /// </summary>
-        public virtual uint Size { get; protected set; }
+        public virtual long Size { get; protected set; }
 
         /// <summary>
         /// Indicates whether this object should be logged on one line
@@ -33,7 +33,7 @@
         /// <summary>
         /// The string for displaying this object on one line
         /// </summary>
-        public virtual string ShortLog { get; }
+        public virtual string ShortLog => null;
 
         /// <summary>
         /// Initializes the struct from an offset
@@ -59,7 +59,7 @@
         {
 			OnPreSerialize(s);
 			SerializeImpl(s);
-			Size = s.CurrentPointer.AbsoluteOffset - Offset.AbsoluteOffset;
+			Size = s.CurrentAbsoluteOffset - Offset.AbsoluteOffset;
 			OnPostSerialize(s);
 			IsFirstLoad = false;
 		}

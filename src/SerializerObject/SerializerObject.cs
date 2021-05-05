@@ -53,9 +53,24 @@ namespace BinarySerializer
         public abstract uint CurrentLength { get; }
 
         /// <summary>
+        /// The current binary file being used by the serializer
+        /// </summary>
+        public abstract BinaryFile CurrentBinaryFile { get; }
+
+        /// <summary>
         /// The current pointer
         /// </summary>
-        public abstract Pointer CurrentPointer { get; }
+        public virtual Pointer CurrentPointer => CurrentBinaryFile == null ? null : new Pointer((uint) CurrentAbsoluteOffset, CurrentBinaryFile);
+
+        /// <summary>
+        /// The current absolute offset
+        /// </summary>
+        public virtual long CurrentAbsoluteOffset => CurrentFileOffset + CurrentBinaryFile.BaseAddress;
+        
+        /// <summary>
+        /// The current file offset
+        /// </summary>
+        public abstract long CurrentFileOffset { get; }
 
         public virtual bool FullSerialize => true;
 
@@ -156,10 +171,12 @@ namespace BinarySerializer
 
         public void Align(int alignBytes = 4, Pointer baseOffset = null)
         {
-            Pointer ptr = CurrentPointer;
+            if ((CurrentAbsoluteOffset - (baseOffset?.AbsoluteOffset ?? 0)) % alignBytes != 0)
+            {
+                Pointer ptr = CurrentPointer;
 
-            if ((ptr.AbsoluteOffset - (baseOffset?.AbsoluteOffset ?? 0)) % alignBytes != 0)
                 Goto(ptr + (alignBytes - (ptr.AbsoluteOffset - (baseOffset?.AbsoluteOffset ?? 0)) % alignBytes));
+            }
         }
 
         public void DoAt(Pointer offset, Action action)
@@ -211,7 +228,7 @@ namespace BinarySerializer
 
             // Skip the length of the checksum value if it's before the data
             if (calculateChecksum && placement == ChecksumPlacement.Before)
-                Goto(CurrentPointer + Marshal.SizeOf<T>());
+                Goto(p + Marshal.SizeOf<T>());
 
             // Begin calculating the checksum
             if (calculateChecksum)

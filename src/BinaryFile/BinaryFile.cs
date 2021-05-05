@@ -131,7 +131,7 @@ namespace BinarySerializer
 
         #region Pre-Defined Pointers
 
-        protected Dictionary<uint, Pointer> PredefinedPointers { get; set; }
+        protected Dictionary<long, Pointer> PredefinedPointers { get; set; }
 
         public virtual void AddPreDefinedPointer(uint offset, Pointer pointer)
         {
@@ -140,7 +140,7 @@ namespace BinarySerializer
 
             PredefinedPointers.Add(offset, pointer);
         }
-        public virtual Pointer GetPreDefinedPointer(uint offset) => PredefinedPointers?.ContainsKey(offset) == true ? PredefinedPointers[offset] : null;
+        public virtual Pointer GetPreDefinedPointer(long offset) => PredefinedPointers?.ContainsKey(offset) == true ? PredefinedPointers[offset] : null;
 
         #endregion
 

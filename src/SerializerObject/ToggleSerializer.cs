@@ -44,7 +44,14 @@ namespace BinarySerializer
         protected Stack<string> CurrentName { get; }
 
         public override uint CurrentLength => CurrentSerializer.CurrentLength;
-        public override Pointer CurrentPointer => CurrentSerializer.CurrentPointer;
+
+        /// <summary>
+        /// The current binary file being used by the serializer
+        /// </summary>
+        public override BinaryFile CurrentBinaryFile => CurrentSerializer.CurrentBinaryFile;
+
+        public override long CurrentFileOffset => CurrentSerializer.CurrentFileOffset;
+
         public override void Goto(Pointer offset) => CurrentSerializer.Goto(offset);
 
 		public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null) {
@@ -156,6 +163,6 @@ namespace BinarySerializer
             CurrentSerializer.SerializeBitValues<T>(serializeFunc);
         }
 
-		public override bool FullSerialize => CurrentSerializer.FullSerialize;
+        public override bool FullSerialize => CurrentSerializer.FullSerialize;
     }
 }
