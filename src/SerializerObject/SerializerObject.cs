@@ -179,7 +179,7 @@ namespace BinarySerializer
             }
         }
 
-        public void DoAt(Pointer offset, Action action)
+        public virtual void DoAt(Pointer offset, Action action)
         {
             if (offset == null) 
                 return;
@@ -190,7 +190,7 @@ namespace BinarySerializer
             Goto(off_current);
         }
 
-        public T DoAt<T>(Pointer offset, Func<T> action)
+        public virtual T DoAt<T>(Pointer offset, Func<T> action)
         {
             if (offset == null) 
                 return default;

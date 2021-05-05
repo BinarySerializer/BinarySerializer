@@ -68,8 +68,25 @@
 		protected virtual void OnPostSerialize(SerializerObject s) { }
 
 		/// <summary>
-		/// Re-implement for objects with varying sizes
+		/// Recalculates the <see cref="Size"/> value of the object
 		/// </summary>
-		public virtual void RecalculateSize() { }
+		public virtual void RecalculateSize<T>()
+            where T : BinarySerializable, new()
+        {
+            // Create a serialize for calculating the size
+            using var s = new SizeCalculationSerializer(Context);
+            
+            // Go to the offset of the object
+            s.Goto(Offset);
+
+            // Get the current position
+            var startPos = s.CurrentFileOffset;
+
+            // Serialize the object
+            s.SerializeObject<T>((T)this);
+
+            // Update the size
+            Size = s.CurrentFileOffset - startPos;
+        }
 	}
 }

@@ -9,7 +9,7 @@ namespace BinarySerializer
     /// <summary>
     /// A binary serializer used for serializing
     /// </summary>
-    public class BinarySerializer : SerializerObject, IDisposable 
+    public class BinarySerializer : SerializerObject, IDisposable
     {
         #region Constructor
 
@@ -66,44 +66,49 @@ namespace BinarySerializer
         {
             // Encode the data into a stream
             Stream encoded = null;
-            using (MemoryStream memStream = new MemoryStream())
+
+            try
             {
-                // Stream key
-                string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
-
-                // Add the stream
-                StreamFile sf = new StreamFile(
-                    context: Context,
-                    name: key,
-                    stream: memStream,
-                    endianness: endianness ?? CurrentFile.Endianness,
-                    allowLocalPointers: allowLocalPointers);
-
-                try
+                using (MemoryStream memStream = new MemoryStream())
                 {
-                    Context.AddFile(sf);
+                    // Stream key
+                    string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
 
-                    DoAt(sf.StartPointer, () =>
+                    // Add the stream
+                    StreamFile sf = new StreamFile(
+                        context: Context,
+                        name: key,
+                        stream: memStream,
+                        endianness: endianness ?? CurrentFile.Endianness,
+                        allowLocalPointers: allowLocalPointers);
+
+                    try
                     {
-                        action();
-                        memStream.Position = 0;
-                        encoded = encoder.EncodeStream(memStream);
-                    });
+                        Context.AddFile(sf);
+
+                        DoAt(sf.StartPointer, () =>
+                        {
+                            action();
+                            memStream.Position = 0;
+                            encoded = encoder.EncodeStream(memStream);
+                        });
+                    }
+                    finally
+                    {
+                        Context.RemoveFile(sf);
+                    }
                 }
-                finally
+                // Turn stream into array & write bytes
+                if (encoded != null)
                 {
-                    Context.RemoveFile(sf);
-                }
-            }
-            // Turn stream into array & write bytes
-            if (encoded != null)
-            {
-                using (MemoryStream ms = new MemoryStream())
-                {
+                    using MemoryStream ms = new MemoryStream();
                     encoded.CopyTo(ms);
                     Writer.Write(ms.ToArray());
                 }
-                encoded.Close();
+            }
+            finally
+            {
+                encoded?.Dispose();
             }
         }
 
