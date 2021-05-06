@@ -25,7 +25,7 @@ namespace BinarySerializer
             Endianness = endianness;
             RecreateOnWrite = true;
             BaseAddress = baseAddress;
-            StartPointer = startPointer ?? new Pointer((uint)baseAddress, this);
+            StartPointer = startPointer ?? new Pointer(baseAddress, this);
         }
 
         #endregion

@@ -6,7 +6,7 @@ namespace BinarySerializer
     {
         #region Constructor
 
-        public Pointer(uint offset, BinaryFile file, Pointer anchor = null)
+        public Pointer(long offset, BinaryFile file, Pointer anchor = null)
         {
             if (anchor != null)
             {
@@ -14,7 +14,7 @@ namespace BinarySerializer
                 offset = anchor.AbsoluteOffset + offset;
             }
 
-            AbsoluteOffset = offset;
+            AbsoluteOffset = (uint)offset;
             File = file;
             Context = file.Context;
             FileOffset = AbsoluteOffset - File?.BaseAddress ?? AbsoluteOffset;
@@ -113,8 +113,8 @@ namespace BinarySerializer
         }
         public static bool operator !=(Pointer x, Pointer y) => !(x == y);
 
-        public static Pointer operator +(Pointer x, long y) => new Pointer((uint)(x.AbsoluteOffset + y), x.File) { Anchor = x.Anchor };
-        public static Pointer operator -(Pointer x, long y) => new Pointer((uint)(x.AbsoluteOffset - y), x.File) { Anchor = x.Anchor };
+        public static Pointer operator +(Pointer x, long y) => new Pointer(x.AbsoluteOffset + y, x.File) { Anchor = x.Anchor };
+        public static Pointer operator -(Pointer x, long y) => new Pointer(x.AbsoluteOffset - y, x.File) { Anchor = x.Anchor };
 
         public static ulong operator +(Pointer x, Pointer y) => x.AbsoluteOffset + y.AbsoluteOffset;
         public static long operator -(Pointer x, Pointer y) => x.AbsoluteOffset - y.AbsoluteOffset;

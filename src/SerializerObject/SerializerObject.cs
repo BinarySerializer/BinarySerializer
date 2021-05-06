@@ -65,7 +65,7 @@ namespace BinarySerializer
         /// <summary>
         /// The current pointer
         /// </summary>
-        public virtual Pointer CurrentPointer => CurrentBinaryFile == null ? null : new Pointer((uint) CurrentAbsoluteOffset, CurrentBinaryFile);
+        public virtual Pointer CurrentPointer => CurrentBinaryFile == null ? null : new Pointer(CurrentAbsoluteOffset, CurrentBinaryFile);
 
         /// <summary>
         /// The current absolute offset
