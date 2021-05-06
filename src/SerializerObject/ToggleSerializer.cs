@@ -43,7 +43,7 @@ namespace BinarySerializer
 
         protected Stack<string> CurrentName { get; }
 
-        public override uint CurrentLength => CurrentSerializer.CurrentLength;
+        public override long CurrentLength => CurrentSerializer.CurrentLength;
 
         /// <summary>
         /// The current binary file being used by the serializer

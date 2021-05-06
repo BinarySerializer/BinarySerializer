@@ -17,6 +17,7 @@ namespace BinarySerializer
             AbsoluteOffset = offset;
             File = file;
             Context = file.Context;
+            FileOffset = AbsoluteOffset - File?.BaseAddress ?? AbsoluteOffset;
 
             if (Context != null && Context.SavePointersForRelocation && file.SavePointersToMemoryMap)
                 Context.MemoryMap.AddPointer(this);
@@ -26,12 +27,12 @@ namespace BinarySerializer
 
         #region Public Properties
 
-        public uint AbsoluteOffset { get; }
         public Context Context { get; }
         public Pointer Anchor { get; private set; }
         public BinaryFile File { get; }
 
-        public uint FileOffset => File != null ? (uint)(AbsoluteOffset - File.BaseAddress) : AbsoluteOffset;
+        public uint AbsoluteOffset { get; }
+        public long FileOffset { get; }
 
         public uint SerializedOffset
         {
@@ -44,9 +45,10 @@ namespace BinarySerializer
             }
         }
 
-        public string StringFileOffset => $"{FileOffset:X8}";
+        public string StringFileOffset => GetAddressString(FileOffset);
+        public string StringAbsoluteOffset => GetAddressString(AbsoluteOffset);
 
-        public string StringAbsoluteOffset => $"{AbsoluteOffset:X8}";
+        protected virtual string GetAddressString(long value) => $"{value:X8}";
 
         #endregion
 
@@ -71,9 +73,9 @@ namespace BinarySerializer
                 region = File.GetRegion(fileOffset);
                 if (region != null) regionOffset = fileOffset - region.Offset;
             }
-            var str = $"{File.FilePath}|0x{AbsoluteOffset:X8}";
-            if (File != null && File.BaseAddress != 0) str += $"[0x{fileOffset:X8}]";
-            if (region != null) str += $"({region.Name}:0x{regionOffset:X8})";
+            var str = $"{File.FilePath}|0x{GetAddressString(AbsoluteOffset)}";
+            if (File != null && File.BaseAddress != 0) str += $"[0x{GetAddressString(fileOffset)}]";
+            if (region != null) str += $"({region.Name}:0x{GetAddressString(regionOffset)})";
             return str;
         }
 

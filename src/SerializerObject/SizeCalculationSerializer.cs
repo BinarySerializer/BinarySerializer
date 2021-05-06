@@ -38,7 +38,7 @@ namespace BinarySerializer
         /// <summary>
         /// The current length of the data being serialized
         /// </summary>
-        public override uint CurrentLength => 0;
+        public override long CurrentLength => 0;
 
         /// <summary>
         /// The current binary file being used by the serializer

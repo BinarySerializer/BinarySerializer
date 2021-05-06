@@ -35,7 +35,7 @@ namespace BinarySerializer
         /// <summary>
         /// The current length of the data being serialized
         /// </summary>
-        public override uint CurrentLength => (uint)Writer.BaseStream.Length; // can be modified!
+        public override long CurrentLength => Writer.BaseStream.Length; // can be modified!
 
         /// <summary>
         /// The current binary file being used by the serializer

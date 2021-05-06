@@ -34,7 +34,7 @@ namespace BinarySerializer
         /// <summary>
         /// The current length of the data being serialized
         /// </summary>
-        public override uint CurrentLength => (uint)Reader.BaseStream.Length;
+        public override long CurrentLength => Reader.BaseStream.Length;
 
         /// <summary>
         /// The current binary file being used by the serializer
@@ -541,7 +541,7 @@ namespace BinarySerializer
 
         #region Caching
 
-        public override Task FillCacheForReadAsync(int length) => FileManager.FillCacheForReadAsync(length, Reader);
+        public override Task FillCacheForReadAsync(long length) => FileManager.FillCacheForReadAsync(length, Reader);
 
         #endregion
 

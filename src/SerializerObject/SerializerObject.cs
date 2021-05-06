@@ -50,7 +50,12 @@ namespace BinarySerializer
         /// <summary>
         /// The current length of the data being serialized
         /// </summary>
-        public abstract uint CurrentLength { get; }
+        public abstract long CurrentLength { get; }
+
+        /// <summary>
+        /// The current length as a 32-bit value
+        /// </summary>
+        public uint CurrentLength32 => (uint)CurrentLength;
 
         /// <summary>
         /// The current binary file being used by the serializer
@@ -421,7 +426,7 @@ namespace BinarySerializer
 
         #region Caching
 
-        public virtual Task FillCacheForReadAsync(int length) => Task.CompletedTask;
+        public virtual Task FillCacheForReadAsync(long length) => Task.CompletedTask;
 
         #endregion
 
