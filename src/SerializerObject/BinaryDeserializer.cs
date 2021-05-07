@@ -212,7 +212,7 @@ namespace BinarySerializer
             CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             if (IsLogEnabled)
-                Context.Log.Log($"{logString}({typeof(T)}) {(name ?? "<no name>")}: {(t?.ToString() ?? "null")}");
+                Context.Log.Log($"{logString}({typeof(T).Name}) {(name ?? "<no name>")}: {(t?.ToString() ?? "null")}");
 
             return t;
         }
@@ -322,7 +322,7 @@ namespace BinarySerializer
             var t = length.HasValue ? Reader.ReadString(length.Value, encoding ?? Context.DefaultEncoding) : Reader.ReadNullDelimitedString(encoding ?? Context.DefaultEncoding);
 
             if (IsLogEnabled)
-                Context.Log.Log($"{logString}(string) {(name ?? "<no name>")}: {t}");
+                Context.Log.Log($"{logString}(String) {(name ?? "<no name>")}: {t}");
 
             return t;
         }
@@ -354,7 +354,7 @@ namespace BinarySerializer
                 CurrentFile.UpdateReadMap(Reader.BaseStream.Position, count);
                 if (IsLogEnabled)
                 {
-                    string normalLog = $"{LogPrefix}({typeof(T)}[{count}]) {(name ?? "<no name>")}: ";
+                    string normalLog = $"{LogPrefix}({typeof(T).Name}[{count}]) {(name ?? "<no name>")}: ";
                     byte[] bytes = Reader.ReadBytes((int)count);
                     Context.Log.Log(normalLog
                         + bytes.ToHexString(align: 16, newLinePrefix: new string(' ', normalLog.Length), maxLines: 10));
@@ -368,7 +368,7 @@ namespace BinarySerializer
             if (IsLogEnabled)
             {
                 string logString = LogPrefix;
-                Context.Log.Log($"{logString}({typeof(T)}[{count}]) {(name ?? "<no name>")}");
+                Context.Log.Log($"{logString}({typeof(T).Name}[{count}]) {(name ?? "<no name>")}");
             }
             T[] buffer;
             if (obj != null)
@@ -535,7 +535,7 @@ namespace BinarySerializer
                 var bitValue = BitHelpers.ExtractBits(valueInt, length, pos);
 
                 if (IsLogEnabled)
-                    Context.Log.Log($"{logPrefix}  ({typeof(T)}) {name ?? "<no name>"}: {bitValue}");
+                    Context.Log.Log($"{logPrefix}  (UInt{length}) {name ?? "<no name>"}: {bitValue}");
 
                 pos += length;
                 return bitValue;

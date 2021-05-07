@@ -222,7 +222,7 @@ namespace BinarySerializer
         {
             if (IsLogEnabled)
             {
-                Context.Log.Log($"{LogPrefix}({typeof(T)}) {(name ?? "<no name>")}: {(obj?.ToString() ?? "null")}");
+                Context.Log.Log($"{LogPrefix}({typeof(T).Name}) {(name ?? "<no name>")}: {(obj?.ToString() ?? "null")}");
             }
             Write(obj);
             return obj;
@@ -315,7 +315,7 @@ namespace BinarySerializer
         public override string SerializeString(string obj, long? length = null, Encoding encoding = null, string name = null)
         {
             if (IsLogEnabled)
-                Context.Log.Log($"{LogPrefix}(string) {(name ?? "<no name>")}: {obj}");
+                Context.Log.Log($"{LogPrefix}(String) {(name ?? "<no name>")}: {obj}");
 
             if (length.HasValue)
                 Writer.WriteString(obj, length.Value, encoding ?? Context.DefaultEncoding);
@@ -345,13 +345,13 @@ namespace BinarySerializer
             {
                 if (typeof(T) == typeof(byte))
                 {
-                    string normalLog = $"{LogPrefix}({typeof(T)}[{count}]) {(name ?? "<no name>")}: ";
+                    string normalLog = $"{LogPrefix}({typeof(T).Name}[{count}]) {(name ?? "<no name>")}: ";
                     Context.Log.Log(normalLog
                         + ((byte[])(object)buffer).ToHexString(align: 16, newLinePrefix: new string(' ', normalLog.Length), maxLines: 10));
                 }
                 else
                 {
-                    Context.Log.Log($"{LogPrefix}({typeof(T)}[{count}]) {(name ?? "<no name>")}");
+                    Context.Log.Log($"{LogPrefix}({typeof(T).Name}[{count}]) {(name ?? "<no name>")}");
                 }
             }
             // Use byte writing method if requested
@@ -455,7 +455,7 @@ namespace BinarySerializer
                 valueInt = BitHelpers.SetBits(valueInt, v, length, pos);
                 if (IsLogEnabled)
                 {
-                    Context.Log.Log(logPrefix + $"  ({typeof(T)}) {name ?? "<no name>"}: {v}");
+                    Context.Log.Log(logPrefix + $"  (UInt{length}) {name ?? "<no name>"}: {v}");
                 }
                 pos += length;
                 return v;
