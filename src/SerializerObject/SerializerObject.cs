@@ -278,9 +278,9 @@ namespace BinarySerializer
         /// <returns>The object that was serialized</returns>
         public abstract T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null) where T : BinarySerializable, new();
 
-        public abstract Pointer SerializePointer(Pointer obj, Pointer anchor = null, bool allowInvalid = false, string name = null);
+        public abstract Pointer SerializePointer(Pointer obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, string name = null);
 
-        public abstract Pointer<T> SerializePointer<T>(Pointer<T> obj, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null) where T : BinarySerializable, new();
+        public abstract Pointer<T> SerializePointer<T>(Pointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null) where T : BinarySerializable, new();
 
         public abstract string SerializeString(string obj, long? length = null, Encoding encoding = null, string name = null);
 
@@ -323,7 +323,7 @@ namespace BinarySerializer
 
             return obj;
         }
-        public Pointer[] SerializePointerArrayUntil(Pointer[] obj, Func<Pointer, bool> conditionCheckFunc, bool includeLastObj = false, string name = null)
+        public Pointer[] SerializePointerArrayUntil(Pointer[] obj, Func<Pointer, bool> conditionCheckFunc, PointerSize size = PointerSize.Pointer32, bool includeLastObj = false, string name = null)
         {
             if (obj == null)
             {
@@ -332,7 +332,7 @@ namespace BinarySerializer
 
                 while (true)
                 {
-                    var serializedObj = SerializePointer(default, name: $"{name}[{index++}]");
+                    var serializedObj = SerializePointer(default, size: size, name: $"{name}[{index++}]");
 
                     if (conditionCheckFunc(serializedObj))
                     {
@@ -349,14 +349,14 @@ namespace BinarySerializer
             }
             else
             {
-                SerializePointerArray(obj, obj.Length, name: name);
+                SerializePointerArray(obj, obj.Length, size: size, name: name);
             }
 
             return obj;
         }
 
-        public abstract Pointer[] SerializePointerArray(Pointer[] obj, long count, Pointer anchor = null, bool allowInvalid = false, string name = null);
-        public abstract Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null) where T : BinarySerializable, new();
+        public abstract Pointer[] SerializePointerArray(Pointer[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, string name = null);
+        public abstract Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null) where T : BinarySerializable, new();
 
         public abstract string[] SerializeStringArray(string[] obj, long count, int length, Encoding encoding = null, string name = null);
 

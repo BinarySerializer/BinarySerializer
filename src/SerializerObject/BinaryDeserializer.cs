@@ -272,10 +272,19 @@ namespace BinarySerializer
             return instance;
         }
 
-        public override Pointer SerializePointer(Pointer obj, Pointer anchor = null, bool allowInvalid = false, string name = null)
+        public override Pointer SerializePointer(Pointer obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, string name = null)
         {
             string logString = LogPrefix;
-            uint value = Reader.ReadUInt32();
+
+            // Read the pointer value
+            var value = size switch
+            {
+                PointerSize.Pointer16 => Reader.ReadUInt16(),
+                PointerSize.Pointer32 => Reader.ReadUInt32(),
+                PointerSize.Pointer64 => Reader.ReadInt64(),
+                _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
+            };
+
             Pointer ptr = CurrentFile.GetPreDefinedPointer(CurrentAbsoluteOffset);
 
             if (ptr != null)
@@ -292,18 +301,18 @@ namespace BinarySerializer
             if (ptr == null && value != 0 && !allowInvalid && !CurrentFile.AllowInvalidPointer(value, anchor: anchor))
             {
                 if (IsLogEnabled)
-                    Context.Log.Log($"{logString}(Pointer) {name ?? "<no name>"}: InvalidPointerException - {value:X8}");
+                    Context.Log.Log($"{logString}({size}) {name ?? "<no name>"}: InvalidPointerException - {value:X16}");
 
-                throw new PointerException($"Not a valid pointer at {CurrentPointer - 4}: {value:X8}", "SerializePointer");
+                throw new PointerException($"Not a valid pointer at {CurrentPointer - 4}: {value:X16}", nameof(SerializePointer));
             }
 
             if (IsLogEnabled)
-                Context.Log.Log($"{logString}(Pointer) {name ?? "<no name>"}: {ptr}");
+                Context.Log.Log($"{logString}({size}) {name ?? "<no name>"}: {ptr}");
 
             return ptr;
         }
 
-        public override Pointer<T> SerializePointer<T>(Pointer<T> obj, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null)
+        public override Pointer<T> SerializePointer<T>(Pointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null)
         {
             if (IsLogEnabled)
             {
@@ -312,7 +321,7 @@ namespace BinarySerializer
             }
 
             Depth++;
-            Pointer<T> p = new Pointer<T>(this, anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid);
+            Pointer<T> p = new Pointer<T>(this, size: size, anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid);
             Depth--;
             return p;
         }
@@ -422,58 +431,59 @@ namespace BinarySerializer
             return buffer;
         }
 
-        public override Pointer[] SerializePointerArray(Pointer[] obj, long count, Pointer anchor = null, bool allowInvalid = false, string name = null)
+        public override Pointer[] SerializePointerArray(Pointer[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, string name = null)
         {
             if (IsLogEnabled)
             {
                 string logString = LogPrefix;
-                Context.Log.Log($"{logString}(Pointer[{count}]) {(name ?? "<no name>")}");
+                Context.Log.Log($"{logString}({size}[{count}]) {(name ?? "<no name>")}");
             }
+
             Pointer[] buffer;
+
             if (obj != null)
             {
                 buffer = obj;
+
                 if (buffer.Length != count)
-                {
                     Array.Resize(ref buffer, (int)count);
-                }
             }
             else
             {
-                buffer = new Pointer[(int)count];
+                buffer = new Pointer[count];
             }
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = SerializePointer(buffer[i], anchor: anchor, allowInvalid: allowInvalid, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = SerializePointer(buffer[i], size: size, anchor: anchor, allowInvalid: allowInvalid, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
 
             return buffer;
         }
 
-        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null)
+        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null)
         {
             if (IsLogEnabled)
             {
                 string logString = LogPrefix;
                 Context.Log.Log($"{logString}(Pointer<{typeof(T)}>[{count}]) {(name ?? "<no name>")}");
             }
+
             Pointer<T>[] buffer;
+
             if (obj != null)
             {
                 buffer = obj;
                 if (buffer.Length != count)
-                {
                     Array.Resize(ref buffer, (int)count);
-                }
             }
             else
             {
-                buffer = new Pointer<T>[(int)count];
+                buffer = new Pointer<T>[count];
             }
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = SerializePointer<T>(buffer[i], anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = SerializePointer<T>(buffer[i], size: size, anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
 
             return buffer;
         }

@@ -8,7 +8,8 @@ namespace BinarySerializer
     /// <summary>
     /// A serializer which toggles between reading and writing depending on the name
     /// </summary>
-    public class ToggleSerializer : SerializerObject {
+    public class ToggleSerializer : SerializerObject 
+    {
         public ToggleSerializer(Context context, Func<string, bool> shouldWriteFunc, Pointer baseOffset) : base(context) {
             // Set properties
             ShouldWriteFunc = shouldWriteFunc;
@@ -72,13 +73,13 @@ namespace BinarySerializer
             SwitchSerializer(Deserializer);
             return CurrentSerializer.SerializeChecksum(calculatedChecksum, name);
         }
-        public override Pointer SerializePointer(Pointer obj, Pointer anchor = null, bool allowInvalid = false, string name = null) {
+        public override Pointer SerializePointer(Pointer obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, string name = null) {
             UpdateCurrentSerializer(name);
-            return CurrentSerializer.SerializePointer(obj, anchor, allowInvalid, name);
+            return CurrentSerializer.SerializePointer(obj, size, anchor, allowInvalid, name);
         }
-        public override Pointer<T> SerializePointer<T>(Pointer<T> obj, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null) {
+        public override Pointer<T> SerializePointer<T>(Pointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null) {
             UpdateCurrentSerializer(name);
-            return CurrentSerializer.SerializePointer(obj, anchor, resolve, onPreSerialize, allowInvalid, name);
+            return CurrentSerializer.SerializePointer(obj, size, anchor, resolve, onPreSerialize, allowInvalid, name);
         }
         public override T Serialize<T>(T obj, string name = null) {
             UpdateCurrentSerializer(name);
@@ -117,21 +118,21 @@ namespace BinarySerializer
 
             return obj;
         }
-        public override Pointer[] SerializePointerArray(Pointer[] obj, long count, Pointer anchor = null, bool allowInvalid = false, string name = null) {
+        public override Pointer[] SerializePointerArray(Pointer[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, string name = null) {
             if (obj == null) obj = new Pointer[count];
             else if (count != obj.Length) Array.Resize(ref obj, (int)count);
 
             for (int i = 0; i < count; i++)
-                obj[i] = SerializePointer(obj[i], anchor: anchor, allowInvalid: allowInvalid, name: name == null ? null : name + "[" + i + "]");
+                obj[i] = SerializePointer(obj[i], size: size, anchor: anchor, allowInvalid: allowInvalid, name: name == null ? null : name + "[" + i + "]");
 
             return obj;
         }
-        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null) {
+        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null) {
             if (obj == null) obj = new Pointer<T>[count];
             else if (count != obj.Length) Array.Resize(ref obj, (int)count);
 
             for (int i = 0; i < count; i++)
-                obj[i] = SerializePointer<T>(obj[i], anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid, name: name == null ? null : name + "[" + i + "]");
+                obj[i] = SerializePointer<T>(obj[i], size: size, anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid, name: name == null ? null : name + "[" + i + "]");
 
             return obj;
         }

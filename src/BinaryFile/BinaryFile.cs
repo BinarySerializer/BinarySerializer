@@ -130,7 +130,7 @@ namespace BinarySerializer
             return files.Select(f => f.GetLocalPointerFile(serializedValue, anchor)).FirstOrDefault(p => p != null);
         }
 
-        public virtual bool AllowInvalidPointer(uint serializedValue, Pointer anchor = null) => false;
+        public virtual bool AllowInvalidPointer(long serializedValue, Pointer anchor = null) => false;
 
         public virtual void EndRead(Reader reader)
         {

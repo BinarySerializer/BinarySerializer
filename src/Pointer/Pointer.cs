@@ -34,13 +34,13 @@ namespace BinarySerializer
         public long AbsoluteOffset { get; }
         public long FileOffset { get; }
 
-        public uint SerializedOffset
+        public long SerializedOffset
         {
             get
             {
-                uint off = (uint)AbsoluteOffset;
+                var off = AbsoluteOffset;
                 if (Anchor != null)
-                    off -= (uint)Anchor.AbsoluteOffset;
+                    off -= Anchor.AbsoluteOffset;
                 return off;
             }
         }
@@ -48,7 +48,17 @@ namespace BinarySerializer
         public string StringFileOffset => GetAddressString(FileOffset);
         public string StringAbsoluteOffset => GetAddressString(AbsoluteOffset);
 
-        protected virtual string GetAddressString(long value) => $"{value:X8}";
+        // TODO: Get the correct size to use
+        protected virtual string GetAddressString(long value, PointerSize size = PointerSize.Pointer32)
+        {
+            return size switch
+            {
+                PointerSize.Pointer16 => $"{value:X4}",
+                PointerSize.Pointer32 => $"{value:X8}",
+                PointerSize.Pointer64 => $"{value:X16}",
+                _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
+            };
+        }
 
         #endregion
 
@@ -134,9 +144,9 @@ namespace BinarySerializer
                 Resolve(s, onPreSerialize: onPreSerialize);
         }
 
-        public Pointer(SerializerObject s, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false) 
+        public Pointer(SerializerObject s, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false) 
         {
-            PointerValue = s.SerializePointer(PointerValue, anchor: anchor, allowInvalid: allowInvalid, name: "Pointer");
+            PointerValue = s.SerializePointer(PointerValue, size: size, anchor: anchor, allowInvalid: allowInvalid, name: "Pointer");
             if (resolve)
                 Resolve(s, onPreSerialize: onPreSerialize);
         }
