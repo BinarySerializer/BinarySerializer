@@ -14,7 +14,7 @@ namespace BinarySerializer
                 offset = anchor.AbsoluteOffset + offset;
             }
 
-            AbsoluteOffset = (uint)offset;
+            AbsoluteOffset = offset;
             File = file;
             Context = file.Context;
             FileOffset = AbsoluteOffset - File?.BaseAddress ?? AbsoluteOffset;
@@ -31,16 +31,16 @@ namespace BinarySerializer
         public Pointer Anchor { get; private set; }
         public BinaryFile File { get; }
 
-        public uint AbsoluteOffset { get; }
+        public long AbsoluteOffset { get; }
         public long FileOffset { get; }
 
         public uint SerializedOffset
         {
             get
             {
-                uint off = AbsoluteOffset;
+                uint off = (uint)AbsoluteOffset;
                 if (Anchor != null)
-                    off -= Anchor.AbsoluteOffset;
+                    off -= (uint)Anchor.AbsoluteOffset;
                 return off;
             }
         }
@@ -116,7 +116,7 @@ namespace BinarySerializer
         public static Pointer operator +(Pointer x, long y) => new Pointer(x.AbsoluteOffset + y, x.File) { Anchor = x.Anchor };
         public static Pointer operator -(Pointer x, long y) => new Pointer(x.AbsoluteOffset - y, x.File) { Anchor = x.Anchor };
 
-        public static ulong operator +(Pointer x, Pointer y) => x.AbsoluteOffset + y.AbsoluteOffset;
+        public static long operator +(Pointer x, Pointer y) => x.AbsoluteOffset + y.AbsoluteOffset;
         public static long operator -(Pointer x, Pointer y) => x.AbsoluteOffset - y.AbsoluteOffset;
 
         #endregion

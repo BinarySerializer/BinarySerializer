@@ -44,7 +44,7 @@ namespace BinarySerializer
 			// If we allow local pointers we assume the pointer leads to the stream file
 			if (AllowLocalPointers)
             {
-                uint anchorOffset = anchor?.AbsoluteOffset ?? 0;
+                var anchorOffset = anchor?.AbsoluteOffset ?? 0;
 				if (serializedValue + anchorOffset >= BaseAddress && serializedValue + anchorOffset <= BaseAddress + Length)
 					return new Pointer(serializedValue, this, anchor: anchor);
 				else

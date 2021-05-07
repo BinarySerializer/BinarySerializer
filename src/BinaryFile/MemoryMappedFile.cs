@@ -41,7 +41,7 @@ namespace BinarySerializer
 		}
 
 		public virtual Pointer GetPointerInThisFileOnly(uint serializedValue, Pointer anchor = null) {
-			uint anchorOffset = anchor?.AbsoluteOffset ?? 0;
+			var anchorOffset = anchor?.AbsoluteOffset ?? 0;
 			if (serializedValue + anchorOffset >= BaseAddress && serializedValue + anchorOffset < BaseAddress + Length) {
 				return new Pointer(serializedValue, this, anchor: anchor);
 			}
