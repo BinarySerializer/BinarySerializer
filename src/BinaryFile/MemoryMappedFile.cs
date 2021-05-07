@@ -4,7 +4,7 @@ namespace BinarySerializer
 {
     public class MemoryMappedFile : BinaryFile 
     {
-        public MemoryMappedFile(Context context, string filePath, uint baseAddress, Endian endianness = Endian.Little, long fileLength = 0) : base(context, filePath, endianness, baseAddress)
+        public MemoryMappedFile(Context context, string filePath, long baseAddress, Endian endianness = Endian.Little, long fileLength = 0) : base(context, filePath, endianness, baseAddress)
         {
             length = fileLength;
         }

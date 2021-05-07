@@ -162,7 +162,7 @@ namespace BinarySerializer
 
         protected Dictionary<long, Pointer> PredefinedPointers { get; set; }
 
-        public virtual void AddPreDefinedPointer(uint offset, Pointer pointer)
+        public virtual void AddPreDefinedPointer(long offset, Pointer pointer)
         {
             if (PredefinedPointers == null)
                 PredefinedPointers = new Dictionary<long, Pointer>();
