@@ -280,7 +280,12 @@ namespace BinarySerializer
                 ptr = ptr.SetAnchor(anchor);
 
             if (ptr == null)
-                ptr = CurrentFile.GetPointer(value, anchor: anchor);
+            {
+                var file = CurrentFile.GetPointerFile(value, anchor);
+
+                if (file != null)
+                    ptr = new Pointer(value, file, anchor);
+            }
 
             if (ptr == null && value != 0 && !allowInvalid && !CurrentFile.AllowInvalidPointer(value, anchor: anchor))
             {

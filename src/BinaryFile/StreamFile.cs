@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace BinarySerializer
 {
@@ -20,6 +18,7 @@ namespace BinarySerializer
         private Stream _stream;
 
         public override long Length { get; }
+
         public bool AllowLocalPointers { get; }
 
         protected Stream Stream
@@ -39,26 +38,13 @@ namespace BinarySerializer
 			return writer;
 		}
 
-		public override Pointer GetPointer(uint serializedValue, Pointer anchor = null) 
+        public override BinaryFile GetPointerFile(long serializedValue, Pointer anchor = null)
         {
-			// If we allow local pointers we assume the pointer leads to the stream file
-			if (AllowLocalPointers)
-            {
-                var anchorOffset = anchor?.AbsoluteOffset ?? 0;
-				if (serializedValue + anchorOffset >= BaseAddress && serializedValue + anchorOffset <= BaseAddress + Length)
-					return new Pointer(serializedValue, this, anchor: anchor);
-				else
-					return null;
-            }
-			else
-            {
-                // Get every memory mapped file
-                List<MemoryMappedFile> files = Context.MemoryMap.Files.OfType<MemoryMappedFile>().ToList();
-
-				files.Sort((a, b) => b.BaseAddress.CompareTo(a.BaseAddress));
-                return files.Select(f => f.GetPointerInThisFileOnly(serializedValue, anchor: anchor)).FirstOrDefault(p => p != null);
-            }
-		}
+            if (AllowLocalPointers)
+                return GetLocalPointerFile(serializedValue, anchor);
+            else
+                return GetMemoryMappedPointerFile(serializedValue, anchor);
+        }
 
         public override void Dispose()
         {

@@ -100,7 +100,36 @@ namespace BinarySerializer
         public abstract Reader CreateReader();
         public abstract Writer CreateWriter();
 
-        public virtual Pointer GetPointer(uint serializedValue, Pointer anchor = null) => new Pointer(serializedValue, this, anchor: anchor);
+        /// <summary>
+        /// Retrieves the <see cref="BinaryFile"/> for a serialized <see cref="Pointer"/> value
+        /// </summary>
+        /// <param name="serializedValue">The serialized pointer value</param>
+        /// <param name="anchor">An optional anchor for the pointer</param>
+        /// <returns></returns>
+        public virtual BinaryFile GetPointerFile(long serializedValue, Pointer anchor = null) => this;
+
+        protected virtual BinaryFile GetLocalPointerFile(long serializedValue, Pointer anchor = null)
+        {
+            var anchorOffset = anchor?.AbsoluteOffset ?? 0;
+
+            if (serializedValue + anchorOffset >= BaseAddress && serializedValue + anchorOffset <= BaseAddress + Length)
+                return this;
+
+            return null;
+        }
+
+        protected virtual BinaryFile GetMemoryMappedPointerFile(long serializedValue, Pointer anchor = null)
+        {
+            // Get all memory mapped files
+            List<MemoryMappedFile> files = Context.MemoryMap.Files.OfType<MemoryMappedFile>().ToList();
+            
+            // Sort based on the base address
+            files.Sort((a, b) => b.BaseAddress.CompareTo(a.BaseAddress));
+
+            // Return the first pointer within the range
+            return files.Select(f => f.GetLocalPointerFile(serializedValue, anchor)).FirstOrDefault(p => p != null);
+        }
+
         public virtual bool AllowInvalidPointer(uint serializedValue, Pointer anchor = null) => false;
 
         public virtual void EndRead(Reader reader)

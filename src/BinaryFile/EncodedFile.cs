@@ -69,14 +69,6 @@ namespace BinarySerializer
 			base.EndWrite(writer);
 		}
 
-		public override Pointer GetPointer(uint serializedValue, Pointer anchor = null) 
-        {
-			var anchorOffset = anchor?.AbsoluteOffset ?? 0;
-
-			if (serializedValue + anchorOffset >= BaseAddress && serializedValue + anchorOffset <= BaseAddress + Length) 
-				return new Pointer(serializedValue, this, anchor: anchor);
-
-			return null;
-		}
-	}
+        public override BinaryFile GetPointerFile(long serializedValue, Pointer anchor = null) => GetLocalPointerFile(serializedValue, anchor);
+    }
 }

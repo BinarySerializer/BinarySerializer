@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 
 namespace BinarySerializer
 {
@@ -40,20 +38,6 @@ namespace BinarySerializer
             }
 		}
 
-		public virtual Pointer GetPointerInThisFileOnly(uint serializedValue, Pointer anchor = null) {
-			var anchorOffset = anchor?.AbsoluteOffset ?? 0;
-			if (serializedValue + anchorOffset >= BaseAddress && serializedValue + anchorOffset < BaseAddress + Length) {
-				return new Pointer(serializedValue, this, anchor: anchor);
-			}
-			return null;
-		}
-
-		public override Pointer GetPointer(uint serializedValue, Pointer anchor = null) {
-			//Pointer ptr = GetPointerInThisFileOnly(serializedValue, anchor: anchor);
-			//if (ptr != null) return ptr;
-			List<MemoryMappedFile> files = Context.MemoryMap.Files.OfType<MemoryMappedFile>().ToList<MemoryMappedFile>();
-			files.Sort((a, b) => b.BaseAddress.CompareTo(a.BaseAddress));
-            return files.Select(f => f.GetPointerInThisFileOnly(serializedValue, anchor: anchor)).FirstOrDefault(p => p != null);
-        }
+        public override BinaryFile GetPointerFile(long serializedValue, Pointer anchor = null) => GetMemoryMappedPointerFile(serializedValue, anchor);
     }
 }
