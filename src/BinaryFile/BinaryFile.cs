@@ -176,6 +176,7 @@ namespace BinarySerializer
         #region File Map
 
         public virtual bool[] FileReadMap { get; protected set; }
+        public bool ShouldUpdateReadMap => FileReadMap != null;
         protected bool ShouldInitFileReadMap { get; set; }
 
         public void InitFileReadMap() => ShouldInitFileReadMap = true;
@@ -190,7 +191,7 @@ namespace BinarySerializer
 
         public void UpdateReadMap(long offset, long length)
         {
-            if (FileReadMap == null)
+            if (!ShouldUpdateReadMap)
                 return;
 
             for (int i = 0; i < length; i++)

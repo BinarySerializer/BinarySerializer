@@ -173,7 +173,8 @@ namespace BinarySerializer
 
             T checksum = (T)ReadAsObject<T>(name);
 
-            CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
+            if (CurrentFile.ShouldUpdateReadMap)
+                CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             if (!checksum.Equals(calculatedChecksum))
                 LogWarning($"Checksum {name} did not match!");
@@ -209,7 +210,8 @@ namespace BinarySerializer
 
             T t = (T)ReadAsObject<T>(name);
 
-            CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
+            if (CurrentFile.ShouldUpdateReadMap)
+                CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             if (IsLogEnabled)
                 Context.Log.Log($"{logString}({typeof(T).Name}) {(name ?? "<no name>")}: {(t?.ToString() ?? "null")}");
@@ -351,7 +353,8 @@ namespace BinarySerializer
             // Use byte reading method if requested
             if (typeof(T) == typeof(byte))
             {
-                CurrentFile.UpdateReadMap(Reader.BaseStream.Position, count);
+                if (CurrentFile.ShouldUpdateReadMap)
+                    CurrentFile.UpdateReadMap(Reader.BaseStream.Position, count);
                 if (IsLogEnabled)
                 {
                     string normalLog = $"{LogPrefix}({typeof(T).Name}[{count}]) {(name ?? "<no name>")}: ";
