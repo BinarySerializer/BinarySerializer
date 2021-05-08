@@ -14,12 +14,14 @@ namespace BinarySerializer
         /// <param name="createBackupOnWrite">Indicates if a backup file should be created when writing to a file</param>
         /// <param name="savePointersForRelocation">Indicates if pointers should be saved in the Memory Map for relocation</param>
         /// <param name="ignoreCacheOnRead">Indicates if caching read objects should be ignored</param>
-        public SerializerSettings(Encoding defaultStringEncoding = null, bool createBackupOnWrite = false, bool savePointersForRelocation = false, bool ignoreCacheOnRead = false)
+        /// <param name="loggingPointerSize">The pointer size to use when logging a <see cref="Pointer"/>. Set to <see langword="null"/> to dynamically determine the appropriate size.</param>
+        public SerializerSettings(Encoding defaultStringEncoding = null, bool createBackupOnWrite = false, bool savePointersForRelocation = false, bool ignoreCacheOnRead = false, PointerSize? loggingPointerSize = PointerSize.Pointer32)
         {
             DefaultStringEncoding = defaultStringEncoding ?? Encoding.UTF8;
             SavePointersForRelocation = savePointersForRelocation;
             IgnoreCacheOnRead = ignoreCacheOnRead;
             CreateBackupOnWrite = createBackupOnWrite;
+            LoggingPointerSize = loggingPointerSize;
         }
 
         /// <summary>
@@ -41,5 +43,10 @@ namespace BinarySerializer
         /// Indicates if caching read objects should be ignored
         /// </summary>
         public bool IgnoreCacheOnRead { get; }
+
+        /// <summary>
+        /// The pointer size to use when logging a <see cref="Pointer"/>. Set to <see langword="null"/> to dynamically determine the appropriate size.
+        /// </summary>
+        public PointerSize? LoggingPointerSize { get; }
     }
 }

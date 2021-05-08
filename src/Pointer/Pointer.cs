@@ -6,7 +6,7 @@ namespace BinarySerializer
     {
         #region Constructor
 
-        public Pointer(long offset, BinaryFile file, Pointer anchor = null)
+        public Pointer(long offset, BinaryFile file, Pointer anchor = null, PointerSize size = PointerSize.Pointer32)
         {
             if (anchor != null)
             {
@@ -16,6 +16,7 @@ namespace BinarySerializer
 
             AbsoluteOffset = offset;
             File = file;
+            Size = size;
             Context = file.Context;
             FileOffset = AbsoluteOffset - File?.BaseAddress ?? AbsoluteOffset;
 
@@ -30,6 +31,7 @@ namespace BinarySerializer
         public Context Context { get; }
         public Pointer Anchor { get; private set; }
         public BinaryFile File { get; }
+        public PointerSize Size { get; }
 
         public long AbsoluteOffset { get; }
         public long FileOffset { get; }
@@ -48,15 +50,14 @@ namespace BinarySerializer
         public string StringFileOffset => GetAddressString(FileOffset);
         public string StringAbsoluteOffset => GetAddressString(AbsoluteOffset);
 
-        // TODO: Get the correct size to use
-        protected virtual string GetAddressString(long value, PointerSize size = PointerSize.Pointer32)
+        protected virtual string GetAddressString(long value)
         {
-            return size switch
+            return Size switch
             {
                 PointerSize.Pointer16 => $"{value:X4}",
                 PointerSize.Pointer32 => $"{value:X8}",
                 PointerSize.Pointer64 => $"{value:X16}",
-                _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
+                _ => $"{value:X8}"
             };
         }
 
@@ -66,7 +67,7 @@ namespace BinarySerializer
 
         public Pointer SetAnchor(Pointer anchor)
         {
-            Pointer ptr = new Pointer(AbsoluteOffset, File)
+            Pointer ptr = new Pointer(AbsoluteOffset, File, size: Size)
             {
                 Anchor = anchor
             };
@@ -123,8 +124,8 @@ namespace BinarySerializer
         }
         public static bool operator !=(Pointer x, Pointer y) => !(x == y);
 
-        public static Pointer operator +(Pointer x, long y) => new Pointer(x.AbsoluteOffset + y, x.File) { Anchor = x.Anchor };
-        public static Pointer operator -(Pointer x, long y) => new Pointer(x.AbsoluteOffset - y, x.File) { Anchor = x.Anchor };
+        public static Pointer operator +(Pointer x, long y) => new Pointer(x.AbsoluteOffset + y, x.File, size: x.Size) { Anchor = x.Anchor };
+        public static Pointer operator -(Pointer x, long y) => new Pointer(x.AbsoluteOffset - y, x.File, size: x.Size) { Anchor = x.Anchor };
 
         public static long operator +(Pointer x, Pointer y) => x.AbsoluteOffset + y.AbsoluteOffset;
         public static long operator -(Pointer x, Pointer y) => x.AbsoluteOffset - y.AbsoluteOffset;

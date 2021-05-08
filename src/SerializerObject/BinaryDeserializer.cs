@@ -295,7 +295,7 @@ namespace BinarySerializer
                 var file = CurrentFile.GetPointerFile(value, anchor);
 
                 if (file != null)
-                    ptr = new Pointer(value, file, anchor);
+                    ptr = new Pointer(value, file, anchor, size);
             }
 
             if (ptr == null && value != 0 && !allowInvalid && !CurrentFile.AllowInvalidPointer(value, anchor: anchor))

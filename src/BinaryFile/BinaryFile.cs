@@ -93,6 +93,23 @@ namespace BinarySerializer
         /// </summary>
         public virtual bool IgnoreCacheOnRead => false;
 
+        private PointerSize? _pointerSize;
+        public virtual PointerSize PointerSize
+        {
+            get
+            {
+                if (_pointerSize == null)
+                {
+                    if (BaseAddress + Length > UInt32.MaxValue)
+                        _pointerSize = PointerSize.Pointer64;
+                    else
+                        _pointerSize = PointerSize.Pointer32;
+                }
+
+                return _pointerSize.Value;
+            }
+        }
+
         #endregion
 
         #region Methods

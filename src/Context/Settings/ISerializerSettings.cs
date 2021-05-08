@@ -26,5 +26,10 @@ namespace BinarySerializer
         /// Indicates if caching read objects should be ignored
         /// </summary>
         bool IgnoreCacheOnRead { get; }
+
+        /// <summary>
+        /// The pointer size to use when logging a <see cref="Pointer"/>. Set to <see langword="null"/> to dynamically determine the appropriate size.
+        /// </summary>
+        PointerSize? LoggingPointerSize { get; }
     }
 }

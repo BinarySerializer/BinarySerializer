@@ -65,7 +65,7 @@ namespace BinarySerializer
         /// <summary>
         /// The current pointer
         /// </summary>
-        public virtual Pointer CurrentPointer => CurrentBinaryFile == null ? null : new Pointer(CurrentAbsoluteOffset, CurrentBinaryFile);
+        public virtual Pointer CurrentPointer => CurrentBinaryFile == null ? null : new Pointer(CurrentAbsoluteOffset, CurrentBinaryFile, size: Context.Settings.LoggingPointerSize ?? CurrentBinaryFile.PointerSize);
 
         /// <summary>
         /// The current absolute offset
