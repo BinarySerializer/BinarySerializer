@@ -291,7 +291,18 @@ namespace BinarySerializer
         public abstract T[] SerializeArraySize<T, U>(T[] obj, string name = null) where U : struct;
         public abstract T[] SerializeArray<T>(T[] obj, long count, string name = null);
         public abstract T[] SerializeObjectArray<T>(T[] obj, long count, Action<T> onPreSerialize = null, string name = null) where T : BinarySerializable, new();
-        public T[] SerializeObjectArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, bool includeLastObj = false, Action<T> onPreSerialize = null, string name = null)
+
+        /// <summary>
+        /// Serializes an object array of undefined size until a specified condition is met
+        /// </summary>
+        /// <typeparam name="T">The object type</typeparam>
+        /// <param name="obj">The object array</param>
+        /// <param name="conditionCheckFunc">The condition for ending the array serialization</param>
+        /// <param name="getLastObjFunc">If specified the last object when read will be ignored and this will be used to prepend an object when writing</param>
+        /// <param name="onPreSerialize">Optional action to run before serializing</param>
+        /// <param name="name">The name</param>
+        /// <returns>The object array</returns>
+        public T[] SerializeObjectArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null, Action<T> onPreSerialize = null, string name = null)
             where T : BinarySerializable, new()
         {
             if (obj == null)
@@ -305,7 +316,7 @@ namespace BinarySerializer
 
                     if (conditionCheckFunc(serializedObj))
                     {
-                        if (includeLastObj)
+                        if (getLastObjFunc == null)
                             objects.Add(serializedObj);
 
                         break;
@@ -318,12 +329,15 @@ namespace BinarySerializer
             }
             else
             {
+                if (getLastObjFunc != null)
+                    obj = obj.Append(getLastObjFunc()).ToArray();
+
                 SerializeObjectArray<T>(obj, obj.Length, onPreSerialize: onPreSerialize, name: name);
             }
 
             return obj;
         }
-        public Pointer[] SerializePointerArrayUntil(Pointer[] obj, Func<Pointer, bool> conditionCheckFunc, PointerSize size = PointerSize.Pointer32, bool includeLastObj = false, string name = null)
+        public Pointer[] SerializePointerArrayUntil(Pointer[] obj, Func<Pointer, bool> conditionCheckFunc, PointerSize size = PointerSize.Pointer32, Func<Pointer> getLastObjFunc = null, string name = null)
         {
             if (obj == null)
             {
@@ -336,7 +350,7 @@ namespace BinarySerializer
 
                     if (conditionCheckFunc(serializedObj))
                     {
-                        if (includeLastObj)
+                        if (getLastObjFunc == null)
                             objects.Add(serializedObj);
 
                         break;
@@ -349,6 +363,9 @@ namespace BinarySerializer
             }
             else
             {
+                if (getLastObjFunc != null)
+                    obj = obj.Append(getLastObjFunc()).ToArray();
+
                 SerializePointerArray(obj, obj.Length, size: size, name: name);
             }
 
