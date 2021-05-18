@@ -229,8 +229,7 @@ namespace BinarySerializer
         {
             if (Regions == null)
                 Regions = new SortedList<long, Region>();
-
-            Regions.Add(offset, new Region(offset, length, name));
+            Regions[offset] = new Region(offset, length, name);
         }
 
         public Region GetRegion(long offset)
