@@ -102,6 +102,54 @@ namespace BinarySerializer
 
         #endregion
 
+        #region Pre-Defined Pointers
+
+        protected Dictionary<string, long> PreDefinedPointers { get; set; }
+
+        public void AddPreDefinedPointer(string key, long pointer)
+        {
+            PreDefinedPointers ??= new Dictionary<string, long>();
+
+            PreDefinedPointers[key] = pointer;
+        }
+        public void AddPreDefinedPointer(Enum key, long pointer)
+        {
+            PreDefinedPointers ??= new Dictionary<string, long>();
+
+            PreDefinedPointers[key.ToString()] = pointer;
+        }
+        public void AddPreDefinedPointers(IReadOnlyCollection<KeyValuePair<string, long>> pointers)
+        {
+            PreDefinedPointers ??= new Dictionary<string, long>();
+
+            foreach (var p in pointers)
+                PreDefinedPointers[p.Key] = p.Value;
+        }
+        public void AddPreDefinedPointers<T>(IReadOnlyCollection<KeyValuePair<T, long>> pointers)
+            where T : Enum
+        {
+            PreDefinedPointers ??= new Dictionary<string, long>();
+
+            foreach (var p in pointers)
+                PreDefinedPointers[p.Key.ToString()] = p.Value;
+        }
+
+        public Pointer GetPreDefinedPointer(string key, BinaryFile file, bool required = true)
+        {
+            if (PreDefinedPointers?.ContainsKey(key) != true)
+            {
+                if (required)
+                    throw new Exception($"Pre-defined pointer with key {key} was not found in the context using file {file?.FilePath}");
+                else
+                    return null;
+            }
+
+            return new Pointer(PreDefinedPointers[key], file);
+        }
+        public Pointer GetPreDefinedPointer(Enum key, BinaryFile file, bool required = true) => GetPreDefinedPointer(key.ToString(), file, required);
+
+        #endregion
+
         #region Files
 
         public Stream GetFileStream(string relativePath)

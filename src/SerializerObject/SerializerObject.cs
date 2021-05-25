@@ -462,5 +462,12 @@ namespace BinarySerializer
         public T GetSettings<T>() => Context.GetSettings<T>();
 
         #endregion
+
+        #region Pre-Defined Pointers
+
+        public virtual Pointer GetPreDefinedPointer(string key, bool required = true) => Context.GetPreDefinedPointer(key, CurrentBinaryFile, required);
+        public virtual Pointer GetPreDefinedPointer(Enum key, bool required = true) => Context.GetPreDefinedPointer(key, CurrentBinaryFile, required);
+
+        #endregion
     }
 }
