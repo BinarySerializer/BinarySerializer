@@ -175,18 +175,18 @@ namespace BinarySerializer
 
         #endregion
 
-        #region Pre-Defined Pointers
+        #region Override Pointers
 
-        protected Dictionary<long, Pointer> PredefinedPointers { get; set; }
+        protected Dictionary<long, Pointer> OverridePointers { get; set; }
 
-        public virtual void AddPreDefinedPointer(long offset, Pointer pointer)
+        public virtual void AddOverridePointer(long offset, Pointer pointer)
         {
-            if (PredefinedPointers == null)
-                PredefinedPointers = new Dictionary<long, Pointer>();
+            if (OverridePointers == null)
+                OverridePointers = new Dictionary<long, Pointer>();
 
-            PredefinedPointers.Add(offset, pointer);
+            OverridePointers.Add(offset, pointer);
         }
-        public virtual Pointer GetPreDefinedPointer(long offset) => PredefinedPointers?.ContainsKey(offset) == true ? PredefinedPointers[offset] : null;
+        public virtual Pointer GetOverridePointer(long offset) => OverridePointers?.ContainsKey(offset) == true ? OverridePointers[offset] : null;
 
         #endregion
 

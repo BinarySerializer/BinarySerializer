@@ -285,7 +285,7 @@ namespace BinarySerializer
                 _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
             };
 
-            Pointer ptr = CurrentFile.GetPreDefinedPointer(CurrentAbsoluteOffset);
+            Pointer ptr = CurrentFile.GetOverridePointer(CurrentAbsoluteOffset);
 
             if (ptr != null)
                 ptr = ptr.SetAnchor(anchor);
