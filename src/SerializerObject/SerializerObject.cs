@@ -433,10 +433,20 @@ namespace BinarySerializer
 
         public void SerializePadding(int length, bool logIfNotNull = false, string name = "Padding")
         {
-            var a = SerializeArray<byte>(new byte[length], length, name: name);
+            if (length == 1)
+            {
+                var a = Serialize<byte>(default, name: name);
 
-            if (logIfNotNull && a.Any(x => x != 0))
-                LogWarning($"Padding at {CurrentPointer - length} contains data! Data: {a.ToHexString()}");
+                if (logIfNotNull && a != 0)
+                    LogWarning($"Padding at {CurrentPointer - length} contains data! Data: 0x{a:X2}");
+            }
+            else
+            {
+                var a = SerializeArray<byte>(new byte[length], length, name: name);
+
+                if (logIfNotNull && a.Any(x => x != 0))
+                    LogWarning($"Padding at {CurrentPointer - length} contains data! Data: {a.ToHexString()}");
+            }
         }
 
         #endregion
@@ -449,7 +459,7 @@ namespace BinarySerializer
 
         #region Settings
 
-        public T GetSettings<T>() where T : class, ISerializerSettings => Context.GetSettings<T>();
+        public T GetSettings<T>() => Context.GetSettings<T>();
 
         #endregion
     }
