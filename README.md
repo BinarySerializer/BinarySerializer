@@ -16,10 +16,7 @@ The base path passed in will be used as the base path for all files added to the
 ### Binary File
 A `BinaryFile` needs to be added for each file source to use in the context.
 ```cs
-context.AddFile(new LinearSerializedFile(context)
-{
-    FilePath = relativeFilePath
-});
+context.AddFile(new LinearSerializedFile(context, relativeFilePath));
 ```
 There are different `BinaryFile` types to use, such as `LinearSerializedFile`, `MemoryMappedFile` and `StreamFile`. Additional ones can be created by inheriting from `BinaryFile`.
 
