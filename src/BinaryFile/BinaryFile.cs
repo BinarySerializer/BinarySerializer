@@ -273,5 +273,26 @@ namespace BinarySerializer
         }
 
         #endregion
+
+        #region Labels
+
+        protected Dictionary<long, string> Labels { get; set; }
+
+        public void AddLabel(long offset, string label)
+        {
+            Labels ??= new Dictionary<long, string>();
+
+            Labels[offset] = label;
+        }
+
+        public string GetLabel(long offset)
+        {
+            if (Labels?.ContainsKey(offset) != true)
+                return null;
+
+            return Labels[offset];
+        }
+
+        #endregion
     }
 }

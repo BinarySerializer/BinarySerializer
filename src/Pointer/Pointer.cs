@@ -76,17 +76,33 @@ namespace BinarySerializer
 
         public override string ToString()
         {
-            BinaryFile.Region region = null;
-            var fileOffset = FileOffset;
             long regionOffset = 0;
-            if (File != null)
-            {
-                region = File.GetRegion(fileOffset);
-                if (region != null) regionOffset = fileOffset - region.Offset;
-            }
-            var str = $"{File.FilePath}|0x{GetAddressString(AbsoluteOffset)}";
-            if (File != null && File.BaseAddress != 0) str += $"[0x{GetAddressString(fileOffset)}]";
-            if (region != null) str += $"({region.Name}:0x{GetAddressString(regionOffset)})";
+
+            // Attempt to get a region
+            BinaryFile.Region region = File?.GetRegion(FileOffset);
+
+            // Get the offset within the region
+            if (region != null)
+                regionOffset = FileOffset - region.Offset;
+
+            // Attempt to get a label
+            string label = File?.GetLabel(FileOffset);
+
+            // Create the initial string
+            var str = $"{File?.FilePath ?? "<no file>"}|0x{GetAddressString(AbsoluteOffset)}";
+
+            // Add file offset if the file is memory mapped
+            if (File != null && File.BaseAddress != 0) 
+                str += $"[0x{GetAddressString(FileOffset)}]";
+
+            // Append region info
+            if (region != null) 
+                str += $"({region.Name}:0x{GetAddressString(regionOffset)})";
+
+            // Append label
+            if (label != null)
+                str += $"({label})";
+
             return str;
         }
 
