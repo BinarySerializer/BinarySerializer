@@ -16,14 +16,14 @@ namespace BinarySerializer
         public BinarySerializer(Context context) : base(context)
         {
             Writers = new Dictionary<BinaryFile, Writer>();
-            WrittenObjects = new HashSet<BinarySerializable>();
+            WrittenObjects = new List<BinarySerializable>();
         }
 
         #endregion
 
         #region Protected Properties
 
-        protected HashSet<BinarySerializable> WrittenObjects { get; }
+        protected List<BinarySerializable> WrittenObjects { get; }
         protected Dictionary<BinaryFile, Writer> Writers { get; }
         protected Writer Writer { get; set; }
         protected BinaryFile CurrentFile { get; set; }
@@ -230,7 +230,7 @@ namespace BinarySerializer
 
         public override T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null)
         {
-            if (WrittenObjects.Contains(obj))
+            if (WrittenObjects.Any(x => ReferenceEquals(x, obj)))
             {
                 Goto(CurrentPointer + obj.Size);
                 return obj;
