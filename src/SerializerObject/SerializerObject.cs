@@ -123,7 +123,7 @@ namespace BinarySerializer
             DoEncoded(encoder, () =>
             {
                 obj = action();
-            });
+            }, endianness: endianness, allowLocalPointers: allowLocalPointers, filename: filename);
 
             return obj;
         }
