@@ -273,7 +273,7 @@ namespace BinarySerializer
         public override Pointer SerializePointer(Pointer obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, string name = null)
         {
             if (IsLogEnabled)
-                Context.Log.Log($"{LogPrefix}({size}): {obj}");
+                Context.Log.Log($"{LogPrefix}({size}) {name ?? "<no name>"}: {obj}");
 
             switch (size)
             {
