@@ -16,14 +16,14 @@ namespace BinarySerializer
         public BinarySerializer(Context context) : base(context)
         {
             Writers = new Dictionary<BinaryFile, Writer>();
-            WrittenObjects = new List<BinarySerializable>();
+            WrittenObjects = new HashSet<BinarySerializable>(new IdentityComparer<BinarySerializable>());
         }
 
         #endregion
 
         #region Protected Properties
 
-        protected List<BinarySerializable> WrittenObjects { get; }
+        protected HashSet<BinarySerializable> WrittenObjects { get; }
         protected Dictionary<BinaryFile, Writer> Writers { get; }
         protected Writer Writer { get; set; }
         protected BinaryFile CurrentFile { get; set; }
@@ -230,7 +230,7 @@ namespace BinarySerializer
 
         public override T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null)
         {
-            if (WrittenObjects.Any(x => ReferenceEquals(x, obj)))
+            if (WrittenObjects.Contains(obj))
             {
                 Goto(CurrentPointer + obj.Size);
                 return obj;
@@ -599,6 +599,17 @@ namespace BinarySerializer
             Writer w = Writers[file];
             file.EndWrite(w);
             Writers.Remove(file);
+        }
+
+        #endregion
+
+        #region Data Types
+
+        private sealed class IdentityComparer<T> : IEqualityComparer<T>
+            where T : class
+        {
+            public bool Equals(T x, T y) => ReferenceEquals(x, y);
+            public int GetHashCode(T obj) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
         }
 
         #endregion
