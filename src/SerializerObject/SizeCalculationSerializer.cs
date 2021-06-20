@@ -213,6 +213,10 @@ namespace BinarySerializer
         public override T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null)
         {
             Depth++;
+
+            if (obj.Offset == null)
+                obj.Init(CurrentPointer);
+
             onPreSerialize?.Invoke(obj);
             obj.Serialize(this);
             Depth--;
