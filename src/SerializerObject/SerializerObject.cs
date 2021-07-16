@@ -293,6 +293,50 @@ namespace BinarySerializer
         public abstract T[] SerializeObjectArray<T>(T[] obj, long count, Action<T> onPreSerialize = null, string name = null) where T : BinarySerializable, new();
 
         /// <summary>
+        /// Serializes an array of undefined size until a specified condition is met
+        /// </summary>
+        /// <typeparam name="T">The value type</typeparam>
+        /// <param name="obj">The array</param>
+        /// <param name="conditionCheckFunc">The condition for ending the array serialization</param>
+        /// <param name="getLastObjFunc">If specified the last value when read will be ignored and this will be used to prepend a value when writing</param>
+        /// <param name="name">The name</param>
+        /// <returns>The array</returns>
+        public T[] SerializeArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null, string name = null)
+        {
+            if (obj == null)
+            {
+                var objects = new List<T>();
+                var index = 0;
+
+                while (true)
+                {
+                    var serializedObj = Serialize<T>(default, name: $"{name}[{index++}]");
+
+                    if (conditionCheckFunc(serializedObj))
+                    {
+                        if (getLastObjFunc == null)
+                            objects.Add(serializedObj);
+
+                        break;
+                    }
+
+                    objects.Add(serializedObj);
+                }
+
+                obj = objects.ToArray();
+            }
+            else
+            {
+                if (getLastObjFunc != null)
+                    obj = obj.Append(getLastObjFunc()).ToArray();
+
+                SerializeArray<T>(obj, obj.Length, name: name);
+            }
+
+            return obj;
+        }
+
+        /// <summary>
         /// Serializes an object array of undefined size until a specified condition is met
         /// </summary>
         /// <typeparam name="T">The object type</typeparam>
