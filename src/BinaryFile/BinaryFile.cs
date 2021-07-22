@@ -141,7 +141,7 @@ namespace BinarySerializer
             List<MemoryMappedFile> files = Context.MemoryMap.Files.OfType<MemoryMappedFile>().ToList();
             
             // Sort based on the base address
-            files.Sort((a, b) => b.BaseAddress.CompareTo(a.BaseAddress));
+            files.Sort((a, b) => b.Priority.CompareTo(a.Priority));
 
             // Return the first pointer within the range
             return files.Select(f => f.GetLocalPointerFile(serializedValue, anchor)).FirstOrDefault(p => p != null);

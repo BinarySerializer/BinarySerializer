@@ -4,9 +4,10 @@ namespace BinarySerializer
 {
     public class MemoryMappedFile : BinaryFile 
     {
-        public MemoryMappedFile(Context context, string filePath, long baseAddress, Endian endianness = Endian.Little, long fileLength = 0) : base(context, filePath, endianness, baseAddress)
+        public MemoryMappedFile(Context context, string filePath, long baseAddress, Endian endianness = Endian.Little, long fileLength = 0, long priority = -1) : base(context, filePath, endianness, baseAddress)
         {
             length = fileLength;
+            Priority = priority == -1 ? baseAddress : priority;
         }
 
 		public override Reader CreateReader() {
@@ -37,6 +38,8 @@ namespace BinarySerializer
                 return length;
             }
 		}
+
+        public long Priority { get; }
 
         public override BinaryFile GetPointerFile(long serializedValue, Pointer anchor = null) => GetMemoryMappedPointerFile(serializedValue, anchor);
     }
