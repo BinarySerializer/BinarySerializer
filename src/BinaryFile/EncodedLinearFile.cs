@@ -2,9 +2,9 @@
 
 namespace BinarySerializer
 {
-    public class EncodedFile : BinaryFile
+    public class EncodedLinearFile : BinaryFile
 	{
-        public EncodedFile(Context context, string filePath, IStreamEncoder encoder, Endian endianness = Endian.Little, long fileLength = 0) : base(context, filePath, endianness)
+        public EncodedLinearFile(Context context, string filePath, IStreamEncoder encoder, Endian endianness = Endian.Little, long fileLength = 0) : base(context, filePath, endianness)
         {
             Encoder = encoder;
             length = fileLength;
