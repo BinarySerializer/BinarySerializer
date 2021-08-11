@@ -138,10 +138,10 @@ namespace BinarySerializer
         protected virtual BinaryFile GetMemoryMappedPointerFile(long serializedValue, Pointer anchor = null)
         {
             // Get all memory mapped files
-            List<MemoryMappedFile> files = Context.MemoryMap.Files.OfType<MemoryMappedFile>().ToList();
-            
+            var files = Context.MemoryMap.Files.OfType<MemoryMappedFile>();
+
             // Sort based on the base address
-            files.Sort((a, b) => b.Priority.CompareTo(a.Priority));
+            files = files.OrderByDescending(file => file.Priority);
 
             // Return the first pointer within the range
             return files.Select(f => f.GetLocalPointerFile(serializedValue, anchor)).FirstOrDefault(p => p != null);
