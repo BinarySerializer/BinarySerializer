@@ -3,19 +3,20 @@ using System.IO;
 
 namespace BinarySerializer
 {
-    public class MemoryMappedByteArrayFile : MemoryMappedFile
+    public class MemoryMappedByteArrayFile : VirtualFile
     {
-        public MemoryMappedByteArrayFile(Context context, string name, long baseAddress, long length, Endian endianness = Endian.Little) : base(context, name, baseAddress, endianness)
+        public MemoryMappedByteArrayFile(Context context, string name, long baseAddress, long length, Endian endianness = Endian.Little, long memoryMappedPriority = -1) : base(context, name, endianness, baseAddress, memoryMappedPriority: memoryMappedPriority)
         {
             Bytes = new byte[length];
         }
 
-        public MemoryMappedByteArrayFile(Context context, string name, long baseAddress, byte[] bytes, Endian endianness = Endian.Little) : base(context, name, baseAddress, endianness)
+        public MemoryMappedByteArrayFile(Context context, string name, long baseAddress, byte[] bytes, Endian endianness = Endian.Little, long memoryMappedPriority = -1) : base(context, name, endianness, baseAddress, memoryMappedPriority: memoryMappedPriority)
         {
             Bytes = bytes ?? throw new ArgumentNullException(nameof(bytes));
         }
 
         public override long Length => Bytes.Length;
+        public override bool IsMemoryMapped => true;
 
         private byte[] _bytes;
 

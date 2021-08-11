@@ -2,9 +2,9 @@
 
 namespace BinarySerializer
 {
-    public class EncodedLinearFile : BinaryFile
+    public class EncodedLinearFile : PhysicalFile
 	{
-        public EncodedLinearFile(Context context, string filePath, IStreamEncoder encoder, Endian endianness = Endian.Little, long fileLength = 0) : base(context, filePath, endianness)
+        public EncodedLinearFile(Context context, string filePath, IStreamEncoder encoder, Endian endianness = Endian.Little, long fileLength = 0) : base(context, filePath, endianness, fileLength: fileLength)
         {
             Encoder = encoder;
             length = fileLength;
@@ -20,7 +20,7 @@ namespace BinarySerializer
                 if (length == 0)
                 {
                     // Open the file
-                    using Stream s = FileManager.GetFileReadStream(AbsolutePath);
+                    using Stream s = FileManager.GetFileReadStream(SourcePath);
 
                     // Decode the file
                     using var decoded = Encoder.DecodeStream(s);
@@ -32,10 +32,12 @@ namespace BinarySerializer
             }
         }
 
-		public override Reader CreateReader() 
+        public override bool IsMemoryMapped => false;
+
+        public override Reader CreateReader() 
         {
 			// Open the file
-			using Stream s = FileManager.GetFileReadStream(AbsolutePath);
+			using Stream s = FileManager.GetFileReadStream(SourcePath);
 
 			// Decode the file
 			var decoded = Encoder.DecodeStream(s);
@@ -61,14 +63,12 @@ namespace BinarySerializer
             {
 				CreateBackupFile();
 
-                using Stream s = FileManager.GetFileWriteStream(AbsolutePath, RecreateOnWrite);
+                using Stream s = FileManager.GetFileWriteStream(DestinationPath, RecreateOnWrite);
                 writer.BaseStream.Position = 0;
                 using var encoded = Encoder.EncodeStream(writer.BaseStream);
                 encoded.CopyTo(s);
             }
 			base.EndWrite(writer);
 		}
-
-        public override BinaryFile GetPointerFile(long serializedValue, Pointer anchor = null) => GetLocalPointerFile(serializedValue, anchor);
     }
 }

@@ -6,7 +6,7 @@ namespace BinarySerializer
     /// <summary>
     /// A <see cref="BinaryFile"/> used for a <see cref="Stream"/>. This type of file should only be used for limited operations, such as serializing an encoded file.
     /// </summary>
-    public class StreamFile : BinaryFile 
+    public class StreamFile : VirtualFile 
     {
         public StreamFile(Context context, string name, Stream stream, Endian endianness = Endian.Little, bool allowLocalPointers = false) : base(context, name, endianness)
         {
@@ -18,6 +18,7 @@ namespace BinarySerializer
         private Stream _stream;
 
         public override long Length { get; }
+        public override bool IsMemoryMapped => false;
 
         public bool AllowLocalPointers { get; }
 

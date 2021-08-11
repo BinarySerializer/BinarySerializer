@@ -17,15 +17,16 @@ namespace BinarySerializer
         /// <param name="endianness">The endianness to use when serializing the file</param>
         /// <param name="baseAddress">The base address for the file. If the file is not memory mapped this should be 0.</param>
         /// <param name="startPointer">The start pointer for the file. If null it will be the same as <see cref="BaseAddress"/></param>
-        protected BinaryFile(Context context, string filePath, Endian endianness = Endian.Little, long baseAddress = 0, Pointer startPointer = null)
+        /// <param name="memoryMappedPriority">e file priority if memory mapped. Default is the address if set to -1.</param>
+        protected BinaryFile(Context context, string filePath, Endian endianness = Endian.Little, long baseAddress = 0, Pointer startPointer = null, long memoryMappedPriority = -1)
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
             FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
             AbsolutePath = Context.GetAbsoluteFilePath(filePath);
             Endianness = endianness;
-            RecreateOnWrite = true;
             BaseAddress = baseAddress;
             StartPointer = startPointer ?? new Pointer(baseAddress, this);
+            MemoryMappedPriority = memoryMappedPriority == -1 ? baseAddress : memoryMappedPriority;
         }
 
         #endregion
@@ -47,11 +48,6 @@ namespace BinarySerializer
         /// The endianness to use when serializing the file
         /// </summary>
         public Endian Endianness { get; }
-
-        /// <summary>
-        /// Indicates if the file should be recreated when writing to it
-        /// </summary>
-        public bool RecreateOnWrite { get; set; }
 
         /// <summary>
         /// Files can be identified with an alias besides <see cref="FilePath"/>
@@ -82,6 +78,16 @@ namespace BinarySerializer
         /// The start pointer for the file
         /// </summary>
         public Pointer StartPointer { get; }
+
+        /// <summary>
+        /// The file priority if memory mapped. Default is the address.
+        /// </summary>
+        public long MemoryMappedPriority { get; }
+
+        /// <summary>
+        /// Indicates if the file should be treated as being memory mapped
+        /// </summary>
+        public abstract bool IsMemoryMapped { get; }
 
         /// <summary>
         /// Indicates if pointers leading to this file should be saved to the Memory Map
@@ -123,7 +129,13 @@ namespace BinarySerializer
         /// <param name="serializedValue">The serialized pointer value</param>
         /// <param name="anchor">An optional anchor for the pointer</param>
         /// <returns></returns>
-        public virtual BinaryFile GetPointerFile(long serializedValue, Pointer anchor = null) => this;
+        public virtual BinaryFile GetPointerFile(long serializedValue, Pointer anchor = null)
+        {
+            if (IsMemoryMapped)
+                return GetMemoryMappedPointerFile(serializedValue, anchor);
+            else
+                return GetLocalPointerFile(serializedValue, anchor);
+        }
 
         protected virtual BinaryFile GetLocalPointerFile(long serializedValue, Pointer anchor = null)
         {
@@ -138,10 +150,10 @@ namespace BinarySerializer
         protected virtual BinaryFile GetMemoryMappedPointerFile(long serializedValue, Pointer anchor = null)
         {
             // Get all memory mapped files
-            var files = Context.MemoryMap.Files.OfType<MemoryMappedFile>();
+            var files = Context.MemoryMap.Files.Where(x => x.IsMemoryMapped);
 
             // Sort based on the base address
-            files = files.OrderByDescending(file => file.Priority);
+            files = files.OrderByDescending(file => file.MemoryMappedPriority);
 
             // Return the first pointer within the range
             return files.Select(f => f.GetLocalPointerFile(serializedValue, anchor)).FirstOrDefault(p => p != null);
@@ -157,18 +169,6 @@ namespace BinarySerializer
         {
             writer?.Flush();
             writer?.Dispose();
-        }
-
-        protected void CreateBackupFile()
-        {
-            var backupPath = AbsolutePath + ".BAK";
-
-            if (Context.CreateBackupOnWrite && !FileManager.FileExists(backupPath) && FileManager.FileExists(AbsolutePath))
-            {
-                using Stream s = FileManager.GetFileReadStream(AbsolutePath);
-                using Stream sb = FileManager.GetFileWriteStream(backupPath);
-                s.CopyTo(sb);
-            }
         }
 
         public virtual void Dispose() { }
