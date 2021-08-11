@@ -120,6 +120,7 @@ namespace BinarySerializer
             if (encoding == null)
                 throw new ArgumentNullException(nameof(encoding));
 
+            if (value == null) value = "";
             byte[] data = encoding.GetBytes(value + '\0');
             Write(data);
         }
@@ -129,6 +130,7 @@ namespace BinarySerializer
             if (encoding == null)
                 throw new ArgumentNullException(nameof(encoding));
 
+            if(value == null) value = "";
             byte[] data = encoding.GetBytes(value + '\0');
             if (data.Length != size)
                 Array.Resize(ref data, (int)size);

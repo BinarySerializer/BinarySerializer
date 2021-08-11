@@ -230,6 +230,12 @@ namespace BinarySerializer
 
         public override T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null)
         {
+            if (obj == null) {
+                Pointer current = CurrentPointer;
+                obj = new T();
+                obj.Init(current);
+            }
+
             if (WrittenObjects.Contains(obj))
             {
                 Goto(CurrentPointer + obj.Size);
