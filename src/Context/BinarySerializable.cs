@@ -42,8 +42,10 @@
         public void Init(Pointer offset) 
         {
 			Offset = offset;
-			Context = offset.Context;
-		}
+            if (Context != null && offset.Context != Context) 
+                OnChangeContext(Context, offset.Context);
+            Context = offset.Context;
+        }
 
         /// <summary>
         /// Handles the data serialization
@@ -88,5 +90,8 @@
             // Update the size
             Size = s.CurrentFileOffset - startPos;
         }
-	}
+
+        protected virtual void OnChangeContext(Context oldContext, Context newContext) {
+        }
+    }
 }
