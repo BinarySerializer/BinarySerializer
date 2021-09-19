@@ -4,7 +4,7 @@ namespace BinarySerializer
 {
     public class EncodedLinearFile : PhysicalFile
 	{
-        public EncodedLinearFile(Context context, string filePath, IStreamEncoder encoder, Endian endianness = Endian.Little, long fileLength = 0) : base(context, filePath, endianness, fileLength: fileLength)
+        public EncodedLinearFile(Context context, string filePath, IStreamEncoder encoder, Endian endianness = Endian.Little, long? fileLength = null) : base(context, filePath, endianness, fileLength: fileLength)
         {
             Encoder = encoder;
             length = fileLength;
@@ -12,12 +12,12 @@ namespace BinarySerializer
 
         public IStreamEncoder Encoder { get; }
 
-		private long length;
+		private long? length;
         public override long Length
         {
             get
             {
-                if (length == 0)
+                if (length == null)
                 {
                     // Open the file
                     using Stream s = FileManager.GetFileReadStream(SourcePath);
@@ -28,7 +28,8 @@ namespace BinarySerializer
                     // Set the length
                     length = decoded.Length;
                 }
-				return length;
+
+				return length.Value;
             }
         }
 
