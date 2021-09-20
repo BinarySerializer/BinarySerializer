@@ -90,11 +90,11 @@ namespace BinarySerializer
             Depth++;
             CurrentName.Push(name);
             if (obj == null) obj = new T();
-            onPreSerialize?.Invoke(obj);
             if (obj.Context == null || obj.Context != Context) {
                 // reinitialize object
                 obj.Init(CurrentPointer);
             }
+            onPreSerialize?.Invoke(obj);
             obj.Serialize(this);
             Depth--;
             CurrentName.Pop();

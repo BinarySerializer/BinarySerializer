@@ -231,15 +231,19 @@ namespace BinarySerializer
         public override T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null)
         {
             if (obj == null) {
-                Pointer current = CurrentPointer;
                 obj = new T();
-                obj.Init(current);
+                obj.Init(CurrentPointer);
             }
 
             if (WrittenObjects.Contains(obj))
             {
                 Goto(CurrentPointer + obj.Size);
                 return obj;
+            }
+
+            if (obj.Context == null || obj.Context != Context) {
+                // reinitialize object
+                obj.Init(CurrentPointer);
             }
 
 
@@ -254,12 +258,6 @@ namespace BinarySerializer
 
             Depth++;
             onPreSerialize?.Invoke(obj);
-
-            if (obj.Context == null || obj.Context != Context)
-            {
-                // reinitialize object
-                obj.Init(CurrentPointer);
-            }
 
             obj.Serialize(this);
             Depth--;
