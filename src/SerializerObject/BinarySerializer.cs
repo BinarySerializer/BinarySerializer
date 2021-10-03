@@ -480,9 +480,15 @@ namespace BinarySerializer
 
         #endregion
 
-        #region Protected Helpers
+        #region Public Helpers
+        public void ClearWrittenObjects() {
+            WrittenObjects.Clear();
+        }
+		#endregion
 
-        protected T[] GetArray<T>(T[] obj, long count)
+		#region Protected Helpers
+
+		protected T[] GetArray<T>(T[] obj, long count)
         {
             // Create or resize array if necessary
             return obj ?? new T[(int)count];
