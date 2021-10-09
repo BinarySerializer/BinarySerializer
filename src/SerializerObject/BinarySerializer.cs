@@ -80,7 +80,8 @@ namespace BinarySerializer
                         name: key,
                         stream: memStream,
                         endianness: endianness ?? CurrentFile.Endianness,
-                        allowLocalPointers: allowLocalPointers);
+                        allowLocalPointers: allowLocalPointers,
+                        parentPointer: CurrentPointer);
 
                     try
                     {
@@ -125,7 +126,8 @@ namespace BinarySerializer
                 name: key,
                 stream: memStream,
                 endianness: endianness ?? CurrentFile.Endianness,
-                allowLocalPointers: allowLocalPointers);
+                allowLocalPointers: allowLocalPointers,
+                parentPointer: CurrentPointer);
 
             Context.AddFile(sf);
 

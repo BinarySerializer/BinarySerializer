@@ -63,6 +63,8 @@ namespace BinarySerializer
 
         public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null)
         {
+            Pointer offset = CurrentPointer;
+
             // Stream key
             string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
 
@@ -75,7 +77,8 @@ namespace BinarySerializer
                 name: key,
                 stream: memStream,
                 endianness: endianness ?? CurrentFile.Endianness,
-                allowLocalPointers: allowLocalPointers);
+                allowLocalPointers: allowLocalPointers,
+                parentPointer: offset);
 
             try
             {
@@ -97,6 +100,8 @@ namespace BinarySerializer
 
         public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false, string filename = null)
         {
+            Pointer offset = CurrentPointer;
+
             // Stream key
             string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
 
@@ -107,7 +112,8 @@ namespace BinarySerializer
                 name: key, 
                 stream: memStream, 
                 endianness: endianness ?? CurrentFile.Endianness,
-                allowLocalPointers: allowLocalPointers);
+                allowLocalPointers: allowLocalPointers,
+                parentPointer: offset);
             Context.AddFile(sf);
             EncodedFiles.Add(new EncodedState()
             {

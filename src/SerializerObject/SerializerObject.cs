@@ -449,7 +449,7 @@ namespace BinarySerializer
                 if (!Context.FileExists(key))
                 {
                     var typeStream = new MemoryStream(bytes);
-                    Context.AddFile(new StreamFile(Context, key, typeStream));
+                    Context.AddFile(new StreamFile(Context, key, typeStream, parentPointer: CurrentPointer));
                 }
 
                 return DoAt(Context.GetFile(key).StartPointer, func);

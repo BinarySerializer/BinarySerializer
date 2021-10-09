@@ -8,7 +8,7 @@ namespace BinarySerializer
     /// </summary>
     public class StreamFile : VirtualFile 
     {
-        public StreamFile(Context context, string name, Stream stream, Endian endianness = Endian.Little, bool allowLocalPointers = false) : base(context, name, endianness)
+        public StreamFile(Context context, string name, Stream stream, Endian endianness = Endian.Little, bool allowLocalPointers = false, Pointer parentPointer = null) : base(context, name, endianness, parentPointer: parentPointer)
         {
             Stream = stream ?? throw new ArgumentNullException(nameof(stream));
             Length = stream.Length;
