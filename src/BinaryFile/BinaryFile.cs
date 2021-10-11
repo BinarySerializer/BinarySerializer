@@ -22,7 +22,8 @@ namespace BinarySerializer
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
             FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
-            AbsolutePath = Context.GetAbsoluteFilePath(filePath);
+            FilePath = Context.NormalizePath(FilePath, false);
+            AbsolutePath = Context.GetAbsoluteFilePath(FilePath);
             Endianness = endianness;
             BaseAddress = baseAddress;
             StartPointer = startPointer ?? new Pointer(baseAddress, this);
