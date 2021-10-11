@@ -243,11 +243,8 @@ namespace BinarySerializer
                 return obj;
             }
 
-            if (obj.Context == null || obj.Context != Context || obj.Offset == null) {
-                // reinitialize object
-                obj.Init(CurrentPointer);
-            }
-
+            // reinitialize object
+            obj.Init(CurrentPointer);
 
             string logString = IsLogEnabled ? LogPrefix : null;
             bool isLogTemporarilyDisabled = false;
