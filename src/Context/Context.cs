@@ -168,7 +168,7 @@ namespace BinarySerializer
         {
             string newPath = path.Replace("\\", "/");
             
-            if (isDirectory && !newPath.EndsWith("/")) 
+            if (isDirectory && !newPath.EndsWith("/") && !String.IsNullOrWhiteSpace(path)) 
                 newPath += "/";
             
             return newPath;
