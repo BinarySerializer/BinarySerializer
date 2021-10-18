@@ -493,6 +493,19 @@ namespace BinarySerializer
             }
         }
 
+        public virtual void SerializeMagicString(string magic, long length, Encoding encoding = null, bool throwIfNoMatch = true, string name = null)
+        {
+            var value = SerializeString(magic, length, encoding: encoding, name: name ?? "Magic");
+
+            if (value != magic)
+            {
+                if (throwIfNoMatch)
+                    throw new Exception($"Magic '{value}' does not match expected magic of '{magic}'");
+                else
+                    LogWarning($"Magic '{value}' does not match expected magic of '{magic}'");
+            }
+        }
+
         #endregion
 
         #region Caching
