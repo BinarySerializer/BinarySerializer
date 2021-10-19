@@ -488,7 +488,7 @@ namespace BinarySerializer
                 valueLong = BitHelpers.SetBits64(valueLong, v, length, pos);
                 if (IsLogEnabled)
                 {
-                    Context.Log.Log(logPrefix + $"  (UInt64{length}) {name ?? "<no name>"}: {v}");
+                    Context.Log.Log(logPrefix + $"  (UInt{length}) {name ?? "<no name>"}: {v}");
                 }
                 pos += length;
                 return v;

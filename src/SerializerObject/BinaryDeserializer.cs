@@ -573,7 +573,7 @@ namespace BinarySerializer
                 var bitValue = BitHelpers.ExtractBits64(valueLong, length, pos);
 
                 if (IsLogEnabled)
-                    Context.Log.Log($"{logPrefix}  (UInt64{length}) {name ?? "<no name>"}: {bitValue}");
+                    Context.Log.Log($"{logPrefix}  (UInt{length}) {name ?? "<no name>"}: {bitValue}");
 
                 pos += length;
                 return bitValue;
