@@ -17,8 +17,19 @@
             return (((1 << count) - 1) & (value >> (offset)));
         }
 
+        public static long ExtractBits64(long value, int count, int offset)
+        {
+            return (((1 << count) - 1) & (value >> (offset)));
+        }
+
         public static int SetBits(int bits, int value, int count, int offset) {
             int mask = ((1 << count) - 1) << offset;
+            bits = (bits & ~mask) | (value << offset);
+            return bits;
+        }
+
+        public static long SetBits64(long bits, long value, int count, int offset) {
+            long mask = ((1 << count) - 1) << offset;
             bits = (bits & ~mask) | (value << offset);
             return bits;
         }
@@ -29,6 +40,16 @@
 
             for (int i = 0; i < 32; i++)
                 result = SetBits(result, ExtractBits(value, 1, i), 1, 32 - i - 1);
+
+            return result;
+        }
+
+        public static long ReverseBits64(long value)
+        {
+            var result = 0L;
+
+            for (int i = 0; i < 64; i++)
+                result = SetBits64(result, ExtractBits64(value, 1, i), 1, 64 - i - 1);
 
             return result;
         }

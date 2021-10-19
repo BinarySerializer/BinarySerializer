@@ -164,6 +164,12 @@ namespace BinarySerializer
             CurrentSerializer.SerializeBitValues<T>(serializeFunc);
         }
 
+        public override void SerializeBitValues64<T>(Action<SerializeBits64> serializeFunc)
+        {
+            SwitchSerializer(Deserializer);
+            CurrentSerializer.SerializeBitValues64<T>(serializeFunc);
+        }
+
         public override bool FullSerialize => CurrentSerializer.FullSerialize;
     }
 }

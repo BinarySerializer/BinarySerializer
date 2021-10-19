@@ -477,6 +477,27 @@ namespace BinarySerializer
             Serialize<T>((T)Convert.ChangeType(valueInt, typeof(T)), name: "Value");
         }
 
+        public override void SerializeBitValues64<T>(Action<SerializeBits64> serializeFunc)
+        {
+            long valueLong = 0;
+            int pos = 0;
+            string logPrefix = LogPrefix;
+
+            // Set bits
+            serializeFunc((v, length, name) => {
+                valueLong = BitHelpers.SetBits64(valueLong, v, length, pos);
+                if (IsLogEnabled)
+                {
+                    Context.Log.Log(logPrefix + $"  (UInt64{length}) {name ?? "<no name>"}: {v}");
+                }
+                pos += length;
+                return v;
+            });
+
+            // Serialize value
+            Serialize<T>((T)Convert.ChangeType(valueLong, typeof(T)), name: "Value");
+        }
+
         #endregion
 
         #region Public Helpers

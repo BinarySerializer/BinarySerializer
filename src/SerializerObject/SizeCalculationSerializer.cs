@@ -349,6 +349,12 @@ namespace BinarySerializer
             Serialize<T>((T)Convert.ChangeType(0, typeof(T)));
         }
 
+        public override void SerializeBitValues64<T>(Action<SerializeBits64> serializeFunc)
+        {
+            // Serialize value
+            Serialize<T>((T)Convert.ChangeType(0, typeof(T)));
+        }
+
         #endregion
 
         #region Protected Helpers
