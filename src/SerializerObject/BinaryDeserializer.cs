@@ -561,6 +561,25 @@ namespace BinarySerializer
             });
         }
 
+        public override void SerializeBitValues64<T>(Action<SerializeBits64> serializeFunc)
+        {
+            string logPrefix = LogPrefix;
+            // Convert to long so we can work with it
+            var valueLong = Convert.ToInt64(Serialize<T>(default, name: "Value"));
+
+            // Extract bits
+            int pos = 0;
+            serializeFunc((v, length, name) => {
+                var bitValue = BitHelpers.ExtractBits64(valueLong, length, pos);
+
+                if (IsLogEnabled)
+                    Context.Log.Log($"{logPrefix}  (UInt{length}) {name ?? "<no name>"}: {bitValue}");
+
+                pos += length;
+                return bitValue;
+            });
+        }
+
         #endregion
 
         #region Caching

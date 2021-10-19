@@ -474,6 +474,8 @@ namespace BinarySerializer
 
         public abstract void SerializeBitValues<T>(Action<SerializeBits> serializeFunc) where T : new();
         public delegate int SerializeBits(int value, int length, string name = null);
+        public abstract void SerializeBitValues64<T>(Action<SerializeBits64> serializeFunc) where T : new();
+        public delegate long SerializeBits64(long value, int length, string name = null);
 
         public void SerializePadding(int length, bool logIfNotNull = false, string name = "Padding")
         {
