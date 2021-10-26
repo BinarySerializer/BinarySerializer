@@ -336,7 +336,12 @@ namespace BinarySerializer
         {
             string logString = LogPrefix;
 
+            long origPos = Reader.BaseStream.Position;
+
             var t = length.HasValue ? Reader.ReadString(length.Value, encoding ?? Context.DefaultEncoding) : Reader.ReadNullDelimitedString(encoding ?? Context.DefaultEncoding);
+
+            if (CurrentFile.ShouldUpdateReadMap)
+                CurrentFile.UpdateReadMap(origPos, Reader.BaseStream.Position - origPos);
 
             if (IsLogEnabled)
                 Context.Log.Log($"{logString}(String) {(name ?? "<no name>")}: {t}");
