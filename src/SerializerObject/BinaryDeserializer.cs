@@ -293,8 +293,8 @@ namespace BinarySerializer
 
             Pointer ptr = CurrentFile.GetOverridePointer(CurrentAbsoluteOffset);
 
-            if (ptr != null)
-                ptr = ptr.SetAnchor(anchor);
+            if (ptr != null && anchor != null)
+                ptr = new Pointer(ptr.AbsoluteOffset, ptr.File, anchor, ptr.Size, Pointer.OffsetType.Absolute);
 
             if (ptr == null)
             {

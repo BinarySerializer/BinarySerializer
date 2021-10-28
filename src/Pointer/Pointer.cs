@@ -6,19 +6,24 @@ namespace BinarySerializer
     {
         #region Constructor
 
-        public Pointer(long offset, BinaryFile file, Pointer anchor = null, PointerSize size = PointerSize.Pointer32)
+        public Pointer(long offset, BinaryFile file, Pointer anchor = null, PointerSize size = PointerSize.Pointer32, OffsetType offsetType = OffsetType.Serialized)
         {
-            if (anchor != null)
-            {
-                Anchor = anchor;
-                offset = anchor.AbsoluteOffset + offset;
-            }
-
-            AbsoluteOffset = offset;
+            Anchor = anchor;
             File = file;
             Size = size;
             Context = file.Context;
-            FileOffset = AbsoluteOffset - File?.BaseAddress ?? AbsoluteOffset;
+
+            AbsoluteOffset = offsetType switch
+            {
+                OffsetType.Serialized when anchor != null => anchor.AbsoluteOffset + offset,
+                OffsetType.File => (offset + File?.BaseAddress) ?? offset,
+                _ => offset
+            };
+
+            if (offsetType == OffsetType.File)
+                FileOffset = offset;
+            else
+                FileOffset = (AbsoluteOffset - File?.BaseAddress) ?? AbsoluteOffset;
 
             if (Context != null && Context.SavePointersForRelocation && file.SavePointersToMemoryMap)
                 Context.MemoryMap.AddPointer(this);
@@ -64,15 +69,6 @@ namespace BinarySerializer
         #endregion
 
         #region Public Methods
-
-        public Pointer SetAnchor(Pointer anchor)
-        {
-            Pointer ptr = new Pointer(AbsoluteOffset, File, size: Size)
-            {
-                Anchor = anchor
-            };
-            return ptr;
-        }
 
         public override string ToString()
         {
@@ -145,6 +141,17 @@ namespace BinarySerializer
 
         public static long operator +(Pointer x, Pointer y) => x.AbsoluteOffset + y.AbsoluteOffset;
         public static long operator -(Pointer x, Pointer y) => x.AbsoluteOffset - y.AbsoluteOffset;
+
+        #endregion
+
+        #region Data Types
+
+        public enum OffsetType
+        {
+            Serialized,
+            Absolute,
+            File,
+        }
 
         #endregion
     }
