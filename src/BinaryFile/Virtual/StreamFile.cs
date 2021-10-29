@@ -13,6 +13,9 @@ namespace BinarySerializer
             Stream = stream ?? throw new ArgumentNullException(nameof(stream));
             Length = stream.Length;
             AllowLocalPointers = allowLocalPointers;
+
+            // Default to current file to avoid issues with pointers being serialized within encoded data
+            FileRedirectBehavior = RedirectBehavior.CurrentFile;
         }
 
         private Stream _stream;

@@ -205,6 +205,10 @@ namespace BinarySerializer
 
             return f.StartPointer;
         }
+        public bool FileExists(BinaryFile file)
+        {
+            return MemoryMap.Files.Contains(file);
+        }
         public bool FileExists(string relativePath)
         {
             BinaryFile f = GetFile(relativePath);

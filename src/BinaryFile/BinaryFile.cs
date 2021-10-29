@@ -28,6 +28,7 @@ namespace BinarySerializer
             BaseAddress = baseAddress;
             StartPointer = startPointer ?? new Pointer(baseAddress, this);
             MemoryMappedPriority = memoryMappedPriority == -1 ? baseAddress : memoryMappedPriority;
+            FileRedirectBehavior = RedirectBehavior.None;
         }
 
         #endregion
@@ -116,6 +117,16 @@ namespace BinarySerializer
                 return _pointerSize.Value;
             }
         }
+
+        /// <summary>
+        /// The specified behavior to use when serializing (writing) a pointer which has an invalid file associated with it
+        /// </summary>
+        public RedirectBehavior FileRedirectBehavior { get; set; }
+
+        /// <summary>
+        /// The file to redirect to if <see cref="FileRedirectBehavior"/> is set to <see cref="RedirectBehavior.SpecifiedFile"/>
+        /// </summary>
+        public BinaryFile RedirectFile { get; set; }
 
         #endregion
 
@@ -292,6 +303,33 @@ namespace BinarySerializer
                 return null;
 
             return Labels[offset];
+        }
+
+        #endregion
+
+        #region Data Types
+
+        public enum RedirectBehavior
+        {
+            /// <summary>
+            /// Doesn't change the file
+            /// </summary>
+            None,
+
+            /// <summary>
+            /// Throws an exception
+            /// </summary>
+            Throw,
+
+            /// <summary>
+            /// Changes the file to the current one
+            /// </summary>
+            CurrentFile,
+
+            /// <summary>
+            /// Changes the file to the one specified by <see cref="RedirectFile"/>
+            /// </summary>
+            SpecifiedFile,
         }
 
         #endregion

@@ -275,6 +275,18 @@ namespace BinarySerializer
 
         public override Pointer SerializePointer(Pointer obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, string name = null)
         {
+            // Redirect pointer files for pointer which have removed files, such as if the pointer is serialized within encoded data
+            if (obj != null && !Context.FileExists(obj.File))
+            {
+                obj = CurrentBinaryFile.FileRedirectBehavior switch
+                {
+                    BinaryFile.RedirectBehavior.Throw => throw new Exception($"The file for the pointer {obj} does not exist in the current context"),
+                    BinaryFile.RedirectBehavior.CurrentFile => new Pointer(obj.AbsoluteOffset, CurrentBinaryFile, obj.Anchor, obj.Size, Pointer.OffsetType.Absolute),
+                    BinaryFile.RedirectBehavior.SpecifiedFile => new Pointer(obj.AbsoluteOffset, CurrentBinaryFile.RedirectFile, obj.Anchor, obj.Size, Pointer.OffsetType.Absolute),
+                    _ => obj
+                };
+            }
+
             if (anchor != null && obj != null)
                 obj = new Pointer(obj.SerializedOffset, obj.File, anchor, obj.Size);
 
