@@ -547,6 +547,43 @@ namespace BinarySerializer
             }
         }
 
+        public override void SerializeBitValues(Action<SerializeBits64> serializeFunc)
+        {
+            string logPrefix = LogPrefix;
+
+            // Extract bits
+            int pos = 0;
+            
+            using var buffer = new MemoryStream();
+            var logs = IsLogEnabled ? new List<string>() : null;
+
+            serializeFunc((v, length, name) => 
+            {
+                int bitsFromPrevByte = 0;
+
+                if (pos % 8 != 0)
+                    bitsFromPrevByte = 8 - pos % 8;
+
+                int bitsToRead = length - bitsFromPrevByte;
+                int bytesToRead = (int)Math.Ceiling(bitsToRead / 8f);
+
+                for (int i = 0; i < bytesToRead; i++)
+                    buffer.WriteByte(Serialize<byte>(default, name: IsLogEnabled ? $"Value[{buffer.Length}]" : null));
+
+                long bitValue = BitHelpers.ExtractBits64(buffer.GetBuffer(), length, pos);
+
+                if (IsLogEnabled)
+                    logs.Add($"{logPrefix}  (UInt{length}) {name ?? "<no name>"}: {bitValue}");
+
+                pos += length;
+                return bitValue;
+            });
+
+            if (IsLogEnabled)
+                foreach (string l in logs)
+                    Context.Log.Log(l);
+        }
+
         public override void SerializeBitValues<T>(Action<SerializeBits> serializeFunc)
         {
             string logPrefix = LogPrefix;

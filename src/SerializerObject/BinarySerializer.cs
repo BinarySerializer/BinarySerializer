@@ -471,6 +471,8 @@ namespace BinarySerializer
             }
         }
 
+        public override void SerializeBitValues(Action<SerializeBits64> serializeFunc) => throw new NotImplementedException();
+
         public override void SerializeBitValues<T>(Action<SerializeBits> serializeFunc)
         {
             int valueInt = 0;

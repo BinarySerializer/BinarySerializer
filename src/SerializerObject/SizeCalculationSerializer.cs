@@ -343,6 +343,19 @@ namespace BinarySerializer
 
         public override void DoEndian(Endian endianness, Action action) => action();
 
+        public override void SerializeBitValues(Action<SerializeBits64> serializeFunc)
+        {
+            int totalLength = 0;
+
+            serializeFunc((value, length, name) =>
+            {
+                totalLength += length;
+                return value;
+            });
+
+            CurrentFilePosition += (int)Math.Ceiling(totalLength / 8f);
+        }
+
         public override void SerializeBitValues<T>(Action<SerializeBits> serializeFunc)
         {
             // Serialize value

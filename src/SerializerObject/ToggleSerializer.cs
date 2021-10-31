@@ -159,6 +159,12 @@ namespace BinarySerializer
 
         public override void Log(string logString) => CurrentSerializer.Log(logString);
 
+        public override void SerializeBitValues(Action<SerializeBits64> serializeFunc)
+        {
+            SwitchSerializer(Deserializer);
+            CurrentSerializer.SerializeBitValues(serializeFunc);
+        }
+
         public override void SerializeBitValues<T>(Action<SerializeBits> serializeFunc) {
             SwitchSerializer(Deserializer);
             CurrentSerializer.SerializeBitValues<T>(serializeFunc);
