@@ -1,4 +1,6 @@
-﻿namespace BinarySerializer
+﻿using System;
+
+namespace BinarySerializer
 {
     /// <summary>
     /// Bit helper methods
@@ -15,6 +17,38 @@
         public static int ExtractBits(int value, int count, int offset)
         {
             return (((1 << count) - 1) & (value >> (offset)));
+        }
+
+        public static int ExtractBits(byte[] buffer, int count, int offset)
+        {
+            int value = 0;
+            int bufferOffset = offset / 8;
+
+            for (int i = 0; i < 4; i++)
+            {
+                if (bufferOffset + i >= buffer.Length)
+                    break;
+
+                value |= buffer[bufferOffset + i] << (8 * i);
+            }
+
+            return ExtractBits(value, count, offset % 8);
+        }
+
+        public static long ExtractBits64(byte[] buffer, int count, int offset)
+        {
+            long value = 0;
+            int bufferOffset = offset / 8;
+
+            for (int i = 0; i < 8; i++)
+            {
+                if (bufferOffset + i >= buffer.Length)
+                    break;
+
+                value |= (long)buffer[bufferOffset + i] << (8 * i);
+            }
+
+            return ExtractBits64(value, count, offset % 8);
         }
 
         public static long ExtractBits64(long value, int count, int offset)
