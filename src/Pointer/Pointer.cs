@@ -91,6 +91,10 @@ namespace BinarySerializer
             if (File != null && File.BaseAddress != 0) 
                 str += $"[0x{GetAddressString(FileOffset)}]";
 
+            // Add serialized offset if an anchor is specified
+            if (Anchor != null)
+                str += $"<0x{GetAddressString(SerializedOffset)}>";
+
             // Append region info
             if (region != null) 
                 str += $"({region.Name}:0x{GetAddressString(regionOffset)})";
