@@ -85,8 +85,7 @@ namespace BinarySerializer
 
         #region Serializable
 
-        public override bool IsShortLog => true;
-        public override string ShortLog => ToString();
+        public override bool UseShortLog => true;
 
         #endregion
 

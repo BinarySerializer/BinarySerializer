@@ -250,7 +250,7 @@ namespace BinarySerializer
 
                 string logString = IsLogEnabled ? LogPrefix : null;
                 bool isLogTemporarilyDisabled = false;
-                if (!DisableLogForObject && instance.IsShortLog)
+                if (!DisableLogForObject && instance.UseShortLog)
                 {
                     DisableLogForObject = true;
                     isLogTemporarilyDisabled = true;

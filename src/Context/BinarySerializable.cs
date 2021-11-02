@@ -28,12 +28,12 @@
         /// <summary>
         /// Indicates whether this object should be logged on one line
         /// </summary>
-        public virtual bool IsShortLog { get; } = false;
+        public virtual bool UseShortLog => false;
 
         /// <summary>
         /// The string for displaying this object on one line
         /// </summary>
-        public virtual string ShortLog => null;
+        public virtual string ShortLog => ToString();
 
         /// <summary>
         /// Initializes the struct from an offset

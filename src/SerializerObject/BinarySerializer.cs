@@ -248,7 +248,7 @@ namespace BinarySerializer
 
             string logString = IsLogEnabled ? LogPrefix : null;
             bool isLogTemporarilyDisabled = false;
-            if (!DisableLogForObject && (obj?.IsShortLog ?? false))
+            if (!DisableLogForObject && (obj?.UseShortLog ?? false))
             {
                 DisableLogForObject = true;
                 isLogTemporarilyDisabled = true;
