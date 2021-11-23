@@ -4,7 +4,7 @@ namespace BinarySerializer {
     public class BitSerializer : BitSerializerObject {
         public BitSerializer(SerializerObject serializerObject, string logPrefix, long value) : base(serializerObject, logPrefix, value) { }
 
-        public override T SerializeBit<T>(T value, int length, string name = null) {
+        public override T SerializeBits<T>(T value, int length, string name = null) {
             var valueToWrite = ObjectToLong<T>(value, name);
             Value = BitHelpers.SetBits64(Value, valueToWrite, length, Position);
 

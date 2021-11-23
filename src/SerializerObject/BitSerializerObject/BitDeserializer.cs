@@ -4,7 +4,7 @@ namespace BinarySerializer {
     public class BitDeserializer : BitSerializerObject {
         public BitDeserializer(SerializerObject serializerObject, string logPrefix, long value) : base(serializerObject, logPrefix, value) { }
 
-        public override T SerializeBit<T>(T value, int length, string name = null) {
+        public override T SerializeBits<T>(T value, int length, string name = null) {
             var bitValue = BitHelpers.ExtractBits64(Value, length, Position);
             T t = (T)LongToObject<T>(bitValue, name: name);
 

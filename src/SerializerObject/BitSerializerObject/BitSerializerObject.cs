@@ -13,7 +13,7 @@
         public long Value { get; set; }
         public int Position { get; protected set; }
 
-        public abstract T SerializeBit<T>(T value, int length, string name = null);
+        public abstract T SerializeBits<T>(T value, int length, string name = null);
 
         // Other helpers can be added here
     }
