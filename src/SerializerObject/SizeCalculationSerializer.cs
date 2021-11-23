@@ -356,18 +356,6 @@ namespace BinarySerializer
             CurrentFilePosition += (int)Math.Ceiling(totalLength / 8f);
         }
 
-        public override void SerializeBitValues<T>(Action<SerializeBits> serializeFunc)
-        {
-            // Serialize value
-            Serialize<T>((T)Convert.ChangeType(0, typeof(T)));
-        }
-
-        public override void SerializeBitValues64<T>(Action<SerializeBits64> serializeFunc)
-        {
-            // Serialize value
-            Serialize<T>((T)Convert.ChangeType(0, typeof(T)));
-        }
-
         public override void DoBits<T>(Action<BitSerializerObject> serializeFunc) {
             // Serialize value
             Serialize<T>((T)Convert.ChangeType(0, typeof(T)));

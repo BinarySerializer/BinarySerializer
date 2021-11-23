@@ -473,51 +473,10 @@ namespace BinarySerializer
 
         public override void SerializeBitValues(Action<SerializeBits64> serializeFunc) => throw new NotImplementedException();
 
-        public override void SerializeBitValues<T>(Action<SerializeBits> serializeFunc)
-        {
-            int valueInt = 0;
-            int pos = 0;
-            string logPrefix = LogPrefix;
-
-            // Set bits
-            serializeFunc((v, length, name) => {
-                valueInt = BitHelpers.SetBits(valueInt, v, length, pos);
-                if (IsLogEnabled)
-                {
-                    Context.Log.Log(logPrefix + $"  (UInt{length}) {name ?? "<no name>"}: {v}");
-                }
-                pos += length;
-                return v;
-            });
-
-            // Serialize value
-            Serialize<T>((T)Convert.ChangeType(valueInt, typeof(T)), name: "Value");
-        }
-
-        public override void SerializeBitValues64<T>(Action<SerializeBits64> serializeFunc)
-        {
-            long valueLong = 0;
-            int pos = 0;
-            string logPrefix = LogPrefix;
-
-            // Set bits
-            serializeFunc((v, length, name) => {
-                valueLong = BitHelpers.SetBits64(valueLong, v, length, pos);
-                if (IsLogEnabled)
-                {
-                    Context.Log.Log(logPrefix + $"  (UInt{length}) {name ?? "<no name>"}: {v}");
-                }
-                pos += length;
-                return v;
-            });
-
-            // Serialize value
-            Serialize<T>((T)Convert.ChangeType(valueLong, typeof(T)), name: "Value");
-        }
-
         public override void DoBits<T>(Action<BitSerializerObject> serializeFunc) {
             var serializer = new BitSerializer(this, LogPrefix, 0);
 
+            // Set bits
             serializeFunc(serializer);
 
             // Serialize value

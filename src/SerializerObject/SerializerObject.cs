@@ -473,8 +473,6 @@ namespace BinarySerializer
         public abstract void DoEndian(Endian endianness, Action action);
 
         public abstract void SerializeBitValues(Action<SerializeBits64> serializeFunc);
-        public abstract void SerializeBitValues<T>(Action<SerializeBits> serializeFunc) where T : new();
-        public abstract void SerializeBitValues64<T>(Action<SerializeBits64> serializeFunc) where T : new();
         public abstract void DoBits<T>(Action<BitSerializerObject> serializeFunc);
 
         public delegate int SerializeBits(int value, int length, string name = null);
