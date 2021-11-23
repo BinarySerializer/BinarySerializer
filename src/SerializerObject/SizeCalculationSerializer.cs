@@ -368,6 +368,10 @@ namespace BinarySerializer
             Serialize<T>((T)Convert.ChangeType(0, typeof(T)));
         }
 
+        public override void DoBits<T>(Action<BitSerializerObject> serializeFunc) {
+            // Serialize value
+            Serialize<T>((T)Convert.ChangeType(0, typeof(T)));
+        }
         #endregion
 
         #region Protected Helpers
@@ -452,7 +456,6 @@ namespace BinarySerializer
         {
             FilePositions.Remove(file);
         }
-
-        #endregion
-    }
+		#endregion
+	}
 }

@@ -602,6 +602,11 @@ namespace BinarySerializer
                 return bitValue;
             });
         }
+        public override void DoBits<T>(Action<BitSerializerObject> serializeFunc) {
+            var logPrefix = LogPrefix;
+            long value = Convert.ToInt64(Serialize<T>(default, name: "Value"));
+            serializeFunc(new BitDeserializer(this, logPrefix, value));
+        }
 
         public override void SerializeBitValues64<T>(Action<SerializeBits64> serializeFunc)
         {

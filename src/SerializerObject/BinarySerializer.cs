@@ -515,6 +515,14 @@ namespace BinarySerializer
             Serialize<T>((T)Convert.ChangeType(valueLong, typeof(T)), name: "Value");
         }
 
+        public override void DoBits<T>(Action<BitSerializerObject> serializeFunc) {
+            var serializer = new BitSerializer(this, LogPrefix, 0);
+
+            serializeFunc(serializer);
+
+            // Serialize value
+            Serialize<T>((T)Convert.ChangeType(serializer.Value, typeof(T)), name: "Value");
+        }
         #endregion
 
         #region Public Helpers
@@ -647,12 +655,11 @@ namespace BinarySerializer
             file.EndWrite(w);
             Writers.Remove(file);
         }
+		#endregion
 
-        #endregion
+		#region Data Types
 
-        #region Data Types
-
-        private sealed class IdentityComparer<T> : IEqualityComparer<T>
+		private sealed class IdentityComparer<T> : IEqualityComparer<T>
             where T : class
         {
             public bool Equals(T x, T y) => ReferenceEquals(x, y);
