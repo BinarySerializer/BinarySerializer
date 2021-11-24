@@ -13,7 +13,7 @@ namespace BinarySerializer
             Value = BitHelpers.SetBits64(Value, valueToWrite, length, Position);
 
             if (SerializerObject.IsLogEnabled)
-                Context.Log.Log($"{LogPrefix}  (UInt{length} -> {typeof(T).Name}) {(name ?? "<no name>")}: {valueToWrite}");
+                Context.Log.Log($"{LogPrefix}  {Position}_{length} ({typeof(T).Name}) {name ?? "<no name>"}: {valueToWrite}");
 
             Position += length;
 

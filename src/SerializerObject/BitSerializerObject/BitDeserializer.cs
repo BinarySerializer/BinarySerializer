@@ -13,7 +13,7 @@ namespace BinarySerializer
             T t = (T)LongToObject<T>(bitValue, name: name);
 
             if (SerializerObject.IsLogEnabled)
-                Context.Log.Log($"{LogPrefix}  (UInt{length} -> {typeof(T).Name}) {(name ?? "<no name>")}: {(t?.ToString() ?? "null")}");
+                Context.Log.Log($"{LogPrefix}  {Position}_{length} ({typeof(T).Name}) {name ?? "<no name>"}: {(t?.ToString() ?? "null")}");
 
             Position += length;
 
