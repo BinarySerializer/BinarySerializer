@@ -584,10 +584,12 @@ namespace BinarySerializer
                     Context.Log.Log(l);
         }
 
-        public override void DoBits<T>(Action<BitSerializerObject> serializeFunc) {
-            var logPrefix = LogPrefix;
+        public override void DoBits<T>(Action<BitSerializerObject> serializeFunc) 
+        {
+            string logPrefix = LogPrefix;
+            Pointer p = CurrentPointer;
             long value = Convert.ToInt64(Serialize<T>(default, name: "Value"));
-            serializeFunc(new BitDeserializer(this, logPrefix, value));
+            serializeFunc(new BitDeserializer(this, p, logPrefix, value));
         }
 
         #endregion

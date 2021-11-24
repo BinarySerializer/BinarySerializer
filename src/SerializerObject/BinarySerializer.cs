@@ -473,8 +473,9 @@ namespace BinarySerializer
 
         public override void SerializeBitValues(Action<SerializeBits64> serializeFunc) => throw new NotImplementedException();
 
-        public override void DoBits<T>(Action<BitSerializerObject> serializeFunc) {
-            var serializer = new BitSerializer(this, LogPrefix, 0);
+        public override void DoBits<T>(Action<BitSerializerObject> serializeFunc) 
+        {
+            var serializer = new BitSerializer(this, CurrentPointer, LogPrefix, 0);
 
             // Set bits
             serializeFunc(serializer);

@@ -1,7 +1,11 @@
-﻿namespace BinarySerializer {
-    public abstract class BitSerializerObject {
-        protected BitSerializerObject(SerializerObject serializerObject, string logPrefix, long value) {
+﻿namespace BinarySerializer 
+{
+    public abstract class BitSerializerObject 
+    {
+        protected BitSerializerObject(SerializerObject serializerObject, Pointer valueOffset, string logPrefix, long value) 
+        {
             SerializerObject = serializerObject;
+            ValueOffset = valueOffset;
             LogPrefix = logPrefix;
             Value = value;
             Position = 0;
@@ -9,12 +13,21 @@
 
         public SerializerObject SerializerObject { get; }
         public Context Context => SerializerObject.Context;
+        public Pointer ValueOffset { get; }
         protected string LogPrefix { get; }
         public long Value { get; set; }
         public int Position { get; protected set; }
 
         public abstract T SerializeBits<T>(T value, int length, string name = null);
 
-        // Other helpers can be added here
+        public void SerializePadding(int length, bool logIfNotNull = false, string name = "Padding")
+        {
+            int pos = Position;
+
+            long v = SerializeBits<long>(default, length, name: name);
+
+            if (logIfNotNull && v != 0)
+                SerializerObject.LogWarning($"Padding at {ValueOffset} (bit position {pos}) contains data! Data: 0x{v:X8}");
+        }
     }
 }

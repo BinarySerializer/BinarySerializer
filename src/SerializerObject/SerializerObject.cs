@@ -475,7 +475,6 @@ namespace BinarySerializer
         public abstract void SerializeBitValues(Action<SerializeBits64> serializeFunc);
         public abstract void DoBits<T>(Action<BitSerializerObject> serializeFunc);
 
-        public delegate int SerializeBits(int value, int length, string name = null);
         public delegate long SerializeBits64(long value, int length, string name = null);
 
         public void SerializePadding(int length, bool logIfNotNull = false, string name = "Padding")

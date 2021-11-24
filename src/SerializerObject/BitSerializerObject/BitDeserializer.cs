@@ -1,11 +1,15 @@
 ﻿using System;
 
-namespace BinarySerializer {
-    public class BitDeserializer : BitSerializerObject {
-        public BitDeserializer(SerializerObject serializerObject, string logPrefix, long value) : base(serializerObject, logPrefix, value) { }
+namespace BinarySerializer 
+{
+    public class BitDeserializer : BitSerializerObject 
+    {
+        public BitDeserializer(SerializerObject serializerObject, Pointer valueOffset, string logPrefix, long value) 
+            : base(serializerObject, valueOffset, logPrefix, value) { }
 
-        public override T SerializeBits<T>(T value, int length, string name = null) {
-            var bitValue = BitHelpers.ExtractBits64(Value, length, Position);
+        public override T SerializeBits<T>(T value, int length, string name = null) 
+        {
+            long bitValue = BitHelpers.ExtractBits64(Value, length, Position);
             T t = (T)LongToObject<T>(bitValue, name: name);
 
             if (SerializerObject.IsLogEnabled)
@@ -16,24 +20,25 @@ namespace BinarySerializer {
             return t;
         }
 
-        protected object LongToObject<T>(long input, string name = null) {
+        protected object LongToObject<T>(long input, string name = null) 
+        {
             // Get the type
-            var type = typeof(T);
+            Type type = typeof(T);
 
             TypeCode typeCode = Type.GetTypeCode(type);
 
-            switch (typeCode) {
+            switch (typeCode) 
+            {
                 case TypeCode.Boolean:
-                    var b = input;
-
-                    if (b != 0 && b != 1) {
-                        SerializerObject.LogWarning($"Binary boolean '{name}' ({b}) was not correctly formatted");
+                    if (input != 0 && input != 1) 
+                    {
+                        SerializerObject.LogWarning($"Binary boolean '{name}' ({input}) was not correctly formatted");
 
                         if (SerializerObject.IsLogEnabled)
-                            Context.Log.Log($"{LogPrefix} ({typeof(T)}): Binary boolean was not correctly formatted ({b})");
+                            Context.Log.Log($"{LogPrefix} ({typeof(T)}): Binary boolean was not correctly formatted ({input})");
                     }
 
-                    return b != 0;
+                    return input != 0;
 
                 case TypeCode.SByte:
                     return (sbyte)input;
@@ -71,13 +76,19 @@ namespace BinarySerializer {
                 case TypeCode.Empty:
                 case TypeCode.DBNull:
                 case TypeCode.Object:
-                    if (type == typeof(UInt24)) {
+                    if (type == typeof(UInt24)) 
+                    {
                         return new UInt24((uint)input);
-                    } else if (type == typeof(byte?)) {
+                    } 
+                    else if (type == typeof(byte?)) 
+                    {
                         byte nullableByte = (byte)input;
-                        if (nullableByte == 0xFF) return (byte?)null;
+                        if (nullableByte == 0xFF) 
+                            return (byte?)null;
                         return nullableByte;
-                    } else {
+                    } 
+                    else 
+                    {
                         throw new NotSupportedException($"The specified generic type ('{name}') can not be read from the BitDeserializer");
                     }
                 default:

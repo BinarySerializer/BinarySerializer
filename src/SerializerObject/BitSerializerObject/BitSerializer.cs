@@ -1,11 +1,15 @@
 ﻿using System;
 
-namespace BinarySerializer {
-    public class BitSerializer : BitSerializerObject {
-        public BitSerializer(SerializerObject serializerObject, string logPrefix, long value) : base(serializerObject, logPrefix, value) { }
+namespace BinarySerializer 
+{
+    public class BitSerializer : BitSerializerObject 
+    {
+        public BitSerializer(SerializerObject serializerObject, Pointer valueOffset, string logPrefix, long value) 
+            : base(serializerObject, valueOffset, logPrefix, value) { }
 
-        public override T SerializeBits<T>(T value, int length, string name = null) {
-            var valueToWrite = ObjectToLong<T>(value, name);
+        public override T SerializeBits<T>(T value, int length, string name = null) 
+        {
+            long valueToWrite = ObjectToLong<T>(value);
             Value = BitHelpers.SetBits64(Value, valueToWrite, length, Position);
 
             if (SerializerObject.IsLogEnabled)
@@ -16,12 +20,13 @@ namespace BinarySerializer {
             return value;
         }
 
-        protected long ObjectToLong<T>(T value, string name = null) {
+        protected long ObjectToLong<T>(T value) 
+        {
             if (value?.GetType().IsEnum == true)
                 return ObjectToLong(Convert.ChangeType(value, Enum.GetUnderlyingType(value.GetType())));
 
             else if (value is bool bo)
-                return (bo ? 1 : 0);
+                return bo ? 1 : 0;
 
             else if (value is sbyte sb)
                 return sb;
@@ -56,20 +61,22 @@ namespace BinarySerializer {
             else if (value is UInt24 u24)
                 return u24.Value;
 
-            else if (Nullable.GetUnderlyingType(typeof(T)) != null) {
+            else if (Nullable.GetUnderlyingType(typeof(T)) != null) 
+            {
                 // It's nullable
-                var underlyingType = Nullable.GetUnderlyingType(typeof(T));
-                if (underlyingType == typeof(byte)) {
+                Type underlyingType = Nullable.GetUnderlyingType(typeof(T));
+                if (underlyingType == typeof(byte))
+                {
                     var v = (byte?)(object)value;
-                    if (v.HasValue) {
-                        return v.Value;
-                    } else {
-                        return 0xFF;
-                    }
-                } else {
+                    return v ?? 0xFF;
+                } 
+                else 
+                {
                     throw new NotSupportedException($"The specified type {typeof(T)} is not supported.");
                 }
-            } else if ((object)value is null)
+            } 
+
+            else if ((object)value is null)
                 throw new ArgumentNullException(nameof(value));
             else
                 throw new NotSupportedException($"The specified type {value.GetType().Name} is not supported.");
