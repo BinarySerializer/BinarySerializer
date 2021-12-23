@@ -9,7 +9,7 @@ namespace BinarySerializer
     /// </summary>
     public class RNC2Encoder : IStreamEncoder 
     {
-        public string Name => "RNC";
+        public string Name => "RNC2";
         public bool HasHeader { get; }
 
         public RNC2Encoder(bool hasHeader = true)
