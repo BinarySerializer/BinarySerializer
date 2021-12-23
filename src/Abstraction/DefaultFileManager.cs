@@ -5,12 +5,14 @@ namespace BinarySerializer
 {
     public class DefaultFileManager : IFileManager
     {
-        public bool DirectoryExists(string path) => Directory.Exists(path);
-        public bool FileExists(string path) => File.Exists(path);
+        public virtual bool DirectoryExists(string path) => Directory.Exists(path);
+        public virtual bool FileExists(string path) => File.Exists(path);
 
-        public Stream GetFileReadStream(string path) => File.OpenRead(path);
-        public Stream GetFileWriteStream(string path, bool recreateOnWrite = true) => recreateOnWrite ? File.Create(path) : File.OpenWrite(path);
+        public virtual Stream GetFileReadStream(string path) => File.OpenRead(path);
+        public virtual Stream GetFileWriteStream(string path, bool recreateOnWrite = true) => recreateOnWrite ? File.Create(path) : File.OpenWrite(path);
 
-        public Task FillCacheForReadAsync(long length, Reader reader) => Task.CompletedTask;
+        public virtual PathSeparatorChar SeparatorCharacter => PathSeparatorChar.ForwardSlash;
+
+        public virtual Task FillCacheForReadAsync(long length, Reader reader) => Task.CompletedTask;
     }
 }

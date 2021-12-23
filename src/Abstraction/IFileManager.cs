@@ -11,6 +11,8 @@ namespace BinarySerializer
         Stream GetFileReadStream(string path);
         Stream GetFileWriteStream(string path, bool recreateOnWrite = true);
 
+        PathSeparatorChar SeparatorCharacter { get; }
+
         Task FillCacheForReadAsync(long length, Reader reader);
     }
 }

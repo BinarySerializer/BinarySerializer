@@ -152,6 +152,13 @@ namespace BinarySerializer
 
         #region Files
 
+        private char SeparatorChar => FileManager.SeparatorCharacter switch
+        {
+            PathSeparatorChar.ForwardSlash => '/',
+            PathSeparatorChar.BackSlash => '\\',
+            _ => '/',
+        };
+
         public Stream GetFileStream(string relativePath)
         {
             Stream str = FileManager.GetFileReadStream(GetAbsoluteFilePath(NormalizePath(relativePath, false)));
@@ -166,10 +173,20 @@ namespace BinarySerializer
         public virtual string GetAbsoluteFilePath(string relativePath) => BasePath + relativePath;
         public virtual string NormalizePath(string path, bool isDirectory)
         {
-            string newPath = path.Replace("\\", "/");
-            
-            if (isDirectory && !newPath.EndsWith("/") && !String.IsNullOrWhiteSpace(path)) 
-                newPath += "/";
+            // Get the path separator character
+            string separatorChar = SeparatorChar.ToString();
+
+            // Normalize the path
+            string newPath = FileManager.SeparatorCharacter switch
+            {
+                PathSeparatorChar.ForwardSlash => path.Replace('\\', '/'),
+                PathSeparatorChar.BackSlash => path.Replace('/', '\\'),
+                _ => throw new ArgumentOutOfRangeException(nameof(FileManager.SeparatorCharacter), FileManager.SeparatorCharacter, null)
+            };
+
+            // Make sure a directory path ends with the separator
+            if (isDirectory && !newPath.EndsWith(separatorChar) && !String.IsNullOrWhiteSpace(path)) 
+                newPath += separatorChar;
             
             return newPath;
         }
