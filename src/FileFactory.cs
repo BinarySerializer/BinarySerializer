@@ -87,5 +87,24 @@ namespace BinarySerializer
                 onPreSerialize: (t) => onPreSerialize?.Invoke(context.Serializer, t), 
                 name: filePath);
         }
+
+        /// <summary>
+        /// Writes the data to the specified offset
+        /// </summary>
+        /// <param name="offset">The offset to write to</param>
+        /// <param name="obj">The object to write</param>
+        /// <param name="context">The context</param>
+        /// <param name="onPreSerialize">Optional action to run before serializing</param>
+        /// <param name="name">Optional name for logging</param>
+        public static T Write<T>(Pointer offset, T obj, Context context, Action<SerializerObject, T> onPreSerialize = null, string name = null) 
+            where T : BinarySerializable, new() 
+        {
+            BinarySerializer s = context.Serializer;
+
+            return s.DoAt(offset, () => s.SerializeObject(
+                obj: obj, 
+                onPreSerialize: t => onPreSerialize?.Invoke(context.Deserializer, t), 
+                name: name));
+        }
     }
 }
