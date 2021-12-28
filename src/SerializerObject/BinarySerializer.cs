@@ -368,6 +368,7 @@ namespace BinarySerializer
         public override T[] SerializeArray<T>(T[] obj, long count, string name = null)
         {
             T[] buffer = GetArray(obj, count);
+            count = buffer.Length;
 
             if (IsLogEnabled)
             {
@@ -399,6 +400,7 @@ namespace BinarySerializer
         public override T[] SerializeObjectArray<T>(T[] obj, long count, Action<T> onPreSerialize = null, string name = null)
         {
             T[] buffer = GetArray(obj, count);
+            count = buffer.Length;
 
             if (IsLogEnabled)
             {
@@ -414,6 +416,7 @@ namespace BinarySerializer
         public override Pointer[] SerializePointerArray(Pointer[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             Pointer[] buffer = GetArray(obj, count);
+            count = buffer.Length;
 
             if (IsLogEnabled)
                 Context.Log.Log($"{LogPrefix}({size}[{count}]) {(name ?? "<no name>")}");
@@ -428,6 +431,7 @@ namespace BinarySerializer
         public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             Pointer<T>[] buffer = GetArray(obj, count);
+            count = buffer.Length;
 
             if (IsLogEnabled)
                 Context.Log.Log($"{LogPrefix}(Pointer<{typeof(T)}>[{count}]) {(name ?? "<no name>")}");
@@ -442,6 +446,7 @@ namespace BinarySerializer
         public override string[] SerializeStringArray(string[] obj, long count, int length, Encoding encoding = null, string name = null)
         {
             string[] buffer = GetArray(obj, count);
+            count = buffer.Length;
 
             if (IsLogEnabled)
                 Context.Log.Log(LogPrefix + "(String[" + count + "]) " + (name ?? "<no name>"));
