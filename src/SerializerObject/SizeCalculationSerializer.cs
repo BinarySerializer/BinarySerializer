@@ -225,7 +225,7 @@ namespace BinarySerializer
             return obj;
         }
 
-        public override Pointer SerializePointer(Pointer obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, string name = null)
+        public override Pointer SerializePointer(Pointer obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             CurrentFilePosition += size switch
             {
@@ -238,7 +238,7 @@ namespace BinarySerializer
             return obj;
         }
 
-        public override Pointer<T> SerializePointer<T>(Pointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null)
+        public override Pointer<T> SerializePointer<T>(Pointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             Depth++;
 
@@ -306,24 +306,24 @@ namespace BinarySerializer
             return buffer;
         }
 
-        public override Pointer[] SerializePointerArray(Pointer[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, string name = null)
+        public override Pointer[] SerializePointerArray(Pointer[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             Pointer[] buffer = GetArray(obj, count);
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                SerializePointer(buffer[i], anchor: anchor, allowInvalid: allowInvalid);
+                SerializePointer(buffer[i], anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue);
 
             return buffer;
         }
 
-        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null)
+        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             Pointer<T>[] buffer = GetArray(obj, count);
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                SerializePointer<T>(buffer[i], anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid);
+                SerializePointer<T>(buffer[i], anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid, nullValue: nullValue);
 
             return buffer;
         }

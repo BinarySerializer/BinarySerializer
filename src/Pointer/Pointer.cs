@@ -172,9 +172,9 @@ namespace BinarySerializer
                 Resolve(s, onPreSerialize: onPreSerialize);
         }
 
-        public Pointer(SerializerObject s, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false) 
+        public Pointer(SerializerObject s, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null) 
         {
-            PointerValue = s.SerializePointer(PointerValue, size: size, anchor: anchor, allowInvalid: allowInvalid, name: "Pointer");
+            PointerValue = s.SerializePointer(PointerValue, size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue, name: "Pointer");
             if (resolve)
                 Resolve(s, onPreSerialize: onPreSerialize);
         }

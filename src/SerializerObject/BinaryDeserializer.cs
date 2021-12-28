@@ -278,7 +278,7 @@ namespace BinarySerializer
             return instance;
         }
 
-        public override Pointer SerializePointer(Pointer obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, string name = null)
+        public override Pointer SerializePointer(Pointer obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             string logString = LogPrefix;
 
@@ -293,23 +293,26 @@ namespace BinarySerializer
 
             Pointer ptr = CurrentFile.GetOverridePointer(CurrentAbsoluteOffset);
 
-            if (ptr != null && anchor != null)
-                ptr = new Pointer(ptr.AbsoluteOffset, ptr.File, anchor, ptr.Size, Pointer.OffsetType.Absolute);
-
-            if (ptr == null)
+            if (!nullValue.HasValue || value != nullValue)
             {
-                var file = CurrentFile.GetPointerFile(value, anchor);
+                if (ptr != null && anchor != null)
+                    ptr = new Pointer(ptr.AbsoluteOffset, ptr.File, anchor, ptr.Size, Pointer.OffsetType.Absolute);
 
-                if (file != null)
-                    ptr = new Pointer(value, file, anchor, size);
-            }
+                if (ptr == null)
+                {
+                    var file = CurrentFile.GetPointerFile(value, anchor);
 
-            if (ptr == null && value != 0 && !allowInvalid && !CurrentFile.AllowInvalidPointer(value, anchor: anchor))
-            {
-                if (IsLogEnabled)
-                    Context.Log.Log($"{logString}({size}) {name ?? "<no name>"}: InvalidPointerException - {value:X16}");
+                    if (file != null)
+                        ptr = new Pointer(value, file, anchor, size);
+                }
 
-                throw new PointerException($"Not a valid pointer at {CurrentPointer - 4}: {value:X16}", nameof(SerializePointer));
+                if (ptr == null && value != 0 && !allowInvalid && !CurrentFile.AllowInvalidPointer(value, anchor: anchor))
+                {
+                    if (IsLogEnabled)
+                        Context.Log.Log($"{logString}({size}) {name ?? "<no name>"}: InvalidPointerException - {value:X16}");
+
+                    throw new PointerException($"Not a valid pointer at {CurrentPointer - 4}: {value:X16}", nameof(SerializePointer));
+                }
             }
 
             if (IsLogEnabled)
@@ -318,7 +321,7 @@ namespace BinarySerializer
             return ptr;
         }
 
-        public override Pointer<T> SerializePointer<T>(Pointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null)
+        public override Pointer<T> SerializePointer<T>(Pointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             if (IsLogEnabled)
             {
@@ -327,7 +330,7 @@ namespace BinarySerializer
             }
 
             Depth++;
-            Pointer<T> p = new Pointer<T>(this, size: size, anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid);
+            Pointer<T> p = new Pointer<T>(this, size: size, anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid, nullValue: nullValue);
             Depth--;
             return p;
         }
@@ -442,7 +445,7 @@ namespace BinarySerializer
             return buffer;
         }
 
-        public override Pointer[] SerializePointerArray(Pointer[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, string name = null)
+        public override Pointer[] SerializePointerArray(Pointer[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             if (IsLogEnabled)
             {
@@ -466,12 +469,12 @@ namespace BinarySerializer
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = SerializePointer(buffer[i], size: size, anchor: anchor, allowInvalid: allowInvalid, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = SerializePointer(buffer[i], size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
 
             return buffer;
         }
 
-        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, string name = null)
+        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             if (IsLogEnabled)
             {
@@ -494,7 +497,7 @@ namespace BinarySerializer
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = SerializePointer<T>(buffer[i], size: size, anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = SerializePointer<T>(buffer[i], size: size, anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid, nullValue: nullValue, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
 
             return buffer;
         }
