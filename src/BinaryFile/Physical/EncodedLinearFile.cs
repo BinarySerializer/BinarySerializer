@@ -53,7 +53,6 @@ namespace BinarySerializer
 		public override Writer CreateWriter() 
         {
 			Stream memStream = new MemoryStream();
-			memStream.SetLength(Length);
 			Writer writer = new Writer(memStream, isLittleEndian: Endianness == Endian.Little);
 			return writer;
 		}
