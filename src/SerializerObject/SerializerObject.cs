@@ -77,6 +77,11 @@ namespace BinarySerializer
         /// </summary>
         public abstract long CurrentFileOffset { get; }
 
+        /// <summary>
+        /// Default values for some serializer functions
+        /// </summary>
+        public virtual SerializerDefaults Defaults { get; set; }
+
         public virtual bool FullSerialize => true;
 
         #endregion
@@ -468,6 +473,15 @@ namespace BinarySerializer
         public void DoAtEncoded(Pointer offset, IStreamEncoder encoder, Action action)
         {
             DoAt(offset, () => DoEncoded(encoder, action));
+        }
+        public void DoWithDefaults(SerializerDefaults defaults, Action action) {
+            var curDefaults = Defaults;
+            Defaults = defaults;
+            try {
+                action();
+            } finally {
+                Defaults = curDefaults;
+            }
         }
 
         public abstract void DoEndian(Endian endianness, Action action);

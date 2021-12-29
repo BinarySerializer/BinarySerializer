@@ -53,6 +53,14 @@ namespace BinarySerializer
 
         public override long CurrentFileOffset => CurrentSerializer.CurrentFileOffset;
 
+        public override SerializerDefaults Defaults {
+            get => CurrentSerializer.Defaults;
+            set {
+                Deserializer.Defaults = value;
+                Serializer.Defaults = value;
+            }
+        }
+
         public override void Goto(Pointer offset) => CurrentSerializer.Goto(offset);
 
 		public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null) {
@@ -170,6 +178,6 @@ namespace BinarySerializer
             CurrentSerializer.DoBits<T>(serializeFunc);
 		}
 
-		public override bool FullSerialize => CurrentSerializer.FullSerialize;
+        public override bool FullSerialize => CurrentSerializer.FullSerialize;
     }
 }

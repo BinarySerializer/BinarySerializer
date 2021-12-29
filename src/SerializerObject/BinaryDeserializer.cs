@@ -291,6 +291,11 @@ namespace BinarySerializer
                 _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
             };
 
+            if (Defaults != null) {
+                if(anchor == null) anchor = Defaults.Anchor;
+                if(!nullValue.HasValue) nullValue = Defaults.NullValue;
+            }
+
             Pointer ptr = CurrentFile.GetOverridePointer(CurrentAbsoluteOffset);
 
             if (!nullValue.HasValue || value != nullValue)
@@ -341,7 +346,9 @@ namespace BinarySerializer
 
             long origPos = Reader.BaseStream.Position;
 
-            var t = length.HasValue ? Reader.ReadString(length.Value, encoding ?? Context.DefaultEncoding) : Reader.ReadNullDelimitedString(encoding ?? Context.DefaultEncoding);
+            encoding ??= Defaults?.StringEncoding ?? Context.DefaultEncoding;
+
+            var t = length.HasValue ? Reader.ReadString(length.Value, encoding) : Reader.ReadNullDelimitedString(encoding);
 
             if (CurrentFile.ShouldUpdateReadMap)
                 CurrentFile.UpdateReadMap(origPos, Reader.BaseStream.Position - origPos);
@@ -673,7 +680,7 @@ namespace BinarySerializer
                 case TypeCode.Double:
                     return Reader.ReadDouble();
                 case TypeCode.String:
-                    return Reader.ReadNullDelimitedString(Context.DefaultEncoding);
+                    return Reader.ReadNullDelimitedString(Defaults?.StringEncoding ?? Context.DefaultEncoding);
 
                 case TypeCode.Decimal:
                 case TypeCode.Char:

@@ -262,7 +262,7 @@ namespace BinarySerializer
             if (length.HasValue)
                 CurrentFilePosition += length;
             else
-                CurrentFilePosition += (encoding ?? Context.DefaultEncoding).GetBytes(obj + '\0').Length;
+                CurrentFilePosition += (encoding ?? Defaults?.StringEncoding ?? Context.DefaultEncoding).GetBytes(obj + '\0').Length;
 
             return obj;
         }

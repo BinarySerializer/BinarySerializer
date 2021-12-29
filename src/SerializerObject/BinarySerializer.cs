@@ -287,6 +287,12 @@ namespace BinarySerializer
                 };
             }
 
+            if (Defaults != null)
+            {
+                if (anchor == null) anchor = Defaults.Anchor;
+                if (!nullValue.HasValue) nullValue = Defaults.NullValue;
+            }
+
             if (anchor != null && obj != null)
                 obj = new Pointer(obj.SerializedOffset, obj.File, anchor, obj.Size);
 
@@ -345,10 +351,12 @@ namespace BinarySerializer
             if (IsLogEnabled)
                 Context.Log.Log($"{LogPrefix}(String) {(name ?? "<no name>")}: {obj}");
 
+            encoding ??= Defaults?.StringEncoding ?? Context.DefaultEncoding;
+
             if (length.HasValue)
-                Writer.WriteString(obj, length.Value, encoding ?? Context.DefaultEncoding);
+                Writer.WriteString(obj, length.Value, encoding);
             else
-                Writer.WriteNullDelimitedString(obj, encoding ?? Context.DefaultEncoding);
+                Writer.WriteNullDelimitedString(obj, encoding);
 
             return obj;
         }
@@ -556,7 +564,7 @@ namespace BinarySerializer
                 Writer.Write(dou);
 
             else if (value is string s)
-                Writer.WriteNullDelimitedString(s, Context.DefaultEncoding);
+                Writer.WriteNullDelimitedString(s, Defaults?.StringEncoding ?? Context.DefaultEncoding);
 
             else if (value is UInt24 u24)
                 Writer.Write(u24);
