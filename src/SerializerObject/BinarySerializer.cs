@@ -64,52 +64,34 @@ namespace BinarySerializer
 
         public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null)
         {
-            // Encode the data into a stream
-            Stream encoded = null;
+            using MemoryStream decodedStream = new MemoryStream();
+            
+            // Stream key
+            string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
+
+            // Add the stream
+            StreamFile sf = new StreamFile(
+                context: Context,
+                name: key,
+                stream: decodedStream,
+                endianness: endianness ?? CurrentFile.Endianness,
+                allowLocalPointers: allowLocalPointers,
+                parentPointer: CurrentPointer);
 
             try
             {
-                using (MemoryStream memStream = new MemoryStream())
+                Context.AddFile(sf);
+
+                DoAt(sf.StartPointer, () =>
                 {
-                    // Stream key
-                    string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
-
-                    // Add the stream
-                    StreamFile sf = new StreamFile(
-                        context: Context,
-                        name: key,
-                        stream: memStream,
-                        endianness: endianness ?? CurrentFile.Endianness,
-                        allowLocalPointers: allowLocalPointers,
-                        parentPointer: CurrentPointer);
-
-                    try
-                    {
-                        Context.AddFile(sf);
-
-                        DoAt(sf.StartPointer, () =>
-                        {
-                            action();
-                            memStream.Position = 0;
-                            encoded = encoder.EncodeStream(memStream);
-                        });
-                    }
-                    finally
-                    {
-                        Context.RemoveFile(sf);
-                    }
-                }
-                // Turn stream into array & write bytes
-                if (encoded != null)
-                {
-                    using MemoryStream ms = new MemoryStream();
-                    encoded.CopyTo(ms);
-                    Writer.Write(ms.ToArray());
-                }
+                    action();
+                    decodedStream.Position = 0;
+                    encoder.EncodeStream(decodedStream, Writer.BaseStream);
+                });
             }
             finally
             {
-                encoded?.Dispose();
+                Context.RemoveFile(sf);
             }
         }
 
@@ -143,28 +125,17 @@ namespace BinarySerializer
 
         public override void EndEncoded(Pointer endPointer)
         {
-            var encodedFile = EncodedFiles.FirstOrDefault(ef => ef.File == endPointer.File);
-            if (encodedFile != null)
-            {
-                EncodedFiles.Remove(encodedFile);
+            EncodedState encodedFile = EncodedFiles.FirstOrDefault(ef => ef.File == endPointer.File);
 
-                encodedFile.Stream.Position = 0;
-                Stream encoded = null;
-                encoded = encodedFile.Encoder.EncodeStream(encodedFile.Stream);
-                encodedFile.Stream.Close();
-                Context.RemoveFile(encodedFile.File);
+            if (encodedFile == null) 
+                return;
 
-                // Turn stream into array & write bytes
-                if (encoded != null)
-                {
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        encoded.CopyTo(ms);
-                        Writer.Write(ms.ToArray());
-                    }
-                    encoded.Close();
-                }
-            }
+            EncodedFiles.Remove(encodedFile);
+
+            encodedFile.Stream.Position = 0;
+            encodedFile.Encoder.EncodeStream(encodedFile.Stream, Writer.BaseStream);
+            encodedFile.Stream.Close();
+            Context.RemoveFile(encodedFile.File);
         }
 
         #endregion
@@ -504,11 +475,11 @@ namespace BinarySerializer
         public void ClearWrittenObjects() {
             WrittenObjects.Clear();
         }
-		#endregion
+        #endregion
 
-		#region Protected Helpers
+        #region Protected Helpers
 
-		protected T[] GetArray<T>(T[] obj, long count)
+        protected T[] GetArray<T>(T[] obj, long count)
         {
             // Create or resize array if necessary
             return obj ?? new T[(int)count];
@@ -630,11 +601,11 @@ namespace BinarySerializer
             file.EndWrite(w);
             Writers.Remove(file);
         }
-		#endregion
+        #endregion
 
-		#region Data Types
+        #region Data Types
 
-		private sealed class IdentityComparer<T> : IEqualityComparer<T>
+        private sealed class IdentityComparer<T> : IEqualityComparer<T>
             where T : class
         {
             public bool Equals(T x, T y) => ReferenceEquals(x, y);

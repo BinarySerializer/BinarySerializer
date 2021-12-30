@@ -63,12 +63,12 @@ namespace BinarySerializer
 
         public override void Goto(Pointer offset) => CurrentSerializer.Goto(offset);
 
-		public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null) {
+        public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null) {
             SwitchSerializer(Deserializer);
             CurrentSerializer.DoEncoded(encoder, action, endianness: endianness, allowLocalPointers: allowLocalPointers, filename: filename);
         }
-		public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false, string filename = null) {
-			throw new NotSupportedException("BeginEncoded and EndEncoded are not supported in ToggleSerializer");
+        public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false, string filename = null) {
+            throw new NotSupportedException("BeginEncoded and EndEncoded are not supported in ToggleSerializer");
         }
         public override void EndEncoded(Pointer endPointer) {
             throw new NotSupportedException("BeginEncoded and EndEncoded are not supported in ToggleSerializer");
@@ -173,10 +173,10 @@ namespace BinarySerializer
             CurrentSerializer.SerializeBitValues(serializeFunc);
         }
 
-		public override void DoBits<T>(Action<BitSerializerObject> serializeFunc) {
-			SwitchSerializer(Deserializer);
+        public override void DoBits<T>(Action<BitSerializerObject> serializeFunc) {
+            SwitchSerializer(Deserializer);
             CurrentSerializer.DoBits<T>(serializeFunc);
-		}
+        }
 
         public override bool FullSerialize => CurrentSerializer.FullSerialize;
     }

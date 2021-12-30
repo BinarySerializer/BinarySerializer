@@ -3,7 +3,7 @@
 namespace BinarySerializer
 {
     public class EncodedLinearFile : PhysicalFile
-	{
+    {
         public EncodedLinearFile(Context context, string filePath, IStreamEncoder encoder, Endian endianness = Endian.Little, long? fileLength = null) : base(context, filePath, endianness, fileLength: fileLength)
         {
             Encoder = encoder;
@@ -12,7 +12,7 @@ namespace BinarySerializer
 
         public IStreamEncoder Encoder { get; }
 
-		private long? length;
+        private long? length;
         public override long Length
         {
             get
@@ -22,14 +22,16 @@ namespace BinarySerializer
                     // Open the file
                     using Stream s = FileManager.GetFileReadStream(SourcePath);
 
+                    using var decoded = new MemoryStream();
+
                     // Decode the file
-                    using var decoded = Encoder.DecodeStream(s);
+                    Encoder.DecodeStream(s, decoded);
 
                     // Set the length
                     length = decoded.Length;
                 }
 
-				return length.Value;
+                return length.Value;
             }
         }
 
@@ -37,38 +39,42 @@ namespace BinarySerializer
 
         public override Reader CreateReader() 
         {
-			// Open the file
-			using Stream s = FileManager.GetFileReadStream(SourcePath);
+            // Open the file
+            using Stream s = FileManager.GetFileReadStream(SourcePath);
 
-			// Decode the file
-			var decoded = Encoder.DecodeStream(s);
+            var decoded = new MemoryStream();
 
-			// Set the length
-			length = decoded.Length;
+            // Decode the file
+            Encoder.DecodeStream(s, decoded);
 
-			// Return a reader
-			return new Reader(decoded, isLittleEndian: Endianness == Endian.Little);
-		}
+            decoded.Position = 0;
 
-		public override Writer CreateWriter() 
+            // Set the length
+            length = decoded.Length;
+
+            // Return a reader
+            return new Reader(decoded, isLittleEndian: Endianness == Endian.Little);
+        }
+
+        public override Writer CreateWriter() 
         {
-			Stream memStream = new MemoryStream();
-			Writer writer = new Writer(memStream, isLittleEndian: Endianness == Endian.Little);
-			return writer;
-		}
+            Stream memStream = new MemoryStream();
+            Writer writer = new Writer(memStream, isLittleEndian: Endianness == Endian.Little);
+            return writer;
+        }
 
-		public override void EndWrite(Writer writer) 
+        public override void EndWrite(Writer writer) 
         {
-			if (writer != null) 
+            if (writer != null) 
             {
-				CreateBackupFile();
+                CreateBackupFile();
 
                 using Stream s = FileManager.GetFileWriteStream(DestinationPath, RecreateOnWrite);
                 writer.BaseStream.Position = 0;
-                using var encoded = Encoder.EncodeStream(writer.BaseStream);
-                encoded.CopyTo(s);
+                Encoder.EncodeStream(writer.BaseStream, s);
             }
-			base.EndWrite(writer);
-		}
+
+            base.EndWrite(writer);
+        }
     }
 }

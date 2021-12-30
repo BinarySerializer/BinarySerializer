@@ -3,7 +3,7 @@
 namespace BinarySerializer
 {
     /// <summary>
-    /// Encodes/decodes serializer data
+    /// Encodes/decodes data from streams
     /// </summary>
     public interface IStreamEncoder
     {
@@ -13,17 +13,17 @@ namespace BinarySerializer
         string Name { get; }
 
         /// <summary>
-        /// Decodes the data and returns it in a stream
+        /// Decodes the data from the input stream to the output stream
         /// </summary>
-        /// <param name="s">The serializer object</param>
-        /// <returns>The stream with the decoded data</returns>
-        Stream DecodeStream(Stream s);
+        /// <param name="input">The input data stream</param>
+        /// <param name="output">The output data stream</param>
+        void DecodeStream(Stream input, Stream output);
 
         /// <summary>
-        /// Encodes the data and returns it in a stream
+        /// Encodes the data from the input stream to the output stream
         /// </summary>
-        /// <param name="s">The serializer object</param>
-        /// <returns>The stream with the encoded data</returns>
-        Stream EncodeStream(Stream s);
+        /// <param name="input">The input data stream</param>
+        /// <param name="output">The output data stream</param>
+        void EncodeStream(Stream input, Stream output);
     }
 }

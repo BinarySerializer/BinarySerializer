@@ -63,48 +63,39 @@ namespace BinarySerializer
         public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null)
         {
             // Encode the data into a stream
-            Stream encoded = null;
+            using Stream encoded = new MemoryStream();
+
+            using MemoryStream memStream = new MemoryStream();
+
+            // Stream key
+            string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
+
+            // Add the stream
+            StreamFile sf = new StreamFile(
+                context: Context,
+                name: key,
+                stream: memStream,
+                endianness: endianness ?? CurrentFile.Endianness,
+                allowLocalPointers: allowLocalPointers,
+                parentPointer: CurrentPointer);
 
             try
             {
-                using (MemoryStream memStream = new MemoryStream())
+                Context.AddFile(sf);
+
+                DoAt(sf.StartPointer, () =>
                 {
-                    // Stream key
-                    string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
-
-                    // Add the stream
-                    StreamFile sf = new StreamFile(
-                        context: Context,
-                        name: key,
-                        stream: memStream,
-                        endianness: endianness ?? CurrentFile.Endianness,
-                        allowLocalPointers: allowLocalPointers,
-                        parentPointer: CurrentPointer);
-
-                    try
-                    {
-                        Context.AddFile(sf);
-
-                        DoAt(sf.StartPointer, () =>
-                        {
-                            action();
-                            memStream.Position = 0;
-                            encoded = encoder.EncodeStream(memStream);
-                        });
-                    }
-                    finally
-                    {
-                        Context.RemoveFile(sf);
-                    }
-                }
-
-                if (encoded != null)
-                    CurrentFilePosition += encoded.Length;
+                    action();
+                    memStream.Position = 0;
+                    encoder.EncodeStream(memStream, encoded);
+                });
             }
             finally
             {
-                encoded?.Dispose();
+                Context.RemoveFile(sf);
             }
+
+            CurrentFilePosition += encoded.Length;
         }
 
         public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false, string filename = null)
@@ -137,19 +128,19 @@ namespace BinarySerializer
 
         public override void EndEncoded(Pointer endPointer)
         {
-            var encodedFile = EncodedFiles.FirstOrDefault(ef => ef.File == endPointer.File);
-            if (encodedFile != null)
-            {
-                EncodedFiles.Remove(encodedFile);
+            EncodedState encodedFile = EncodedFiles.FirstOrDefault(ef => ef.File == endPointer.File);
+            
+            if (encodedFile == null) 
+                return;
+            
+            EncodedFiles.Remove(encodedFile);
 
-                encodedFile.Stream.Position = 0;
-                using Stream encoded = encodedFile.Encoder.EncodeStream(encodedFile.Stream);
-                encodedFile.Stream.Close();
-                Context.RemoveFile(encodedFile.File);
-
-                if (encoded != null)
-                    CurrentFilePosition += encoded.Length;
-            }
+            encodedFile.Stream.Position = 0;
+            using var encoded = new MemoryStream();
+            encodedFile.Encoder.EncodeStream(encodedFile.Stream, encoded);
+            encodedFile.Stream.Close();
+            Context.RemoveFile(encodedFile.File);
+            CurrentFilePosition += encoded.Length;
         }
 
         #endregion
@@ -444,6 +435,6 @@ namespace BinarySerializer
         {
             FilePositions.Remove(file);
         }
-		#endregion
-	}
+        #endregion
+    }
 }

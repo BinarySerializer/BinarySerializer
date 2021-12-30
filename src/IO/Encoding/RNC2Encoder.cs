@@ -9,17 +9,17 @@ namespace BinarySerializer
     /// </summary>
     public class RNC2Encoder : IStreamEncoder 
     {
-        public string Name => "RNC2";
-        public bool HasHeader { get; }
-
         public RNC2Encoder(bool hasHeader = true)
         {
             HasHeader = hasHeader;
         }
 
-        public Stream DecodeStream(Stream s)
+        public string Name => "RNC2";
+        public bool HasHeader { get; }
+
+        public void DecodeStream(Stream input, Stream output)
         {
-            Reader reader = new Reader(s, isLittleEndian: false);
+            using Reader reader = new Reader(input, isLittleEndian: false, leaveOpen: true);
 
             byte[] decompressed;
 
@@ -51,16 +51,10 @@ namespace BinarySerializer
                 decompressed = DecompressRNC2(reader);
             }
 
-            var decompressedStream = new MemoryStream(decompressed);
-
-            // Set position back to 0
-            decompressedStream.Position = 0;
-
-            // Return the compressed data stream
-            return decompressedStream;
+            output.Write(decompressed, 0, decompressed.Length);
         }
 
-        public Stream EncodeStream(Stream s) => throw new NotImplementedException();
+        public void EncodeStream(Stream input, Stream output) => throw new NotImplementedException();
 
         // Huffman decoding
         private enum Command 
@@ -107,10 +101,10 @@ namespace BinarySerializer
             HuffmanCode<T>[] codes;
 
             private readonly Node root = new Node();
-			private void Insert(HuffmanCode<T> code) 
+            private void Insert(HuffmanCode<T> code) 
             {
                 Node currentNode = root;
-				for (int bitIndex = code.Length-1; bitIndex >= 0; bitIndex--) 
+                for (int bitIndex = code.Length-1; bitIndex >= 0; bitIndex--) 
                 {
                     int bit = BitHelpers.ExtractBits(code.Code, 1, bitIndex);
 

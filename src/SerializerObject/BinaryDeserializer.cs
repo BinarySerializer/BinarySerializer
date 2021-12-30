@@ -69,7 +69,9 @@ namespace BinarySerializer
             string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
 
             // Decode the data into a stream
-            using var memStream = encoder.DecodeStream(Reader.BaseStream);
+            using var memStream = new MemoryStream();
+            encoder.DecodeStream(Reader.BaseStream, memStream);
+            memStream.Position = 0;
 
             // Add the stream
             StreamFile sf = new StreamFile(
@@ -106,7 +108,10 @@ namespace BinarySerializer
             string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
 
             // Add the stream
-            Stream memStream = encoder.DecodeStream(Reader.BaseStream);
+            var memStream = new MemoryStream();
+            encoder.DecodeStream(Reader.BaseStream, memStream);
+            memStream.Position = 0;
+
             StreamFile sf = new StreamFile(
                 context: Context, 
                 name: key, 
