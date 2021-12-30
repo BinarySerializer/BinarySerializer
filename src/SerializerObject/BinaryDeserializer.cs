@@ -292,8 +292,8 @@ namespace BinarySerializer
             };
 
             if (Defaults != null) {
-                if(anchor == null) anchor = Defaults.Anchor;
-                if(!nullValue.HasValue) nullValue = Defaults.NullValue;
+                if(anchor == null) anchor = Defaults.PointerAnchor;
+                if(!nullValue.HasValue) nullValue = Defaults.PointerNullValue;
             }
 
             Pointer ptr = CurrentFile.GetOverridePointer(CurrentAbsoluteOffset);

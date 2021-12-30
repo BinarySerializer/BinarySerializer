@@ -4,8 +4,8 @@ namespace BinarySerializer
 {
     public class SerializerDefaults
     {
-        public Pointer Anchor { get; set; }
-        public long? NullValue { get; set; }
+        public Pointer PointerAnchor { get; set; }
+        public long? PointerNullValue { get; set; }
         public Encoding StringEncoding { get; set; }
     }
 }
