@@ -162,15 +162,20 @@ namespace BinarySerializer
             if (encoding == null)
                 throw new ArgumentNullException(nameof(encoding));
 
+            // Read the bytes
             byte[] bytes = ReadBytes((int)size);
-            int firstIndexOf = Array.IndexOf<byte>(bytes, (byte)0x0);
-            if (firstIndexOf >= 0 && firstIndexOf < bytes.Length)
-            {
-                if (firstIndexOf == 0) return "";
-                Array.Resize<byte>(ref bytes, firstIndexOf);
-            }
 
-            return encoding.GetString(bytes);
+            // Get the string from the bytes using the specified encoding
+            string str = encoding.GetString(bytes);
+
+            // Trim after first null character
+            int nullIndex = str.IndexOf((char)0x00);
+
+            if (nullIndex != -1)
+                str = str.Substring(0, nullIndex);
+
+            // Return the string
+            return str;
         }
 
         #endregion
