@@ -66,6 +66,10 @@ namespace BinarySerializer
             AdditionalSettings[typeof(T)] = settings;
             return settings;
         }
+        public void AddSettings(object settings, Type settingsType)
+        {
+            AdditionalSettings[settingsType] = settings;
+        }
         public void RemoveSettings<T>()
         {
             AdditionalSettings.Remove(typeof(T));
