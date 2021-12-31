@@ -1,9 +1,12 @@
 ﻿namespace BinarySerializer
 {
-    public class DefaultSerializerLog : ISerializerLog
+    /// <summary>
+    /// An empty serializer log which is always disabled
+    /// </summary>
+    public class EmptySerializerLog : ISerializerLog
     {
         public bool IsEnabled => false;
-        public string OverrideLogPath { get; set; }
+
         public void Log(object obj) { }
         public void Dispose() { }
     }

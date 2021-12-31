@@ -17,7 +17,7 @@ namespace BinarySerializer
             Logger = logger;
             BasePath = NormalizePath(basePath, true);
             Settings = settings ?? new SerializerSettings();
-            Log = serializerLog ?? new DefaultSerializerLog();
+            Log = serializerLog ?? new EmptySerializerLog();
 
             // Initialize properties
             MemoryMap = new MemoryMap();
