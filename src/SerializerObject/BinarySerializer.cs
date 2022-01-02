@@ -82,11 +82,13 @@ namespace BinarySerializer
             {
                 Context.AddFile(sf);
 
+                Stream baseStream = Writer.BaseStream;
+
                 DoAt(sf.StartPointer, () =>
                 {
                     action();
                     decodedStream.Position = 0;
-                    encoder.EncodeStream(decodedStream, Writer.BaseStream);
+                    encoder.EncodeStream(decodedStream, baseStream);
                 });
             }
             finally
