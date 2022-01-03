@@ -203,6 +203,12 @@ namespace BinarySerializer
         public override void BeginCalculateChecksum(IChecksumCalculator checksumCalculator) => Reader.BeginCalculateChecksum(checksumCalculator);
 
         /// <summary>
+        /// Pauses calculating the checksum and returns the current checksum calculator to be used when resuming
+        /// </summary>
+        /// <returns>The current checksum calculator or null if none is used</returns>
+        public override IChecksumCalculator PauseCalculateChecksum() => Reader.PauseCalculateChecksum();
+
+        /// <summary>
         /// Ends calculating the checksum and return the value
         /// </summary>
         /// <typeparam name="T">The type of checksum value</typeparam>

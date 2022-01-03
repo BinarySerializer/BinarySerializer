@@ -210,6 +210,13 @@ namespace BinarySerializer
         public IXORCalculator GetXORCalculator() => XORCalculator;
         
         public void BeginCalculateChecksum(IChecksumCalculator checksumCalculator) => ChecksumCalculator = checksumCalculator;
+        public IChecksumCalculator PauseCalculateChecksum()
+        {
+            IChecksumCalculator c = ChecksumCalculator;
+            ChecksumCalculator = null;
+            return c;
+
+        }
         public T EndCalculateChecksum<T>() 
         {
             IChecksumCalculator c = ChecksumCalculator;

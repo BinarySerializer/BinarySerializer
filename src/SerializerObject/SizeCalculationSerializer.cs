@@ -186,6 +186,8 @@ namespace BinarySerializer
         /// <param name="checksumCalculator">The checksum calculator to use</param>
         public override void BeginCalculateChecksum(IChecksumCalculator checksumCalculator) { }
 
+        public override IChecksumCalculator PauseCalculateChecksum() => null;
+
         /// <summary>
         /// Ends calculating the checksum and return the value
         /// </summary>
