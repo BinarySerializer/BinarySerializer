@@ -5,12 +5,12 @@ namespace BinarySerializer
 {
     public class MemoryMappedByteArrayFile : VirtualFile
     {
-        public MemoryMappedByteArrayFile(Context context, string name, long baseAddress, long length, Endian endianness = Endian.Little, long memoryMappedPriority = -1, Pointer parentPointer = null) : base(context, name, endianness, baseAddress, memoryMappedPriority: memoryMappedPriority, parentPointer: parentPointer)
+        public MemoryMappedByteArrayFile(Context context, string name, long baseAddress, long length, Endian? endianness = null, long memoryMappedPriority = -1, Pointer parentPointer = null) : base(context, name, endianness, baseAddress, memoryMappedPriority: memoryMappedPriority, parentPointer: parentPointer)
         {
             Bytes = new byte[length];
         }
 
-        public MemoryMappedByteArrayFile(Context context, string name, long baseAddress, byte[] bytes, Endian endianness = Endian.Little, long memoryMappedPriority = -1, Pointer parentPointer = null) : base(context, name, endianness, baseAddress, memoryMappedPriority: memoryMappedPriority, parentPointer: parentPointer)
+        public MemoryMappedByteArrayFile(Context context, string name, long baseAddress, byte[] bytes, Endian? endianness = null, long memoryMappedPriority = -1, Pointer parentPointer = null) : base(context, name, endianness, baseAddress, memoryMappedPriority: memoryMappedPriority, parentPointer: parentPointer)
         {
             Bytes = bytes ?? throw new ArgumentNullException(nameof(bytes));
         }

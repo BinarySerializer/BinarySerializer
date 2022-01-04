@@ -18,13 +18,13 @@ namespace BinarySerializer
         /// <param name="baseAddress">The base address for the file. If the file is not memory mapped this should be 0.</param>
         /// <param name="startPointer">The start pointer for the file. If null it will be the same as <see cref="BaseAddress"/></param>
         /// <param name="memoryMappedPriority">e file priority if memory mapped. Default is the address if set to -1.</param>
-        protected BinaryFile(Context context, string filePath, Endian endianness = Endian.Little, long baseAddress = 0, Pointer startPointer = null, long memoryMappedPriority = -1)
+        protected BinaryFile(Context context, string filePath, Endian? endianness = null, long baseAddress = 0, Pointer startPointer = null, long memoryMappedPriority = -1)
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
             FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
             FilePath = Context.NormalizePath(FilePath, false);
             AbsolutePath = Context.GetAbsoluteFilePath(FilePath);
-            Endianness = endianness;
+            Endianness = endianness ?? context.Settings.DefaultEndianness;
             BaseAddress = baseAddress;
             StartPointer = startPointer ?? new Pointer(baseAddress, this);
             MemoryMappedPriority = memoryMappedPriority == -1 ? baseAddress : memoryMappedPriority;

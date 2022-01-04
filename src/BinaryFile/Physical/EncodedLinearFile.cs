@@ -4,7 +4,7 @@ namespace BinarySerializer
 {
     public class EncodedLinearFile : PhysicalFile
     {
-        public EncodedLinearFile(Context context, string filePath, IStreamEncoder encoder, Endian endianness = Endian.Little, long? fileLength = null) : base(context, filePath, endianness, fileLength: fileLength)
+        public EncodedLinearFile(Context context, string filePath, IStreamEncoder encoder, Endian? endianness = null, long? fileLength = null) : base(context, filePath, endianness, fileLength: fileLength)
         {
             Encoder = encoder;
             length = fileLength;

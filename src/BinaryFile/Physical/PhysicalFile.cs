@@ -7,7 +7,7 @@ namespace BinarySerializer
     /// </summary>
     public abstract class PhysicalFile : BinaryFile
     {
-        protected PhysicalFile(Context context, string filePath, Endian endianness = Endian.Little, long baseAddress = 0, Pointer startPointer = null, long? fileLength = null, long memoryMappedPriority = -1) : base(context, filePath, endianness, baseAddress, startPointer, memoryMappedPriority)
+        protected PhysicalFile(Context context, string filePath, Endian? endianness = null, long baseAddress = 0, Pointer startPointer = null, long? fileLength = null, long memoryMappedPriority = -1) : base(context, filePath, endianness, baseAddress, startPointer, memoryMappedPriority)
         {
             DestinationPath = context.GetAbsoluteFilePath(filePath);
             length = fileLength;

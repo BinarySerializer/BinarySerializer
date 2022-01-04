@@ -11,6 +11,11 @@ namespace BinarySerializer
         /// The default string encoding to use when none is specified
         /// </summary>
         Encoding DefaultStringEncoding { get; }
+
+        /// <summary>
+        /// The default endianness to use when creating new files
+        /// </summary>
+        Endian DefaultEndianness { get; }
         
         /// <summary>
         /// Indicates if a backup file should be created when writing to a file
