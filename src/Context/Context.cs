@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -201,6 +201,9 @@ namespace BinarySerializer
 
         public void AddFile(BinaryFile file)
         {
+            if (MemoryMap.Files.Any(x => x.FilePath == file.FilePath))
+                throw new Exception($"A file with the path '{file.FilePath}' has already been added to the context");
+
             MemoryMap.Files.Add(file);
         }
         public void RemoveFile(string filePath) => RemoveFile(GetFile(filePath));
