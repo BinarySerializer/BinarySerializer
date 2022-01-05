@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -73,6 +73,10 @@ namespace BinarySerializer
         public void RemoveSettings<T>()
         {
             AdditionalSettings.Remove(typeof(T));
+        }
+        public bool HasSettings<T>()
+        {
+            return AdditionalSettings.ContainsKey(typeof(T));
         }
 
         public Encoding DefaultEncoding => Settings.DefaultStringEncoding;
