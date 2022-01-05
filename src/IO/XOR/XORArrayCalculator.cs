@@ -1,20 +1,32 @@
 ﻿namespace BinarySerializer
 {
-	/// <summary>
-	/// Class for XOR operations with a multi-byte key
-	/// </summary>
-	public class XORArrayCalculator : IXORCalculator {
-		public byte[] Key { get; set; }
-		public int CurrentKeyByte { get; set; }
+    /// <summary>
+    /// Class for XOR operations with a multi-byte key
+    /// </summary>
+    public class XORArrayCalculator : IXORCalculator 
+    {
+        public XORArrayCalculator(byte[] key, int byteIndex = 0, int? maxLength = null)
+        {
+            Key = key;
+            ByteIndex = byteIndex;
+            MaxLength = maxLength;
+        }
 
-		public XORArrayCalculator(byte[] key, int currentByte = 0) {
-			Key = key;
-			CurrentKeyByte = currentByte % key.Length;
-		}
-		public byte XORByte(byte b) {
-			var key = Key[CurrentKeyByte];
-			CurrentKeyByte = (CurrentKeyByte+1) % Key.Length;
-			return (byte)(b ^ key);
-		}
-	}
+        public byte[] Key { get; }
+        public int ByteIndex { get; set; }
+        public int? MaxLength { get; }
+
+        public byte XORByte(byte b) 
+        {
+            if (ByteIndex >= MaxLength)
+            {
+                ByteIndex++;
+                return b;
+            }
+
+            byte key = Key[ByteIndex % Key.Length];
+            ByteIndex++;
+            return (byte)(b ^ key);
+        }
+    }
 }
