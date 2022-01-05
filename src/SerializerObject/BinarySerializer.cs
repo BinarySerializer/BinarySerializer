@@ -604,6 +604,9 @@ namespace BinarySerializer
             Writer w = Writers[file];
             file.EndWrite(w);
             Writers.Remove(file);
+
+            if (CurrentFile == file)
+                CurrentFile = null;
         }
         #endregion
 

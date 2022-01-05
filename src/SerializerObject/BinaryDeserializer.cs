@@ -739,6 +739,9 @@ namespace BinarySerializer
             Reader r = Readers[file];
             file.EndRead(r);
             Readers.Remove(file);
+
+            if (CurrentFile == file)
+                CurrentFile = null;
         }
 
         #endregion
