@@ -8,52 +8,33 @@ namespace BinarySerializer
     public class SerializerSettings : ISerializerSettings
     {
         /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="defaultStringEncoding">The default string encoding to use when none is specified. Set to null for <see cref="Encoding.UTF8"/></param>
-        /// <param name="defaultEndian">The default endianness to use when creating new files</param>
-        /// <param name="createBackupOnWrite">Indicates if a backup file should be created when writing to a file</param>
-        /// <param name="savePointersForRelocation">Indicates if pointers should be saved in the Memory Map for relocation</param>
-        /// <param name="ignoreCacheOnRead">Indicates if caching read objects should be ignored</param>
-        /// <param name="loggingPointerSize">The pointer size to use when logging a <see cref="Pointer"/>. Set to <see langword="null"/> to dynamically determine the appropriate size.</param>
-        public SerializerSettings(Encoding defaultStringEncoding = null, Endian defaultEndian = Endian.Little, bool createBackupOnWrite = false, bool savePointersForRelocation = false, bool ignoreCacheOnRead = false, PointerSize? loggingPointerSize = PointerSize.Pointer32)
-        {
-            DefaultStringEncoding = defaultStringEncoding ?? Encoding.UTF8;
-            DefaultEndianness = defaultEndian;
-            SavePointersForRelocation = savePointersForRelocation;
-            IgnoreCacheOnRead = ignoreCacheOnRead;
-            CreateBackupOnWrite = createBackupOnWrite;
-            LoggingPointerSize = loggingPointerSize;
-        }
-
-        /// <summary>
         /// The default string encoding to use when none is specified
         /// </summary>
-        public virtual Encoding DefaultStringEncoding { get; }
+        public Encoding DefaultStringEncoding { get; set; } = Encoding.UTF8;
 
         /// <summary>
         /// The default endianness to use when creating new files
         /// </summary>
-        public Endian DefaultEndianness { get; }
+        public Endian DefaultEndianness { get; set; } = Endian.Little;
 
         /// <summary>
         /// Indicates if a backup file should be created when writing to a file
         /// </summary>
-        public virtual bool CreateBackupOnWrite { get; }
+        public bool CreateBackupOnWrite { get; set; }
 
         /// <summary>
         /// Indicates if pointers should be saved in the Memory Map for relocation
         /// </summary>
-        public virtual bool SavePointersForRelocation { get; }
+        public bool SavePointersForRelocation { get; set; }
 
         /// <summary>
         /// Indicates if caching read objects should be ignored
         /// </summary>
-        public bool IgnoreCacheOnRead { get; }
+        public bool IgnoreCacheOnRead { get; set; }
 
         /// <summary>
         /// The pointer size to use when logging a <see cref="Pointer"/>. Set to <see langword="null"/> to dynamically determine the appropriate size.
         /// </summary>
-        public PointerSize? LoggingPointerSize { get; }
+        public PointerSize? LoggingPointerSize { get; set; } = PointerSize.Pointer32;
     }
 }
