@@ -463,6 +463,63 @@ namespace BinarySerializer
             return buffer;
         }
 
+        public override T[] SerializeArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null, string name = null)
+        {
+            if (IsLogEnabled)
+                Context.Log.Log($"{LogPrefix}({typeof(T).Name}[..]) {name ?? "<no name>"}");
+
+            var objects = new List<T>();
+            int index = 0;
+
+            while (true)
+            {
+                var serializedObj = Serialize<T>(default, name: $"{name}[{index}]");
+
+                index++;
+
+                if (conditionCheckFunc(serializedObj))
+                {
+                    if (getLastObjFunc == null)
+                        objects.Add(serializedObj);
+
+                    break;
+                }
+
+                objects.Add(serializedObj);
+            }
+
+            return objects.ToArray();
+        }
+
+        public override T[] SerializeObjectArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null,
+            Action<T> onPreSerialize = null, string name = null)
+        {
+            if (IsLogEnabled)
+                Context.Log.Log($"{LogPrefix}(Object[]: {typeof(T)}[..]) {name ?? "<no name>"}");
+
+            var objects = new List<T>();
+            int index = 0;
+
+            while (true)
+            {
+                T serializedObj = SerializeObject<T>(default, onPreSerialize: onPreSerialize, name: $"{name}[{index}]");
+
+                index++;
+
+                if (conditionCheckFunc(serializedObj))
+                {
+                    if (getLastObjFunc == null)
+                        objects.Add(serializedObj);
+
+                    break;
+                }
+
+                objects.Add(serializedObj);
+            }
+
+            return objects.ToArray();
+        }
+
         public override Pointer[] SerializePointerArray(Pointer[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             if (IsLogEnabled)

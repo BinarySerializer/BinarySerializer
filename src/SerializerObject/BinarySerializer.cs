@@ -396,6 +396,31 @@ namespace BinarySerializer
             return buffer;
         }
 
+        public override T[] SerializeArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null, string name = null)
+        {
+            T[] array = obj;
+
+            if (getLastObjFunc != null)
+                array = array.Append(getLastObjFunc()).ToArray();
+
+            SerializeArray<T>(array, array.Length, name: name);
+
+            return obj;
+        }
+
+        public override T[] SerializeObjectArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null,
+            Action<T> onPreSerialize = null, string name = null)
+        {
+            T[] array = obj;
+
+            if (getLastObjFunc != null)
+                array = array.Append(getLastObjFunc()).ToArray();
+
+            SerializeObjectArray<T>(array, array.Length, name: name);
+
+            return obj;
+        }
+
         public override Pointer[] SerializePointerArray(Pointer[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             Pointer[] buffer = GetArray(obj, count);
