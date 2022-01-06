@@ -199,12 +199,15 @@ namespace BinarySerializer
             return newPath;
         }
 
-        public void AddFile(BinaryFile file)
+        public T AddFile<T>(T file)
+            where T : BinaryFile
         {
             if (MemoryMap.Files.Any(x => x.FilePath == file.FilePath))
                 throw new Exception($"A file with the path '{file.FilePath}' has already been added to the context");
 
             MemoryMap.Files.Add(file);
+
+            return file;
         }
         public void RemoveFile(string filePath) => RemoveFile(GetFile(filePath));
         public void RemoveFile(BinaryFile file)
