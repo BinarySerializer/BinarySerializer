@@ -116,12 +116,31 @@ namespace BinarySerializer
 
         public override byte[] ReadBytes(int count)
         {
-            byte[] bytes = base.ReadBytes(count);
+            if (count < 0) 
+                throw new ArgumentOutOfRangeException(nameof(count), "Non-negative amount of bytes is required");
+
+            if (count == 0)
+                return Array.Empty<byte>();
+
+            byte[] result = new byte[count];
+
+            int numRead = 0;
+            do
+            {
+                int n = BaseStream.Read(result, numRead, count);
+                if (n == 0)
+                    break;
+                numRead += n;
+                count -= n;
+            } while (count > 0);
+
+            if (numRead != result.Length)
+                throw new EndOfStreamException();
 
             if (AutoAlignOn)
-                BytesSinceAlignStart += (uint)bytes.Length;
+                BytesSinceAlignStart += (uint)result.Length;
 
-            return bytes;
+            return result;
         }
 
         public override sbyte ReadSByte() => (sbyte)ReadByte();
