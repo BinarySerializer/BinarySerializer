@@ -29,6 +29,11 @@ namespace BinarySerializer
         /// </summary>
         public string DestinationPath { get; set; }
 
+        /// <summary>
+        /// Indicates if the <see cref="SourcePath"/> exists
+        /// </summary>
+        public bool SourceFileExists => FileManager.FileExists(SourcePath);
+
         private long? length;
         public override long Length
         {
