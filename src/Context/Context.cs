@@ -57,7 +57,7 @@ namespace BinarySerializer
                 return (T)s;
 
             if (throwIfNotFound)
-                throw new Exception($"The requested serializer settings of type {typeof(T)} could not be found");
+                throw new ContextException($"The requested serializer settings of type {typeof(T)} could not be found");
 
             return default;
         }
@@ -147,7 +147,7 @@ namespace BinarySerializer
             if (PreDefinedPointers?.ContainsKey(key) != true)
             {
                 if (required)
-                    throw new Exception($"Pre-defined pointer with key {key} was not found in the context using file {file?.FilePath}");
+                    throw new ContextException($"Pre-defined pointer with key {key} was not found in the context using file {file?.FilePath}");
                 else
                     return null;
             }
@@ -203,7 +203,7 @@ namespace BinarySerializer
             where T : BinaryFile
         {
             if (MemoryMap.Files.Any(x => x.FilePath == file.FilePath))
-                throw new Exception($"A file with the path '{file.FilePath}' has already been added to the context");
+                throw new ContextException($"A file with the path '{file.FilePath}' has already been added to the context");
 
             MemoryMap.Files.Add(file);
 
@@ -232,7 +232,7 @@ namespace BinarySerializer
             BinaryFile f = GetFile(relativePath);
 
             if (f == null)
-                throw new Exception($"File with path {relativePath} is not loaded in this Context!");
+                throw new ContextException($"File with path {relativePath} is not loaded in this Context!");
 
             return f.StartPointer;
         }

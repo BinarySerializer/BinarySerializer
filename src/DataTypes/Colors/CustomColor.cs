@@ -54,7 +54,7 @@ namespace BinarySerializer
 
         public override void SerializeImpl(SerializerObject s)
         {
-            throw new Exception("Custom colors can't be serialized");
+            throw new BinarySerializableException(this, "Custom colors can't be serialized");
         }
     }
 }

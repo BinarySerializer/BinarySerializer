@@ -255,7 +255,7 @@ namespace BinarySerializer
             {
                 obj = CurrentBinaryFile.FileRedirectBehavior switch
                 {
-                    BinaryFile.RedirectBehavior.Throw => throw new Exception($"The file for the pointer {obj} does not exist in the current context"),
+                    BinaryFile.RedirectBehavior.Throw => throw new ContextException($"The file for the pointer {obj} does not exist in the current context"),
                     BinaryFile.RedirectBehavior.CurrentFile => new Pointer(obj.AbsoluteOffset, CurrentBinaryFile, obj.Anchor, obj.Size, Pointer.OffsetType.Absolute),
                     BinaryFile.RedirectBehavior.SpecifiedFile => new Pointer(obj.AbsoluteOffset, CurrentBinaryFile.RedirectFile, obj.Anchor, obj.Size, Pointer.OffsetType.Absolute),
                     _ => obj
