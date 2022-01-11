@@ -218,14 +218,10 @@ namespace BinarySerializer
             file?.Dispose();
         }
 
-        public Pointer<T> FilePointer<T>(string relativePath) where T : BinarySerializable, new()
+        public Pointer<T> FilePointer<T>(string relativePath) 
+            where T : BinarySerializable, new()
         {
-            Pointer p = FilePointer(relativePath);
-
-            if (p == null) 
-                return null;
-
-            return new Pointer<T>(p);
+            return new Pointer<T>(FilePointer(relativePath));
         }
         public Pointer FilePointer(string relativePath)
         {

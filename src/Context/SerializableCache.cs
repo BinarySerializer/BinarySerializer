@@ -13,33 +13,35 @@ namespace BinarySerializer
 
         protected ILogger Logger { get; }
 
-		public Dictionary<Type, Dictionary<Pointer, BinarySerializable>> Structs { get; }
+        public Dictionary<Type, Dictionary<Pointer, BinarySerializable>> Structs { get; }
 
-        public T FromOffset<T>(Pointer pointer) where T : BinarySerializable 
+        public T FromOffset<T>(Pointer pointer) 
+            where T : BinarySerializable 
         {
-			if (pointer == null) 
+            if (pointer == null) 
                 return null;
 
-			Type type = typeof(T);
+            Type type = typeof(T);
 
-			if (!Structs.ContainsKey(type) || !Structs[type].ContainsKey(pointer)) 
+            if (!Structs.ContainsKey(type) || !Structs[type].ContainsKey(pointer)) 
                 return null;
 
-			return Structs[type][pointer] as T;
-		}
+            return Structs[type][pointer] as T;
+        }
 
-		public void Add<T>(T serializable) where T : BinarySerializable 
+        public void Add<T>(T serializable) 
+            where T : BinarySerializable 
         {
-			Pointer pointer = serializable.Offset;
-			Type type = typeof(T);
+            Pointer pointer = serializable.Offset;
+            Type type = typeof(T);
 
-			if (!Structs.ContainsKey(type))
-				Structs[type] = new Dictionary<Pointer, BinarySerializable>();
+            if (!Structs.ContainsKey(type))
+                Structs[type] = new Dictionary<Pointer, BinarySerializable>();
 
             if (!Structs[type].ContainsKey(pointer)) 
-				Structs[type][pointer] = serializable;
+                Structs[type][pointer] = serializable;
             else 
                 Logger?.LogWarning($"Duplicate pointer {pointer} for type {type}");
-		}
-	}
+        }
+    }
 }

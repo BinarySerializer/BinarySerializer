@@ -20,17 +20,27 @@ namespace BinarySerializer
         public static T Read<T>(Context context, string filePath, Action<SerializerObject, T> onPreSerialize = null)
             where T : BinarySerializable, new()
         {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+            if (filePath == null)
+                throw new ArgumentNullException(nameof(filePath));
+
             // Try cached version, to avoid creating the deserializer unless necessary
             T mainObj = context.GetMainFileObject<T>(filePath);
 
             if (mainObj != null)
                 return mainObj;
 
-            // Use deserializer
-            return context.Deserializer.SerializeFile<T>(
+            // Get a deserializer
+            BinaryDeserializer s = context.Deserializer;
+
+            // Use the deserializer to serialize the file
+            return s.SerializeFile<T>(
                 relativePath: filePath,
                 obj: null,
-                onPreSerialize: (t) => onPreSerialize?.Invoke(context.Deserializer, t),
+                onPreSerialize: onPreSerialize == null 
+                    ? (Action<T>)null 
+                    : x => onPreSerialize(s, x),
                 name: filePath);
         }
 
@@ -46,15 +56,26 @@ namespace BinarySerializer
         public static T Read<T>(Context context, Pointer offset, Action<SerializerObject, T> onPreSerialize = null, string name = null)
             where T : BinarySerializable, new()
         {
-            // Try cached version, to avoid creating the deserializer unless necessary
+            if (context == null) 
+                throw new ArgumentNullException(nameof(context));
+            if (offset == null) 
+                throw new ArgumentNullException(nameof(offset));
+            
             T mainObj = default;
 
-            // Use deserializer
+            // Get a deserializer
+            BinaryDeserializer s = context.Deserializer;
+
+            // Use the deserializer to serialize the data at the specified offset
             context.Deserializer.DoAt(offset, () =>
+            {
                 mainObj = context.Deserializer.SerializeObject<T>(
                     obj: mainObj,
-                    onPreSerialize: (t) => onPreSerialize?.Invoke(context.Deserializer, t),
-                    name: name));
+                    onPreSerialize: onPreSerialize == null
+                        ? (Action<T>)null
+                        : x => onPreSerialize(s, x),
+                    name: name);
+            });
 
             return mainObj;
         }
@@ -68,9 +89,26 @@ namespace BinarySerializer
         public static T Write<T>(Context context, string filePath, Action<SerializerObject, T> onPreSerialize = null)
             where T : BinarySerializable, new()
         {
-            return context.FilePointer<T>(filePath)?.Resolve(
-                s: context.Serializer,
-                onPreSerialize: (t) => onPreSerialize?.Invoke(context.Serializer, t)).Value;
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+            if (filePath == null)
+                throw new ArgumentNullException(nameof(filePath));
+
+            T obj = context.Cache.FromOffset<T>(context.FilePointer(filePath));
+
+            if (obj == null)
+                throw new ContextException($"There is no cached object of type {typeof(T)} for {filePath}");
+
+            // Get a serializer
+            BinarySerializer s = context.Serializer;
+
+            return s.SerializeFile<T>(
+                relativePath: filePath,
+                obj: obj,
+                onPreSerialize: onPreSerialize == null 
+                    ? (Action<T>)null
+                    : x => onPreSerialize(s, x),
+                name: filePath);
         }
 
         /// <summary>
@@ -83,10 +121,22 @@ namespace BinarySerializer
         public static T Write<T>(Context context, string filePath, T obj, Action<SerializerObject, T> onPreSerialize = null)
             where T : BinarySerializable, new()
         {
-            return context.Serializer.SerializeFile<T>(
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+            if (filePath == null)
+                throw new ArgumentNullException(nameof(filePath));
+            if (obj == null)
+                throw new ArgumentNullException(nameof(obj));
+
+            // Get a serializer
+            BinarySerializer s = context.Serializer;
+
+            return s.SerializeFile<T>(
                 relativePath: filePath,
                 obj: obj,
-                onPreSerialize: (t) => onPreSerialize?.Invoke(context.Serializer, t),
+                onPreSerialize: onPreSerialize == null
+                    ? (Action<T>)null
+                    : x => onPreSerialize(s, x),
                 name: filePath);
         }
 
@@ -101,12 +151,27 @@ namespace BinarySerializer
         public static T Write<T>(Context context, Pointer offset, T obj, Action<SerializerObject, T> onPreSerialize = null, string name = null)
             where T : BinarySerializable, new()
         {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+            if (offset == null)
+                throw new ArgumentNullException(nameof(offset));
+            if (obj == null)
+                throw new ArgumentNullException(nameof(obj));
+
+            // Get a serializer
             BinarySerializer s = context.Serializer;
 
-            return s.DoAt(offset, () => s.SerializeObject(
-                obj: obj,
-                onPreSerialize: t => onPreSerialize?.Invoke(context.Deserializer, t),
-                name: name));
+            s.DoAt(offset, () =>
+            {
+                obj = s.SerializeObject(
+                    obj: obj,
+                    onPreSerialize: onPreSerialize == null
+                        ? (Action<T>)null
+                        : x => onPreSerialize(s, x),
+                    name: name);
+            });
+
+            return obj;
         }
 
         #endregion

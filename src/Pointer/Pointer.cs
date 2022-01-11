@@ -175,6 +175,7 @@ namespace BinarySerializer
         public Pointer(SerializerObject s, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null) 
         {
             PointerValue = s.SerializePointer(PointerValue, size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue, name: "Pointer");
+
             if (resolve)
                 Resolve(s, onPreSerialize: onPreSerialize);
         }
@@ -195,16 +196,22 @@ namespace BinarySerializer
 
         public Pointer<T> Resolve(SerializerObject s, Action<T> onPreSerialize = null)
         {
-            if (PointerValue != null) {
-                Value = PointerValue.Context.Cache.FromOffset<T>(PointerValue);
-                s.DoAt(PointerValue, () => {
-                    Value = s.SerializeObject<T>(Value, onPreSerialize: onPreSerialize, name: "Value");
-                });
-            }
+            if (s == null) 
+                throw new ArgumentNullException(nameof(s));
+            
+            if (PointerValue == null) 
+                return this;
+            
+            Value = PointerValue.Context.Cache.FromOffset<T>(PointerValue);
+            s.DoAt(PointerValue, () => Value = s.SerializeObject<T>(Value, onPreSerialize: onPreSerialize, name: nameof(Value)));
+            
             return this;
         }
         public Pointer<T> Resolve(Context c) 
         {
+            if (c == null) 
+                throw new ArgumentNullException(nameof(c));
+            
             if (PointerValue != null)
                 Value = c.Cache.FromOffset<T>(PointerValue);
 
