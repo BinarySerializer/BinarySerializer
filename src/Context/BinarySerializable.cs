@@ -82,14 +82,17 @@ namespace BinarySerializer
         /// </summary>
         public virtual void RecalculateSize()
         {
-            // Create a serialize for calculating the size
-            using var s = new SizeCalculationSerializer(Context);
-            
-            // Go to the offset of the object
-            s.Goto(Offset);
+            lock (Context._threadLock)
+            {
+                // Create a serialize for calculating the size
+                using var s = new SizeCalculationSerializer(Context);
 
-            // Serialize the object
-            Serialize(s);
+                // Go to the offset of the object
+                s.Goto(Offset);
+
+                // Serialize the object
+                Serialize(s);
+            }
         }
 
         protected virtual void OnChangeContext(Context oldContext, Context newContext) {

@@ -35,6 +35,12 @@ namespace BinarySerializer
 
         #endregion
 
+        #region Internal Fields
+
+        internal object _threadLock = new object();
+
+        #endregion
+
         #region Public Properties
 
         public string BasePath { get; }

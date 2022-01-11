@@ -25,23 +25,26 @@ namespace BinarySerializer
             if (filePath == null)
                 throw new ArgumentNullException(nameof(filePath));
 
-            // Try cached version, to avoid creating the deserializer unless necessary
-            T mainObj = context.GetMainFileObject<T>(filePath);
+            lock (context._threadLock)
+            {
+                // Try cached version, to avoid creating the deserializer unless necessary
+                T mainObj = context.GetMainFileObject<T>(filePath);
 
-            if (mainObj != null)
-                return mainObj;
+                if (mainObj != null)
+                    return mainObj;
 
-            // Get a deserializer
-            BinaryDeserializer s = context.Deserializer;
+                // Get a deserializer
+                BinaryDeserializer s = context.Deserializer;
 
-            // Use the deserializer to serialize the file
-            return s.SerializeFile<T>(
-                relativePath: filePath,
-                obj: null,
-                onPreSerialize: onPreSerialize == null 
-                    ? (Action<T>)null 
-                    : x => onPreSerialize(s, x),
-                name: filePath);
+                // Use the deserializer to serialize the file
+                return s.SerializeFile<T>(
+                    relativePath: filePath,
+                    obj: null,
+                    onPreSerialize: onPreSerialize == null
+                        ? (Action<T>)null
+                        : x => onPreSerialize(s, x),
+                    name: filePath);
+            }
         }
 
         /// <summary>
@@ -60,24 +63,27 @@ namespace BinarySerializer
                 throw new ArgumentNullException(nameof(context));
             if (offset == null) 
                 throw new ArgumentNullException(nameof(offset));
-            
-            T mainObj = default;
 
-            // Get a deserializer
-            BinaryDeserializer s = context.Deserializer;
-
-            // Use the deserializer to serialize the data at the specified offset
-            context.Deserializer.DoAt(offset, () =>
+            lock (context._threadLock)
             {
-                mainObj = context.Deserializer.SerializeObject<T>(
-                    obj: mainObj,
-                    onPreSerialize: onPreSerialize == null
-                        ? (Action<T>)null
-                        : x => onPreSerialize(s, x),
-                    name: name);
-            });
+                T mainObj = default;
 
-            return mainObj;
+                // Get a deserializer
+                BinaryDeserializer s = context.Deserializer;
+
+                // Use the deserializer to serialize the data at the specified offset
+                context.Deserializer.DoAt(offset, () =>
+                {
+                    mainObj = context.Deserializer.SerializeObject<T>(
+                        obj: mainObj,
+                        onPreSerialize: onPreSerialize == null
+                            ? (Action<T>)null
+                            : x => onPreSerialize(s, x),
+                        name: name);
+                });
+
+                return mainObj;
+            }
         }
 
         /// <summary>
@@ -94,21 +100,24 @@ namespace BinarySerializer
             if (filePath == null)
                 throw new ArgumentNullException(nameof(filePath));
 
-            T obj = context.Cache.FromOffset<T>(context.FilePointer(filePath));
+            lock (context._threadLock)
+            {
+                T obj = context.Cache.FromOffset<T>(context.FilePointer(filePath));
 
-            if (obj == null)
-                throw new ContextException($"There is no cached object of type {typeof(T)} for {filePath}");
+                if (obj == null)
+                    throw new ContextException($"There is no cached object of type {typeof(T)} for {filePath}");
 
-            // Get a serializer
-            BinarySerializer s = context.Serializer;
+                // Get a serializer
+                BinarySerializer s = context.Serializer;
 
-            return s.SerializeFile<T>(
-                relativePath: filePath,
-                obj: obj,
-                onPreSerialize: onPreSerialize == null 
-                    ? (Action<T>)null
-                    : x => onPreSerialize(s, x),
-                name: filePath);
+                return s.SerializeFile<T>(
+                    relativePath: filePath,
+                    obj: obj,
+                    onPreSerialize: onPreSerialize == null
+                        ? (Action<T>)null
+                        : x => onPreSerialize(s, x),
+                    name: filePath);
+            }
         }
 
         /// <summary>
@@ -128,16 +137,19 @@ namespace BinarySerializer
             if (obj == null)
                 throw new ArgumentNullException(nameof(obj));
 
-            // Get a serializer
-            BinarySerializer s = context.Serializer;
+            lock (context._threadLock)
+            {
+                // Get a serializer
+                BinarySerializer s = context.Serializer;
 
-            return s.SerializeFile<T>(
-                relativePath: filePath,
-                obj: obj,
-                onPreSerialize: onPreSerialize == null
-                    ? (Action<T>)null
-                    : x => onPreSerialize(s, x),
-                name: filePath);
+                return s.SerializeFile<T>(
+                    relativePath: filePath,
+                    obj: obj,
+                    onPreSerialize: onPreSerialize == null
+                        ? (Action<T>)null
+                        : x => onPreSerialize(s, x),
+                    name: filePath);
+            }
         }
 
         /// <summary>
@@ -158,20 +170,23 @@ namespace BinarySerializer
             if (obj == null)
                 throw new ArgumentNullException(nameof(obj));
 
-            // Get a serializer
-            BinarySerializer s = context.Serializer;
-
-            s.DoAt(offset, () =>
+            lock (context._threadLock)
             {
-                obj = s.SerializeObject(
-                    obj: obj,
-                    onPreSerialize: onPreSerialize == null
-                        ? (Action<T>)null
-                        : x => onPreSerialize(s, x),
-                    name: name);
-            });
+                // Get a serializer
+                BinarySerializer s = context.Serializer;
 
-            return obj;
+                s.DoAt(offset, () =>
+                {
+                    obj = s.SerializeObject(
+                        obj: obj,
+                        onPreSerialize: onPreSerialize == null
+                            ? (Action<T>)null
+                            : x => onPreSerialize(s, x),
+                        name: name);
+                });
+
+                return obj;
+            }
         }
 
         #endregion
