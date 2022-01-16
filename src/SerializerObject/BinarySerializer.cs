@@ -390,8 +390,30 @@ namespace BinarySerializer
                 Context.Log.Log($"{LogPrefix}(Object[] {typeof(T)}[{count}]) {(name ?? "<no name>")}");
             }
             for (int i = 0; i < count; i++)
-                // Read the value
+                // Write the value
                 SerializeObject<T>(buffer[i], onPreSerialize: onPreSerialize, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
+
+            return buffer;
+        }
+
+        public override T[] SerializeObjectArray<T>(T[] obj, Pointer[] itemPointers, Action<T> onPreSerialize = null, string name = null)
+        {
+            int count = itemPointers.Length;
+
+            T[] buffer = GetArray(obj, count);
+            count = buffer.Length;
+
+            if (IsLogEnabled)
+                Context.Log.Log($"{LogPrefix}(Object[] {typeof(T)}[{count}]) {name ?? "<no name>"}");
+
+            for (int i = 0; i < count; i++)
+            {
+                DoAt(itemPointers[i], () =>
+                {
+                    // Write the value
+                    SerializeObject<T>(buffer[i], onPreSerialize: onPreSerialize, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
+                });
+            }
 
             return buffer;
         }
