@@ -196,10 +196,19 @@ namespace BinarySerializer
 
             Pointer off_current = CurrentPointer;
             Goto(offset);
-            action();
-            Goto(off_current);
+
+            try
+            {
+                action();
+            }
+            finally
+            {
+                Goto(off_current);
+            }
         }
 
+        // TODO: Remove this? This overload causes issues for the size serializer where DoAt is disabled thus causing this to
+        //       always return null. A potential fix is to allow for a default value to be specified.
         public virtual T DoAt<T>(Pointer offset, Func<T> action)
         {
             if (offset == null) 
@@ -207,9 +216,15 @@ namespace BinarySerializer
 
             Pointer off_current = CurrentPointer;
             Goto(offset);
-            var result = action();
-            Goto(off_current);
-            return result;
+
+            try
+            {
+                return action();
+            }
+            finally
+            {
+                Goto(off_current);
+            }
         }
 
         #endregion
