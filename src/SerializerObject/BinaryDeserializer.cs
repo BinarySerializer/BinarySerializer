@@ -463,42 +463,6 @@ namespace BinarySerializer
             return buffer;
         }
 
-        public override T[] SerializeObjectArray<T>(T[] obj, Pointer[] itemPointers, Action<T> onPreSerialize = null, string name = null) 
-        {
-            int count = itemPointers.Length;
-
-            if (IsLogEnabled)
-            {
-                string logString = LogPrefix;
-                Context.Log.Log($"{logString}(Object[]: {typeof(T)}[{count}]) {(name ?? "<no name>")}");
-            }
-
-            T[] buffer;
-
-            if (obj != null)
-            {
-                buffer = obj;
-
-                if (buffer.Length != count)
-                    Array.Resize(ref buffer, count);
-            }
-            else
-            {
-                buffer = new T[count];
-            }
-
-            for (int i = 0; i < count; i++)
-            {
-                DoAt(itemPointers[i], () =>
-                {
-                    // Read the value
-                    buffer[i] = SerializeObject<T>(buffer[i], onPreSerialize: onPreSerialize, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
-                });
-            }
-
-            return buffer;
-        }
-
         public override T[] SerializeArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null, string name = null)
         {
             if (IsLogEnabled)

@@ -299,11 +299,6 @@ namespace BinarySerializer
             return buffer;
         }
 
-        public override T[] SerializeObjectArray<T>(T[] obj, Pointer[] itemPointers, Action<T> onPreSerialize = null, string name = null)
-        {
-            return obj;
-        }
-
         public override T[] SerializeArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null, string name = null)
         {
             T[] array = obj;

@@ -126,25 +126,6 @@ namespace BinarySerializer
 
             return obj;
         }
-        public override T[] SerializeObjectArray<T>(T[] obj, Pointer[] itemPointers, Action<T> onPreSerialize = null, string name = null)
-        {
-            int count = itemPointers.Length;
-            
-            if (obj == null) 
-                obj = new T[count];
-            else if (count != obj.Length) 
-                Array.Resize(ref obj, (int)count);
-
-            for (int i = 0; i < count; i++)
-            {
-                DoAt(itemPointers[i], () =>
-                {
-                    obj[i] = SerializeObject<T>(obj[i], onPreSerialize: onPreSerialize, name: name == null ? null : $"{name}[{i}]");
-                });
-            }
-
-            return obj;
-        }
         public override T[] SerializeArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null, string name = null)
         {
             for (int i = 0; i < obj.Length; i++)

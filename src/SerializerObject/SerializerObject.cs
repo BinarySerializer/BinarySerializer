@@ -318,8 +318,6 @@ namespace BinarySerializer
         public abstract T[] SerializeArray<T>(T[] obj, long count, string name = null);
         public abstract T[] SerializeObjectArray<T>(T[] obj, long count, Action<T> onPreSerialize = null, string name = null) where T : BinarySerializable, new();
 
-        public abstract T[] SerializeObjectArray<T>(T[] obj, Pointer[] itemPointers, Action<T> onPreSerialize = null, string name = null) where T : BinarySerializable, new();
-
         /// <summary>
         /// Serializes an array of undefined size until a specified condition is met
         /// </summary>
