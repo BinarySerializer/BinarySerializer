@@ -117,12 +117,15 @@ namespace BinarySerializer
 
             return obj;
         }
-        public override T[] SerializeObjectArray<T>(T[] obj, long count, Action<T> onPreSerialize = null, string name = null) {
+        public override T[] SerializeObjectArray<T>(T[] obj, long count, Action<T, int> onPreSerialize = null, string name = null) {
             if (obj == null) obj = new T[count];
             else if (count != obj.Length) Array.Resize(ref obj, (int)count);
 
             for (int i = 0; i < count; i++)
-                obj[i] = SerializeObject<T>(obj[i], onPreSerialize: onPreSerialize, name: name == null ? null : name + "[" + i + "]");
+                obj[i] = SerializeObject<T>(
+                    obj: obj[i], 
+                    onPreSerialize: onPreSerialize == null ? (Action<T>)null : x => onPreSerialize(x, i), 
+                    name: name == null ? null : $"{name}[{i}]");
 
             return obj;
         }
@@ -134,10 +137,13 @@ namespace BinarySerializer
             return obj;
         }
         public override T[] SerializeObjectArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null,
-            Action<T> onPreSerialize = null, string name = null)
+            Action<T, int> onPreSerialize = null, string name = null)
         {
             for (int i = 0; i < obj.Length; i++)
-                obj[i] = SerializeObject<T>(obj[i], onPreSerialize: onPreSerialize, name: name == null ? null : $"{name}[{i}]");
+                obj[i] = SerializeObject<T>(
+                    obj: obj[i], 
+                    onPreSerialize: onPreSerialize == null ? (Action<T>)null : x => onPreSerialize(x, i), 
+                    name: name == null ? null : $"{name}[{i}]");
 
             return obj;
         }
@@ -150,12 +156,20 @@ namespace BinarySerializer
 
             return obj;
         }
-        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null) {
+        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T, int> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null) {
             if (obj == null) obj = new Pointer<T>[count];
             else if (count != obj.Length) Array.Resize(ref obj, (int)count);
 
             for (int i = 0; i < count; i++)
-                obj[i] = SerializePointer<T>(obj[i], size: size, anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid, nullValue: nullValue, name: name == null ? null : name + "[" + i + "]");
+                obj[i] = SerializePointer<T>(
+                    obj: obj[i], 
+                    size: size, 
+                    anchor: anchor, 
+                    resolve: resolve, 
+                    onPreSerialize: onPreSerialize == null ? (Action<T>)null : x => onPreSerialize(x, i), 
+                    allowInvalid: allowInvalid, 
+                    nullValue: nullValue, 
+                    name: name == null ? null : $"{name}[{i}]");
 
             return obj;
         }

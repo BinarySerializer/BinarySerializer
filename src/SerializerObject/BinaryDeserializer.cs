@@ -435,7 +435,7 @@ namespace BinarySerializer
             return buffer;
         }
 
-        public override T[] SerializeObjectArray<T>(T[] obj, long count, Action<T> onPreSerialize = null, string name = null)
+        public override T[] SerializeObjectArray<T>(T[] obj, long count, Action<T, int> onPreSerialize = null, string name = null)
         {
             if (IsLogEnabled)
             {
@@ -458,7 +458,10 @@ namespace BinarySerializer
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = SerializeObject<T>(buffer[i], onPreSerialize: onPreSerialize, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = SerializeObject<T>(
+                    obj: buffer[i], 
+                    onPreSerialize: onPreSerialize == null ? (Action<T>)null : x => onPreSerialize(x, i), 
+                    name: name == null || !IsLogEnabled ? name : $"{name}[{i}]");
 
             return buffer;
         }
@@ -492,7 +495,7 @@ namespace BinarySerializer
         }
 
         public override T[] SerializeObjectArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null,
-            Action<T> onPreSerialize = null, string name = null)
+            Action<T, int> onPreSerialize = null, string name = null)
         {
             if (IsLogEnabled)
                 Context.Log.Log($"{LogPrefix}(Object[]: {typeof(T)}[..]) {name ?? "<no name>"}");
@@ -502,7 +505,10 @@ namespace BinarySerializer
 
             while (true)
             {
-                T serializedObj = SerializeObject<T>(default, onPreSerialize: onPreSerialize, name: $"{name}[{index}]");
+                T serializedObj = SerializeObject<T>(
+                    obj: default, 
+                    onPreSerialize: onPreSerialize == null ? (Action<T>)null : x => onPreSerialize(x, index), 
+                    name: $"{name}[{index}]");
 
                 index++;
 
@@ -549,7 +555,7 @@ namespace BinarySerializer
             return buffer;
         }
 
-        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null)
+        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T, int> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             if (IsLogEnabled)
             {
@@ -572,7 +578,15 @@ namespace BinarySerializer
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = SerializePointer<T>(buffer[i], size: size, anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid, nullValue: nullValue, name: (name == null || !IsLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = SerializePointer<T>(
+                    obj: buffer[i], 
+                    size: size, 
+                    anchor: anchor, 
+                    resolve: resolve, 
+                    onPreSerialize: onPreSerialize == null ? (Action<T>)null : x => onPreSerialize(x, i), 
+                    allowInvalid: allowInvalid, 
+                    nullValue: nullValue, 
+                    name: name == null || !IsLogEnabled ? name : $"{name}[{i}]");
 
             return buffer;
         }

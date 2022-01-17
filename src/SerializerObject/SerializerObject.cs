@@ -316,7 +316,12 @@ namespace BinarySerializer
 
         public abstract T[] SerializeArraySize<T, U>(T[] obj, string name = null) where U : struct;
         public abstract T[] SerializeArray<T>(T[] obj, long count, string name = null);
-        public abstract T[] SerializeObjectArray<T>(T[] obj, long count, Action<T> onPreSerialize = null, string name = null) where T : BinarySerializable, new();
+        public T[] SerializeObjectArray<T>(T[] obj, long count, Action<T> onPreSerialize, string name = null)
+            where T : BinarySerializable, new()
+        {
+            return SerializeObjectArray<T>(obj, count, onPreSerialize == null ? (Action<T, int>)null : (x, _) => onPreSerialize(x), name);
+        }
+        public abstract T[] SerializeObjectArray<T>(T[] obj, long count, Action<T, int> onPreSerialize = null, string name = null) where T : BinarySerializable, new();
 
         /// <summary>
         /// Serializes an array of undefined size until a specified condition is met
@@ -339,7 +344,7 @@ namespace BinarySerializer
         /// <param name="onPreSerialize">Optional action to run before serializing</param>
         /// <param name="name">The name</param>
         /// <returns>The object array</returns>
-        public abstract T[] SerializeObjectArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null, Action<T> onPreSerialize = null, string name = null)
+        public abstract T[] SerializeObjectArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null, Action<T, int> onPreSerialize = null, string name = null)
             where T : BinarySerializable, new();
         public Pointer[] SerializePointerArrayUntil(Pointer[] obj, Func<Pointer, bool> conditionCheckFunc, PointerSize size = PointerSize.Pointer32, Func<Pointer> getLastObjFunc = null, string name = null)
         {
@@ -377,7 +382,7 @@ namespace BinarySerializer
         }
 
         public abstract Pointer[] SerializePointerArray(Pointer[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null);
-        public abstract Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null) where T : BinarySerializable, new();
+        public abstract Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T, int> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null) where T : BinarySerializable, new();
 
         public abstract string[] SerializeStringArray(string[] obj, long count, int length, Encoding encoding = null, string name = null);
 

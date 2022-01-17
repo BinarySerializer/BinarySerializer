@@ -288,13 +288,13 @@ namespace BinarySerializer
             return buffer;
         }
 
-        public override T[] SerializeObjectArray<T>(T[] obj, long count, Action<T> onPreSerialize = null, string name = null)
+        public override T[] SerializeObjectArray<T>(T[] obj, long count, Action<T, int> onPreSerialize = null, string name = null)
         {
             T[] buffer = GetArray(obj, count);
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                SerializeObject<T>(buffer[i], onPreSerialize: onPreSerialize);
+                SerializeObject<T>(buffer[i], onPreSerialize: onPreSerialize == null ? (Action<T>)null : x => onPreSerialize(x, i));
 
             return buffer;
         }
@@ -312,14 +312,14 @@ namespace BinarySerializer
         }
 
         public override T[] SerializeObjectArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null,
-            Action<T> onPreSerialize = null, string name = null)
+            Action<T, int> onPreSerialize = null, string name = null)
         {
             T[] array = obj;
 
             if (getLastObjFunc != null)
                 array = array.Append(getLastObjFunc()).ToArray();
 
-            SerializeObjectArray<T>(array, array.Length, name: name);
+            SerializeObjectArray<T>(array, array.Length, onPreSerialize: onPreSerialize, name: name);
 
             return obj;
         }
@@ -335,13 +335,19 @@ namespace BinarySerializer
             return buffer;
         }
 
-        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null)
+        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T, int> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             Pointer<T>[] buffer = GetArray(obj, count);
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                SerializePointer<T>(buffer[i], anchor: anchor, resolve: resolve, onPreSerialize: onPreSerialize, allowInvalid: allowInvalid, nullValue: nullValue);
+                SerializePointer<T>(
+                    obj: buffer[i], 
+                    anchor: anchor, 
+                    resolve: resolve, 
+                    onPreSerialize: onPreSerialize == null ? (Action<T>)null : x => onPreSerialize(x, i), 
+                    allowInvalid: allowInvalid, 
+                    nullValue: nullValue);
 
             return buffer;
         }
