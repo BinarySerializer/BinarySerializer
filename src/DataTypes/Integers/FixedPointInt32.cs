@@ -7,31 +7,33 @@
 
         public int Value { get; set; }
 
-		public float AsFloat 
+        public float AsFloat 
         {
-			get 
+            get 
             {
-				int divisor = 1 << Pre_PointPosition;
-				float val = Value / (float)divisor;
-				return val;
-			}
-			set 
+                int divisor = 1 << Pre_PointPosition;
+                float val = Value / (float)divisor;
+                return val;
+            }
+            set 
             {
-				int divisor = 1 << Pre_PointPosition;
-				Value = (int)(value * divisor);
-			}
-		}
-		public static implicit operator float(FixedPointInt32 d) => d?.AsFloat ?? 0f;
+                int divisor = 1 << Pre_PointPosition;
+                Value = (int)(value * divisor);
+            }
+        }
+        public static implicit operator float(FixedPointInt32 d) => d?.AsFloat ?? 0f;
 
-		public static explicit operator FixedPointInt32(float f) => new FixedPointInt32() 
+        public static explicit operator FixedPointInt32(float f) => new FixedPointInt32() 
         {
-			AsFloat = f
-		};
+            AsFloat = f
+        };
 
-		public override void SerializeImpl(SerializerObject s) 
+        public override void SerializeImpl(SerializerObject s) 
         {
-			Value = s.Serialize<int>(Value, name: nameof(Value));
-			s.Log($"Value as float: {AsFloat}");
-		}
-	}
+            Value = s.Serialize<int>(Value, name: nameof(Value));
+        }
+
+        public override bool UseShortLog => true;
+        public override string ShortLog => AsFloat.ToString();
+    }
 }

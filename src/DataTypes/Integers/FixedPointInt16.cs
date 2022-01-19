@@ -31,7 +31,9 @@
         public override void SerializeImpl(SerializerObject s) 
         {
             Value = s.Serialize<short>(Value, name: nameof(Value));
-            s.Log($"Value as float: {AsFloat}");
         }
+
+        public override bool UseShortLog => true;
+        public override string ShortLog => AsFloat.ToString();
     }
 }
