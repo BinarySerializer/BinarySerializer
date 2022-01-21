@@ -23,7 +23,7 @@
         }
         public static implicit operator float(FixedPointInt32 d) => d?.AsFloat ?? 0f;
 
-        public static explicit operator FixedPointInt32(float f) => new FixedPointInt32() 
+        public static implicit operator FixedPointInt32(float f) => new FixedPointInt32() 
         {
             AsFloat = f
         };
