@@ -69,7 +69,7 @@ namespace BinarySerializer
             // Stream key
             string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
 
-            // Add the stream
+            // Create a temporary file for the stream to serialize to
             StreamFile sf = new StreamFile(
                 context: Context,
                 name: key,
@@ -80,19 +80,19 @@ namespace BinarySerializer
 
             try
             {
+                // Add the temporary file
                 Context.AddFile(sf);
 
-                Stream baseStream = Writer.BaseStream;
+                // Serialize the data into the stream
+                DoAt(sf.StartPointer, action);
 
-                DoAt(sf.StartPointer, () =>
-                {
-                    action();
-                    decodedStream.Position = 0;
-                    encoder.EncodeStream(decodedStream, baseStream);
-                });
+                // Encode the stream to the current file
+                decodedStream.Position = 0;
+                encoder.EncodeStream(decodedStream, Writer.BaseStream);
             }
             finally
             {
+                // Remove the temporary file
                 Context.RemoveFile(sf);
             }
         }
