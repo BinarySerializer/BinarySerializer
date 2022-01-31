@@ -218,8 +218,8 @@ namespace BinarySerializer
             return this;
         }
 
-        public static implicit operator T(Pointer<T> a) => a.Value;
+        public static implicit operator T(Pointer<T> a) => a?.Value;
         public static implicit operator Pointer<T>(T t) => t == null ? new Pointer<T>(null, null) : new Pointer<T>(t.Offset, t);
-        public static implicit operator Pointer(Pointer<T> a) => a.PointerValue;
+        public static implicit operator Pointer(Pointer<T> a) => a?.PointerValue;
     }
 }
