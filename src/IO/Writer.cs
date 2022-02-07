@@ -4,6 +4,8 @@ using System.Text;
 
 namespace BinarySerializer 
 {
+    // TODO: Use value buffer like in the Reader to avoid allocating a new byte array on each write call
+
     public class Writer : BinaryWriter 
     {
         #region Constructors

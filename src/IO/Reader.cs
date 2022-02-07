@@ -2,29 +2,38 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace BinarySerializer
 {
+    /// <summary>
+    /// An extended version of the <see cref="BinaryReader"/> for reading binary data
+    /// </summary>
     public class Reader : BinaryReader 
     {
         #region Constructors
 
-        public Reader(Stream stream, bool isLittleEndian = true, bool leaveOpen = false) : base(new StreamWrapper(stream), new UTF8Encoding(), leaveOpen)
+        public Reader(Stream stream, bool isLittleEndian = true, bool leaveOpen = false) 
+            // Wrap the stream to be read in a StreamWrapper so that we can easily process the bytes which get read
+            // The encoding passed in to the base ctor is irrelevant since we have re-implemented the string reading
+            : base(new StreamWrapper(stream), new UTF8Encoding(), leaveOpen)
         {
             IsLittleEndian = isLittleEndian;
+            RequiresByteReversing = IsLittleEndian != BitConverter.IsLittleEndian;
         }
 
         #endregion
 
-        #region Public Properties
-
-        public bool IsLittleEndian { get; set; }
-        public new StreamWrapper BaseStream => (StreamWrapper)base.BaseStream;
-
-        #endregion
-
         #region Protected Properties
+
+        /// <summary>
+        /// A common buffer to use for reading value types. This is created once to avoid allocating a new
+        /// byte array on each read call. The length is set to 8 due to 64-bit values currently being the largest supported.
+        /// </summary>
+        protected byte[] ValueBuffer { get; } = new byte[8];
+
+        protected bool RequiresByteReversing { get; }
 
         protected uint BytesSinceAlignStart { get; set; }
         protected bool AutoAlignOn { get; set; }
@@ -42,55 +51,72 @@ namespace BinarySerializer
 
         #endregion
 
+        #region Public Properties
+
+        public bool IsLittleEndian { get; set; }
+        public new StreamWrapper BaseStream => (StreamWrapper)base.BaseStream;
+
+        #endregion
+
+        #region Protected Methods
+
+        /// <summary>
+        /// Reads the specified number of bytes to <see cref="ValueBuffer"/> and reverses them if needed.
+        /// </summary>
+        /// <param name="count">The number of bytes to read</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void ReadToValueBuffer(int count)
+        {
+            ReadBytes(ValueBuffer, 0, count);
+
+            if (RequiresByteReversing)
+                Array.Reverse(ValueBuffer, 0, count);
+        }
+
+        #endregion
+
         #region Read Methods
 
         public override int ReadInt32()
         {
-            var data = ReadBytes(4);
-            if (IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(data);
-            return BitConverter.ToInt32(data, 0);
+            ReadToValueBuffer(4);
+            return BitConverter.ToInt32(ValueBuffer, 0);
         }
 
         public override float ReadSingle()
         {
-            var data = ReadBytes(4);
-            if (IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(data);
-            return BitConverter.ToSingle(data, 0);
+            ReadToValueBuffer(4);
+            return BitConverter.ToSingle(ValueBuffer, 0);
         }
 
         public override short ReadInt16()
         {
-            var data = ReadBytes(2);
-            if (IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(data);
-            return BitConverter.ToInt16(data, 0);
+            ReadToValueBuffer(2);
+            return BitConverter.ToInt16(ValueBuffer, 0);
         }
 
         public override ushort ReadUInt16()
         {
-            var data = ReadBytes(2);
-            if (IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(data);
-            return BitConverter.ToUInt16(data, 0);
+            ReadToValueBuffer(2);
+            return BitConverter.ToUInt16(ValueBuffer, 0);
         }
 
         public override long ReadInt64()
         {
-            var data = ReadBytes(8);
-            if (IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(data);
-            return BitConverter.ToInt64(data, 0);
+            ReadToValueBuffer(8);
+            return BitConverter.ToInt64(ValueBuffer, 0);
         }
 
         public override uint ReadUInt32()
         {
-            var data = ReadBytes(4);
-            if (IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(data);
-            return BitConverter.ToUInt32(data, 0);
+            ReadToValueBuffer(4);
+            return BitConverter.ToUInt32(ValueBuffer, 0);
         }
 
         public override ulong ReadUInt64()
         {
-            var data = ReadBytes(8);
-            if (IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(data);
-            return BitConverter.ToUInt64(data, 0);
+            ReadToValueBuffer(8);
+            return BitConverter.ToUInt64(ValueBuffer, 0);
         }
 
         public UInt24 ReadUInt24()
@@ -116,31 +142,37 @@ namespace BinarySerializer
 
         public override byte[] ReadBytes(int count)
         {
-            if (count < 0) 
-                throw new ArgumentOutOfRangeException(nameof(count), "Non-negative amount of bytes is required");
-
             if (count == 0)
                 return Array.Empty<byte>();
 
-            byte[] result = new byte[count];
+            byte[] buffer = new byte[count];
+
+            ReadBytes(buffer, 0, count, throwOnIncompleteRead: true);
+
+            return buffer;
+        }
+
+        public void ReadBytes(byte[] buffer, int offset, int count, bool throwOnIncompleteRead = true)
+        {
+            if (count < 0) 
+                throw new ArgumentOutOfRangeException(nameof(count), "Non-negative amount of bytes is required");
 
             int numRead = 0;
+            int toRead = count;
             do
             {
-                int n = BaseStream.Read(result, numRead, count);
+                int n = BaseStream.Read(buffer, offset + numRead, toRead);
                 if (n == 0)
                     break;
                 numRead += n;
-                count -= n;
-            } while (count > 0);
+                toRead -= n;
+            } while (toRead > 0);
 
-            if (numRead != result.Length)
+            if (throwOnIncompleteRead && numRead != count)
                 throw new EndOfStreamException();
 
             if (AutoAlignOn)
-                BytesSinceAlignStart += (uint)result.Length;
-
-            return result;
+                BytesSinceAlignStart += (uint)count;
         }
 
         public override sbyte ReadSByte() => (sbyte)ReadByte();
@@ -173,7 +205,7 @@ namespace BinarySerializer
                 return encoding.GetString(bytes.ToArray());
             }
 
-            return "";
+            return String.Empty;
         }
 
         public string ReadString(long size, Encoding encoding)
@@ -212,19 +244,22 @@ namespace BinarySerializer
         }
 
         // To make sure position is a multiple of alignBytes
-        public void Align(int alignBytes) 
+        public void Align(int alignBytes)
         {
             if (BaseStream.Position % alignBytes != 0)
                 ReadBytes(alignBytes - (int)(BaseStream.Position % alignBytes));
         }
-        public void AlignOffset(int alignBytes, int offset) {
+        public void AlignOffset(int alignBytes, int offset)
+        {
             if ((BaseStream.Position - offset) % alignBytes != 0)
                 ReadBytes(alignBytes - (int)((BaseStream.Position - offset) % alignBytes));
         }
 
         // To make sure position is a multiple of alignBytes after reading a block of blocksize, regardless of prior position
-        public void Align(int blockSize, int alignBytes) {
+        public void Align(int blockSize, int alignBytes)
+        {
             int rest = blockSize % alignBytes;
+
             if (rest > 0)
             {
                 byte[] aligned = ReadBytes(alignBytes - rest);
@@ -234,7 +269,7 @@ namespace BinarySerializer
             }
         }
         
-        public void AutoAlign(int alignBytes) 
+        public void AutoAlign(int alignBytes)
         {
             if (BytesSinceAlignStart % alignBytes != 0)
                 ReadBytes(alignBytes - (int)(BytesSinceAlignStart % alignBytes));
