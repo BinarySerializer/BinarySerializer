@@ -43,5 +43,7 @@ namespace BinarySerializer
             else 
                 Logger?.LogWarning($"Duplicate pointer {pointer} for type {type}");
         }
+
+        public void Clear() => Structs.Clear();
     }
 }
