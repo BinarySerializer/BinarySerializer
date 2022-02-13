@@ -72,6 +72,7 @@ namespace BinarySerializer
             using var memStream = new MemoryStream();
             encoder.DecodeStream(Reader.BaseStream, memStream);
             memStream.Position = 0;
+            long encodedLength = CurrentFileOffset - offset.FileOffset;
 
             // Add the stream
             StreamFile sf = new StreamFile(
@@ -88,6 +89,8 @@ namespace BinarySerializer
 
                 DoAt(sf.StartPointer, () =>
                 {
+                    Log($"Decoded data using {encoder.Name} at {offset} with decoded length {sf.Length} and encoded length {encodedLength}");
+
                     action();
 
                     if (CurrentPointer != sf.StartPointer + sf.Length)
