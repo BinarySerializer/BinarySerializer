@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace BinarySerializer
 {
@@ -97,13 +98,17 @@ namespace BinarySerializer
         /// Writes a line to the serializer log, if enabled
         /// </summary>
         /// <param name="logString">The string to log</param>
-        public abstract void Log(string logString);
+        /// <param name="args">The log string arguments</param>
+        [StringFormatMethod("logString")]
+        public abstract void Log(string logString, params object[] args);
 
         /// <summary>
         /// Logs a warning message (to log to the serializer log use <see cref="Log"/> instead)
         /// </summary>
         /// <param name="message">The message to log</param>
-        public void LogWarning(string message) => Logger?.LogWarning(message);
+        /// <param name="args">The message string arguments</param>
+        [StringFormatMethod("message")]
+        public void LogWarning(string message, params object[] args) => Logger?.LogWarning(message, args);
 
         #endregion
 
@@ -458,14 +463,14 @@ namespace BinarySerializer
                 var a = Serialize<byte>(default, name: name);
 
                 if (logIfNotNull && a != 0)
-                    LogWarning($"Padding at {CurrentPointer - length} contains data! Data: 0x{a:X2}");
+                    LogWarning("Padding at {0} contains data! Data: 0x{1:X2}", CurrentPointer - length, a);
             }
             else
             {
                 var a = SerializeArray<byte>(new byte[length], length, name: name);
 
                 if (logIfNotNull && a.Any(x => x != 0))
-                    LogWarning($"Padding at {CurrentPointer - length} contains data! Data: {a.ToHexString()}");
+                    LogWarning("Padding at {0} contains data! Data: {1}", CurrentPointer - length, a.ToHexString());
             }
         }
 
@@ -478,7 +483,7 @@ namespace BinarySerializer
                 if (throwIfNoMatch)
                     throw new Exception($"Magic '{value}' does not match expected magic of '{magic}'");
                 else
-                    LogWarning($"Magic '{value}' does not match expected magic of '{magic}'");
+                    LogWarning("Magic '{0}' does not match expected magic of '{1}'", value, magic);
             }
         }
 
@@ -491,7 +496,7 @@ namespace BinarySerializer
                 if (throwIfNoMatch)
                     throw new Exception($"Magic '{value}' does not match expected magic of '{magic}'");
                 else
-                    LogWarning($"Magic '{value}' does not match expected magic of '{magic}'");
+                    LogWarning("Magic '{0}' does not match expected magic of '{1}'", value, magic);
             }
         }
 

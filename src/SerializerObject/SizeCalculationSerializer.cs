@@ -54,7 +54,7 @@ namespace BinarySerializer
 
         #region Logging
 
-        public override void Log(string logString) { }
+        public override void Log(string logString, params object[] args) { }
 
         #endregion
 

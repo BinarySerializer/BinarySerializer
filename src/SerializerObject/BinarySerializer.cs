@@ -52,10 +52,10 @@ namespace BinarySerializer
         #region Logging
 
         protected string LogPrefix => IsLogEnabled ? ($"(W) {CurrentPointer}:{new string(' ', (Depth + 1) * 2)}") : null;
-        public override void Log(string logString)
+        public override void Log(string logString, params object[] args)
         {
             if (IsLogEnabled)
-                Context.Log.Log(LogPrefix + logString);
+                Context.Log.Log(LogPrefix + String.Format(logString, args));
         }
 
         #endregion

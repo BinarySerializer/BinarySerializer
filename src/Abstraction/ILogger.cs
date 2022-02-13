@@ -1,9 +1,16 @@
-﻿namespace BinarySerializer
+﻿using JetBrains.Annotations;
+
+namespace BinarySerializer
 {
     public interface ILogger
     {
-        void Log(object log);
-        void LogWarning(object log);
-        void LogError(object log);
+        [StringFormatMethod("log")]
+        void Log(object log, params object[] args);
+
+        [StringFormatMethod("log")]
+        void LogWarning(object log, params object[] args);
+
+        [StringFormatMethod("log")]
+        void LogError(object log, params object[] args);
     }
 }

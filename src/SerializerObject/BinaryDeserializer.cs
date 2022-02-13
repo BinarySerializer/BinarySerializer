@@ -51,10 +51,10 @@ namespace BinarySerializer
         #region Logging
 
         protected string LogPrefix => IsLogEnabled ? ($"(R) {CurrentPointer}:{new string(' ', (Depth + 1) * 2)}") : null;
-        public override void Log(string logString)
+        public override void Log(string logString, params object[] args)
         {
             if (IsLogEnabled)
-                Context.Log.Log(LogPrefix + logString);
+                Context.Log.Log(LogPrefix + String.Format(logString, args));
         }
 
         #endregion
@@ -89,12 +89,14 @@ namespace BinarySerializer
 
                 DoAt(sf.StartPointer, () =>
                 {
-                    Log($"Decoded data using {encoder.Name} at {offset} with decoded length {sf.Length} and encoded length {encodedLength}");
+                    Log("Decoded data using {0} at {1} with decoded length {2} and encoded length {3}",
+                        encoder.Name, offset, sf.Length, encodedLength);
 
                     action();
 
                     if (CurrentPointer != sf.StartPointer + sf.Length)
-                        LogWarning($"Encoded block {key} was not fully deserialized: Serialized size: {CurrentPointer - sf.StartPointer} != Total size: {sf.Length}");
+                        LogWarning("Encoded block {0} was not fully deserialized: Serialized size: {1} != Total size: {2}", 
+                            key, CurrentPointer - sf.StartPointer, sf.Length);
                 });
             }
             finally
@@ -144,7 +146,8 @@ namespace BinarySerializer
                 var key = sf.FilePath;
                 if (endPointer != sf.StartPointer + sf.Length)
                 {
-                    LogWarning($"Encoded block {key} was not fully deserialized: Serialized size: {endPointer - sf.StartPointer} != Total size: {sf.Length}");
+                    LogWarning("Encoded block {0} was not fully deserialized: Serialized size: {1} != Total size: {2}", 
+                        key, endPointer - sf.StartPointer, sf.Length);
                 }
 
                 Context.RemoveFile(sf);
@@ -191,7 +194,7 @@ namespace BinarySerializer
                 CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             if (!checksum.Equals(calculatedChecksum))
-                LogWarning($"Checksum {name} did not match!");
+                LogWarning("Checksum {0} did not match!", name);
 
             if (IsLogEnabled)
                 Context.Log.Log($"{logString}({typeof(T)}) {(name ?? "<no name>")}: {checksum} - Checksum to match: {calculatedChecksum} - Matched? {checksum.Equals(calculatedChecksum)}");
@@ -727,7 +730,7 @@ namespace BinarySerializer
 
                     if (b != 0 && b != 1)
                     {
-                        LogWarning($"Binary boolean '{name}' ({b}) was not correctly formatted");
+                        LogWarning("Binary boolean '{0}' ({1}) was not correctly formatted", name, b);
 
                         if (IsLogEnabled)
                             Context.Log.Log($"{LogPrefix} ({typeof(T)}): Binary boolean was not correctly formatted ({b})");

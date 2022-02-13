@@ -194,7 +194,7 @@ namespace BinarySerializer
             return CurrentSerializer.SerializeArraySize<T, U>(obj, name);
         }
 
-        public override void Log(string logString) => CurrentSerializer.Log(logString);
+        public override void Log(string logString, params object[] args) => CurrentSerializer.Log(logString, args);
 
         public override void SerializeBitValues(Action<SerializeBits64> serializeFunc)
         {
