@@ -20,7 +20,6 @@ namespace BinarySerializer
             : base(new StreamWrapper(stream), new UTF8Encoding(), leaveOpen)
         {
             IsLittleEndian = isLittleEndian;
-            RequiresByteReversing = IsLittleEndian != BitConverter.IsLittleEndian;
         }
 
         #endregion
@@ -33,7 +32,7 @@ namespace BinarySerializer
         /// </summary>
         protected byte[] ValueBuffer { get; } = new byte[8];
 
-        protected bool RequiresByteReversing { get; }
+        protected bool RequiresByteReversing => IsLittleEndian != BitConverter.IsLittleEndian;
 
         protected uint BytesSinceAlignStart { get; set; }
         protected bool AutoAlignOn { get; set; }
