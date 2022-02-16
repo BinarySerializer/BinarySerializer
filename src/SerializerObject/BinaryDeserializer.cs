@@ -83,6 +83,28 @@ namespace BinarySerializer
                 allowLocalPointers: allowLocalPointers,
                 parentPointer: offset);
 
+            // Uncomment to test if encoding a stream works using the specified encoder
+            /*
+            {
+                try
+                {
+                    using var compMemStream = new MemoryStream();
+                    encoder.EncodeStream(memStream, compMemStream);
+                    memStream.Position = 0;
+                    compMemStream.Position = 0;
+                    using var decompMemStream = new MemoryStream();
+                    encoder.DecodeStream(compMemStream, decompMemStream);
+
+                    if (!decompMemStream.GetBuffer().SequenceEqual(memStream.GetBuffer()))
+                        throw new Exception("Stream encoding failed!");
+                }
+                catch (NotImplementedException)
+                {
+                    memStream.Position = 0;
+                }
+            }
+            */
+
             try
             {
                 Context.AddFile(sf);
