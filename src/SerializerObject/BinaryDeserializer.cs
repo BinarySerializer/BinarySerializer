@@ -96,7 +96,9 @@ namespace BinarySerializer
                     encoder.DecodeStream(compMemStream, decompMemStream);
 
                     if (!decompMemStream.GetBuffer().SequenceEqual(memStream.GetBuffer()))
-                        throw new Exception("Stream encoding failed!");
+                        throw new Exception($"Stream encoding failed at {offset}");
+                    else
+                        Context.Logger.Log("Stream encoding succeeded at {0}", offset);
                 }
                 catch (NotImplementedException)
                 {
