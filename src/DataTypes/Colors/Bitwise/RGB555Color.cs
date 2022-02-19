@@ -2,11 +2,11 @@
 
 namespace BinarySerializer
 {
-    public class RGBA555Color : BaseBitwiseColor
+    public class RGB555Color : BaseBitwiseColor
     {
-        public RGBA555Color() { }
-        public RGBA555Color(float r, float g, float b, float a = 1f) : base(r, g, b, a) { }
-        public RGBA555Color(uint colorValue) : base(colorValue) { }
+        public RGB555Color() { }
+        public RGB555Color(float r, float g, float b, float a = 1f) : base(r, g, b, a) { }
+        public RGB555Color(uint colorValue) : base(colorValue) { }
 
         protected override IReadOnlyDictionary<ColorChannel, ColorChannelFormat> ColorFormatting => Format;
 
