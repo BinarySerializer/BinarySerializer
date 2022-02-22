@@ -59,10 +59,10 @@ namespace BinarySerializer
         // Huffman decoding
         private enum Command 
         {
-            LIT=0,	// 0, Literal
-            MOV,	// 10, Move bytes + length + distance, Get bytes if length=9 + 4bits
-            MV2,	// 110, Move 2 bytes
-            MV3,	// 1110, Move 3 bytes
+            LIT=0,  // 0, Literal
+            MOV,    // 10, Move bytes + length + distance, Get bytes if length=9 + 4bits
+            MV2,    // 110, Move 2 bytes
+            MV3,    // 1110, Move 3 bytes
             CND     // 1111, Conditional copy, or EOF
         };
         public class HuffmanCode<T> 

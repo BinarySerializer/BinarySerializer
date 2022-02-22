@@ -1,7 +1,7 @@
 ﻿namespace BinarySerializer
 {
     /// <summary>
-    /// Base interface for any class that XORs bytes in a way
+    /// Base interface for any class that XORs bytes
     /// </summary>
     public interface IXORCalculator
     {
