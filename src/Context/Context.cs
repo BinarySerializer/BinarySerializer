@@ -95,10 +95,13 @@ namespace BinarySerializer
 
         protected Dictionary<string, object> ObjectStorage { get; }
 
-        public T GetStoredObject<T>(string id)
+        public T GetStoredObject<T>(string id, bool throwIfNotFound = false)
         {
             if (ObjectStorage.ContainsKey(id)) 
                 return (T)ObjectStorage[id];
+
+            if (throwIfNotFound)
+                throw new ContextException($"The requested object with ID {id} could not be found");
 
             return default;
         }
