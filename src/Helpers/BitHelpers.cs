@@ -53,7 +53,7 @@ namespace BinarySerializer
 
         public static long ExtractBits64(long value, int count, int offset)
         {
-            return (((1 << count) - 1) & (value >> (offset)));
+            return ((((long)1 << count) - 1) & (value >> (offset)));
         }
 
         public static int SetBits(int bits, int value, int count, int offset) {
@@ -63,7 +63,7 @@ namespace BinarySerializer
         }
 
         public static long SetBits64(long bits, long value, int count, int offset) {
-            long mask = ((1 << count) - 1) << offset;
+            long mask = (((long)1 << count) - 1) << offset;
             bits = (bits & ~mask) | (value << offset);
             return bits;
         }
