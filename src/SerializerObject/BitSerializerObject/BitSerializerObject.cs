@@ -18,7 +18,7 @@ namespace BinarySerializer
         public Pointer ValueOffset { get; }
         protected string LogPrefix { get; }
         public long Value { get; set; }
-        public int Position { get; protected set; }
+        public int Position { get; set; }
 
         public abstract T SerializeBits<T>(T value, int length, string name = null);
 
