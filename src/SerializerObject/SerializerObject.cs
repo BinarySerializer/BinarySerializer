@@ -27,6 +27,12 @@ namespace BinarySerializer
 
         #endregion
 
+        #region Internal Constant Fields
+
+        internal const string DefaultName = "<no name>";
+
+        #endregion
+
         #region Protected Properties
 
         protected bool DisableLogForObject { get; set; }

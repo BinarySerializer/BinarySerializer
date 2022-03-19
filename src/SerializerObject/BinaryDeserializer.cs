@@ -50,7 +50,7 @@ namespace BinarySerializer
 
         #region Logging
 
-        protected string LogPrefix => IsLogEnabled ? ($"(R) {CurrentPointer}:{new string(' ', (Depth + 1) * 2)}") : null;
+        protected string LogPrefix => IsLogEnabled ? $"(R) {CurrentPointer}:{new string(' ', (Depth + 1) * 2)}" : null;
         public override void Log(string logString, params object[] args)
         {
             if (IsLogEnabled)
@@ -161,22 +161,22 @@ namespace BinarySerializer
 
         public override void EndEncoded(Pointer endPointer)
         {
-            var encodedFile = EncodedFiles.FirstOrDefault(ef => ef.File == endPointer.File);
-            if (encodedFile != null)
-            {
-                EncodedFiles.Remove(encodedFile);
+            EncodedState encodedFile = EncodedFiles.FirstOrDefault(ef => ef.File == endPointer.File);
 
-                var sf = encodedFile.File;
-                var key = sf.FilePath;
-                if (endPointer != sf.StartPointer + sf.Length)
-                {
-                    LogWarning("Encoded block {0} was not fully deserialized: Serialized size: {1} != Total size: {2}", 
-                        key, endPointer - sf.StartPointer, sf.Length);
-                }
+            if (encodedFile == null) 
+                return;
+            
+            EncodedFiles.Remove(encodedFile);
 
-                Context.RemoveFile(sf);
-                encodedFile.Stream.Close();
-            }
+            StreamFile sf = encodedFile.File;
+            string key = sf.FilePath;
+            
+            if (endPointer != sf.StartPointer + sf.Length)
+                LogWarning("Encoded block {0} was not fully deserialized: Serialized size: {1} != Total size: {2}", 
+                    key, endPointer - sf.StartPointer, sf.Length);
+
+            Context.RemoveFile(sf);
+            encodedFile.Stream.Close();
         }
 
         #endregion
@@ -210,7 +210,7 @@ namespace BinarySerializer
         {
             string logString = LogPrefix;
 
-            var start = Reader.BaseStream.Position;
+            long start = Reader.BaseStream.Position;
 
             T checksum = (T)ReadAsObject<T>(name);
 
@@ -221,7 +221,7 @@ namespace BinarySerializer
                 LogWarning("Checksum {0} did not match!", name);
 
             if (IsLogEnabled)
-                Context.Log.Log($"{logString}({typeof(T)}) {(name ?? "<no name>")}: {checksum} - Checksum to match: {calculatedChecksum} - Matched? {checksum.Equals(calculatedChecksum)}");
+                Context.Log.Log($"{logString}({typeof(T)}) {name ?? DefaultName}: {checksum} - Checksum to match: {calculatedChecksum} - Matched? {checksum.Equals(calculatedChecksum)}");
 
             return checksum;
         }
@@ -253,7 +253,7 @@ namespace BinarySerializer
         {
             string logString = LogPrefix;
 
-            var start = Reader.BaseStream.Position;
+            long start = Reader.BaseStream.Position;
 
             T t = (T)ReadAsObject<T>(name);
 
@@ -261,14 +261,14 @@ namespace BinarySerializer
                 CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             if (IsLogEnabled)
-                Context.Log.Log($"{logString}({typeof(T).Name}) {(name ?? "<no name>")}: {(t?.ToString() ?? "null")}");
+                Context.Log.Log($"{logString}({typeof(T).Name}) {(name ?? DefaultName)}: {(t?.ToString() ?? "null")}");
 
             return t;
         }
 
         public override T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null)
         {
-            var ignoreCacheOnRead = CurrentFile.IgnoreCacheOnRead || Context.Settings.IgnoreCacheOnRead;
+            bool ignoreCacheOnRead = CurrentFile.IgnoreCacheOnRead || Context.Settings.IgnoreCacheOnRead;
 
             // Get the current pointer
             Pointer current = CurrentPointer;
@@ -298,7 +298,7 @@ namespace BinarySerializer
                 }
 
                 if (IsLogEnabled) 
-                    Context.Log.Log($"{logString}(Object: {typeof(T)}) {(name ?? "<no name>")}");
+                    Context.Log.Log($"{logString}(Object: {typeof(T)}) {name ?? DefaultName}");
 
                 Depth++;
                 onPreSerialize?.Invoke(instance);
@@ -309,7 +309,7 @@ namespace BinarySerializer
                 {
                     DisableLogForObject = false;
                     if (IsLogEnabled)
-                        Context.Log.Log($"{logString}({typeof(T)}) {(name ?? "<no name>")}: {(instance.ShortLog ?? "null")}");
+                        Context.Log.Log($"{logString}({typeof(T)}) {name ?? DefaultName}: {instance.ShortLog ?? "null"}");
                 }
             }
             else
@@ -324,7 +324,7 @@ namespace BinarySerializer
             string logString = LogPrefix;
 
             // Read the pointer value
-            var value = size switch
+            long value = size switch
             {
                 PointerSize.Pointer16 => Reader.ReadUInt16(),
                 PointerSize.Pointer32 => Reader.ReadUInt32(),
@@ -332,9 +332,12 @@ namespace BinarySerializer
                 _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
             };
 
-            if (Defaults != null) {
-                if(anchor == null) anchor = Defaults.PointerAnchor;
-                if(!nullValue.HasValue) nullValue = Defaults.PointerNullValue;
+            if (Defaults != null)
+            {
+                if (anchor == null) 
+                    anchor = Defaults.PointerAnchor;
+                
+                nullValue ??= Defaults.PointerNullValue;
             }
 
             Pointer ptr = CurrentFile.GetOverridePointer(CurrentAbsoluteOffset);
@@ -346,7 +349,7 @@ namespace BinarySerializer
 
                 if (ptr == null)
                 {
-                    var file = CurrentFile.GetPointerFile(value, anchor);
+                    BinaryFile file = CurrentFile.GetPointerFile(value, anchor);
 
                     if (file != null)
                         ptr = new Pointer(value, file, anchor, size);
@@ -355,14 +358,14 @@ namespace BinarySerializer
                 if (ptr == null && value != 0 && !allowInvalid && !CurrentFile.AllowInvalidPointer(value, anchor: anchor))
                 {
                     if (IsLogEnabled)
-                        Context.Log.Log($"{logString}({size}) {name ?? "<no name>"}: InvalidPointerException - {value:X16}");
+                        Context.Log.Log($"{logString}({size}) {name ?? DefaultName}: InvalidPointerException - {value:X16}");
 
                     throw new PointerException($"Not a valid pointer at {CurrentPointer - 4}: {value:X16}", nameof(SerializePointer));
                 }
             }
 
             if (IsLogEnabled)
-                Context.Log.Log($"{logString}({size}) {name ?? "<no name>"}: {ptr}");
+                Context.Log.Log($"{logString}({size}) {name ?? DefaultName}: {ptr}");
 
             return ptr;
         }
@@ -372,7 +375,7 @@ namespace BinarySerializer
             if (IsLogEnabled)
             {
                 string logString = LogPrefix;
-                Context.Log.Log($"{logString}(Pointer<T>: {typeof(T)}) {(name ?? "<no name>")}");
+                Context.Log.Log($"{logString}(Pointer<T>: {typeof(T)}) {name ?? DefaultName}");
             }
 
             Depth++;
@@ -395,7 +398,7 @@ namespace BinarySerializer
                 CurrentFile.UpdateReadMap(origPos, Reader.BaseStream.Position - origPos);
 
             if (IsLogEnabled)
-                Context.Log.Log($"{logString}(String) {(name ?? "<no name>")}: {t}");
+                Context.Log.Log($"{logString}(String) {name ?? DefaultName}: {t}");
 
             return t;
         }
@@ -406,11 +409,11 @@ namespace BinarySerializer
 
         public override T[] SerializeArraySize<T, U>(T[] obj, string name = null)
         {
-            //U Size = (U)Convert.ChangeType((obj?.Length) ?? 0, typeof(U));
-            U Size = default; // For performance reasons, don't supply this argument
-            Size = Serialize<U>(Size, name: $"{name}.Length");
+            U size = default; // For performance reasons, don't supply this argument
+            size = Serialize<U>(size, name: $"{name}.Length");
+
             // Convert size to int, slow
-            int intSize = (int)Convert.ChangeType(Size, typeof(int));
+            int intSize = (int)Convert.ChangeType(size, typeof(int));
 
             if (obj == null)
                 obj = new T[intSize];
@@ -426,12 +429,13 @@ namespace BinarySerializer
             {
                 if (CurrentFile.ShouldUpdateReadMap)
                     CurrentFile.UpdateReadMap(Reader.BaseStream.Position, count);
+
                 if (IsLogEnabled)
                 {
-                    string normalLog = $"{LogPrefix}({typeof(T).Name}[{count}]) {(name ?? "<no name>")}: ";
+                    string normalLog = $"{LogPrefix}({typeof(T).Name}[{count}]) {name ?? DefaultName}: ";
                     byte[] bytes = Reader.ReadBytes((int)count);
-                    Context.Log.Log(normalLog
-                        + bytes.ToHexString(align: 16, newLinePrefix: new string(' ', normalLog.Length), maxLines: 10));
+                    Context.Log.Log(normalLog + 
+                                    bytes.ToHexString(align: 16, newLinePrefix: new string(' ', normalLog.Length), maxLines: 10));
                     return (T[])(object)bytes;
                 }
                 else
@@ -442,16 +446,15 @@ namespace BinarySerializer
             if (IsLogEnabled)
             {
                 string logString = LogPrefix;
-                Context.Log.Log($"{logString}({typeof(T).Name}[{count}]) {(name ?? "<no name>")}");
+                Context.Log.Log($"{logString}({typeof(T).Name}[{count}]) {name ?? DefaultName}");
             }
             T[] buffer;
             if (obj != null)
             {
                 buffer = obj;
+
                 if (buffer.Length != count)
-                {
                     Array.Resize(ref buffer, (int)count);
-                }
             }
             else
             {
@@ -470,16 +473,15 @@ namespace BinarySerializer
             if (IsLogEnabled)
             {
                 string logString = LogPrefix;
-                Context.Log.Log($"{logString}(Object[]: {typeof(T)}[{count}]) {(name ?? "<no name>")}");
+                Context.Log.Log($"{logString}(Object[]: {typeof(T)}[{count}]) {name ?? DefaultName}");
             }
             T[] buffer;
             if (obj != null)
             {
                 buffer = obj;
+
                 if (buffer.Length != count)
-                {
                     Array.Resize(ref buffer, (int)count);
-                }
             }
             else
             {
@@ -499,7 +501,7 @@ namespace BinarySerializer
         public override T[] SerializeArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null, string name = null)
         {
             if (IsLogEnabled)
-                Context.Log.Log($"{LogPrefix}({typeof(T).Name}[..]) {name ?? "<no name>"}");
+                Context.Log.Log($"{LogPrefix}({typeof(T).Name}[..]) {name ?? DefaultName}");
 
             var objects = new List<T>();
             int index = 0;
@@ -528,7 +530,7 @@ namespace BinarySerializer
             Action<T, int> onPreSerialize = null, string name = null)
         {
             if (IsLogEnabled)
-                Context.Log.Log($"{LogPrefix}(Object[]: {typeof(T)}[..]) {name ?? "<no name>"}");
+                Context.Log.Log($"{LogPrefix}(Object[]: {typeof(T)}[..]) {name ?? DefaultName}");
 
             var objects = new List<T>();
             int index = 0;
@@ -561,7 +563,7 @@ namespace BinarySerializer
             if (IsLogEnabled)
             {
                 string logString = LogPrefix;
-                Context.Log.Log($"{logString}({size}[{count}]) {(name ?? "<no name>")}");
+                Context.Log.Log($"{logString}({size}[{count}]) {name ?? DefaultName}");
             }
 
             Pointer[] buffer;
@@ -590,7 +592,7 @@ namespace BinarySerializer
             if (IsLogEnabled)
             {
                 string logString = LogPrefix;
-                Context.Log.Log($"{logString}(Pointer<{typeof(T)}>[{count}]) {(name ?? "<no name>")}");
+                Context.Log.Log($"{logString}(Pointer<{typeof(T)}>[{count}]) {name ?? DefaultName}");
             }
 
             Pointer<T>[] buffer;
@@ -598,6 +600,7 @@ namespace BinarySerializer
             if (obj != null)
             {
                 buffer = obj;
+
                 if (buffer.Length != count)
                     Array.Resize(ref buffer, (int)count);
             }
@@ -626,16 +629,15 @@ namespace BinarySerializer
             if (IsLogEnabled)
             {
                 string logString = LogPrefix;
-                Context.Log.Log($"{logString}(String[{count}]) {name ?? "<no name>"}");
+                Context.Log.Log($"{logString}(String[{count}]) {name ?? DefaultName}");
             }
             string[] buffer;
             if (obj != null)
             {
                 buffer = obj;
+
                 if (buffer.Length != count)
-                {
                     Array.Resize(ref buffer, (int)count);
-                }
             }
             else
             {
@@ -695,7 +697,7 @@ namespace BinarySerializer
                 long bitValue = BitHelpers.ExtractBits64(buffer.GetBuffer(), length, pos);
 
                 if (IsLogEnabled)
-                    logs.Add($"{logPrefix}  (UInt{length}) {name ?? "<no name>"}: {bitValue}");
+                    logs.Add($"{logPrefix}  (UInt{length}) {name ?? DefaultName}: {bitValue}");
 
                 pos += length;
                 return bitValue;
@@ -743,7 +745,7 @@ namespace BinarySerializer
         protected object ReadAsObject<T>(string name = null)
         {
             // Get the type
-            var type = typeof(T);
+            Type type = typeof(T);
 
             TypeCode typeCode = Type.GetTypeCode(type);
 
