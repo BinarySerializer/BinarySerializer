@@ -10,17 +10,17 @@
 
         public override float Red
         {
-            get => R / 127f;
+            get => (R & 0x7F) / 127f;
             set => R = (byte)(value * 127);
         }
         public override float Green
         {
-            get => G / 127f;
+            get => (G & 0x7F) / 127f;
             set => G = (byte)(value * 127);
         }
         public override float Blue
         {
-            get => B / 127f;
+            get => (B & 0x7F) / 127f;
             set => B = (byte)(value * 127);
         }
         public override float Alpha
