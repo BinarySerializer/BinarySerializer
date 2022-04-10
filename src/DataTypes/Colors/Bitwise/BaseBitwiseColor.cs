@@ -54,41 +54,25 @@ namespace BinarySerializer
         public override float Red
         {
             get => GetValue(ColorChannel.Red);
-            set
-            {
-                SetValue(ColorChannel.Red, value);
-                OnColorModified();
-            }
+            set => SetValue(ColorChannel.Red, value);
         }
 
         public override float Green
         {
             get => GetValue(ColorChannel.Green);
-            set
-            {
-                SetValue(ColorChannel.Green, value);
-                OnColorModified();
-            }
+            set => SetValue(ColorChannel.Green, value);
         }
 
         public override float Blue
         {
             get => GetValue(ColorChannel.Blue);
-            set
-            {
-                SetValue(ColorChannel.Blue, value);
-                OnColorModified();
-            }
+            set => SetValue(ColorChannel.Blue, value);
         }
 
         public override float Alpha
         {
             get => GetValue(ColorChannel.Alpha);
-            set
-            {
-                SetValue(ColorChannel.Alpha, value);
-                OnColorModified();
-            }
+            set => SetValue(ColorChannel.Alpha, value);
         }
 
         #endregion

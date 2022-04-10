@@ -75,14 +75,6 @@ namespace BinarySerializer
 
         #endregion
 
-        #region Events
-
-        public event EventHandler<EventArgs> ColorModified;
-        
-        protected void OnColorModified() => ColorModified?.Invoke(this, EventArgs.Empty);
-
-        #endregion
-
         #region Serializable
 
         public override bool UseShortLog => true;
