@@ -354,7 +354,7 @@ namespace BinarySerializer
         public override T[] SerializeArraySize<T, U>(T[] obj, string name = null)
         {
             U Size = (U)Convert.ChangeType(obj?.Length ?? 0, typeof(U));
-            Serialize<U>(Size, name: name + ".Length");
+            Serialize<U>(Size, name: $"{name ?? DefaultName}.Length");
             return obj;
         }
 

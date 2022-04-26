@@ -27,9 +27,9 @@ namespace BinarySerializer
 
         #endregion
 
-        #region Internal Constant Fields
+        #region Protected Constant Fields
 
-        internal const string DefaultName = "<no name>";
+        protected const string DefaultName = "<no name>";
 
         #endregion
 

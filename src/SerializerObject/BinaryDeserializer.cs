@@ -410,7 +410,7 @@ namespace BinarySerializer
         public override T[] SerializeArraySize<T, U>(T[] obj, string name = null)
         {
             U size = default; // For performance reasons, don't supply this argument
-            size = Serialize<U>(size, name: $"{name}.Length");
+            size = Serialize<U>(size, name: $"{name ?? DefaultName}.Length");
 
             // Convert size to int, slow
             int intSize = (int)Convert.ChangeType(size, typeof(int));
