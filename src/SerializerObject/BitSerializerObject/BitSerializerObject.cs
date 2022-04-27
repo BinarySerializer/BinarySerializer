@@ -20,7 +20,7 @@ namespace BinarySerializer
         public long Value { get; set; }
         public int Position { get; set; }
 
-        public abstract T SerializeBits<T>(T value, int length, string name = null);
+        public abstract T SerializeBits<T>(T value, int length, SignedNumberRepresentation sign = SignedNumberRepresentation.Unsigned, string name = null);
 
         public void SerializePadding(int length, bool logIfNotNull = false, string name = "Padding")
         {

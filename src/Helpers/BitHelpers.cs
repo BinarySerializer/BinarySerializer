@@ -51,20 +51,43 @@ namespace BinarySerializer
             return ExtractBits64(value, count, offset % 8);
         }
 
-        public static long ExtractBits64(long value, int count, int offset)
+        public static long ExtractBits64(long value, int count, int offset, SignedNumberRepresentation sign = SignedNumberRepresentation.Unsigned)
         {
-            return ((((long)1 << count) - 1) & (value >> (offset)));
+            if (sign == SignedNumberRepresentation.Unsigned) {
+                return ((((long)1 << count) - 1) & (value >> (offset)));
+            } else {
+                long temp = ((((long)1 << (count-1)) - 1) & (value >> (offset)));
+                if ((value & ((long)1 << (offset+count-1))) != 0) { // If signed
+                    if (sign == SignedNumberRepresentation.SignMagnitude) {
+                        // Same value with 1 sign bit
+                        temp = -temp;
+                    } else if(sign == SignedNumberRepresentation.TwosComplement) {
+                        long maskValue = (((long)1 << (count - 1)) - 1);
+                        // 2's complement
+                        temp = (((long)-1) & ~maskValue) | temp;
+                    }
+                }
+                return temp;
+            }
         }
 
         public static int SetBits(int bits, int value, int count, int offset) {
             int mask = ((1 << count) - 1) << offset;
-            bits = (bits & ~mask) | (value << offset);
+            bits = (bits & ~mask) | ((value << offset) & mask);
             return bits;
         }
 
-        public static long SetBits64(long bits, long value, int count, int offset) {
+        public static long SetBits64(long bits, long value, int count, int offset, SignedNumberRepresentation sign = SignedNumberRepresentation.Unsigned) {
             long mask = (((long)1 << count) - 1) << offset;
-            bits = (bits & ~mask) | (value << offset);
+            if (value >= 0 || sign == SignedNumberRepresentation.Unsigned ||
+                sign == SignedNumberRepresentation.TwosComplement) {
+                bits = (bits & ~mask) | ((value << offset) & mask);
+            } else if (sign == SignedNumberRepresentation.SignMagnitude) {
+                long maskValue = (((long)1 << (count-1)) - 1) << offset;
+                bits = (bits & ~mask) // Clear region for value
+                    | ((long)1 << (count-1)) // Add sign bit
+                    | (((-value) << offset) & maskValue);
+            }
             return bits;
         }
 

@@ -7,9 +7,9 @@ namespace BinarySerializer
         public BitDeserializer(SerializerObject serializerObject, Pointer valueOffset, string logPrefix, long value) 
             : base(serializerObject, valueOffset, logPrefix, value) { }
 
-        public override T SerializeBits<T>(T value, int length, string name = null) 
+        public override T SerializeBits<T>(T value, int length, SignedNumberRepresentation sign = SignedNumberRepresentation.Unsigned, string name = null) 
         {
-            long bitValue = BitHelpers.ExtractBits64(Value, length, Position);
+            long bitValue = BitHelpers.ExtractBits64(Value, length, Position, sign: sign);
             T t = (T)LongToObject<T>(bitValue, name: name);
 
             if (SerializerObject.IsLogEnabled)
