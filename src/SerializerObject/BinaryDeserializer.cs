@@ -64,6 +64,7 @@ namespace BinarySerializer
         public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null)
         {
             Pointer offset = CurrentPointer;
+            long start = Reader.BaseStream.Position;
 
             // Stream key
             string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
@@ -73,6 +74,9 @@ namespace BinarySerializer
             encoder.DecodeStream(Reader.BaseStream, memStream);
             memStream.Position = 0;
             long encodedLength = CurrentFileOffset - offset.FileOffset;
+
+            if (CurrentFile.ShouldUpdateReadMap)
+                CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             // Add the stream
             StreamFile sf = new StreamFile(
@@ -132,6 +136,7 @@ namespace BinarySerializer
         public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false, string filename = null)
         {
             Pointer offset = CurrentPointer;
+            long start = Reader.BaseStream.Position;
 
             // Stream key
             string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
@@ -140,6 +145,9 @@ namespace BinarySerializer
             var memStream = new MemoryStream();
             encoder.DecodeStream(Reader.BaseStream, memStream);
             memStream.Position = 0;
+
+            if (CurrentFile.ShouldUpdateReadMap)
+                CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             StreamFile sf = new StreamFile(
                 context: Context, 
