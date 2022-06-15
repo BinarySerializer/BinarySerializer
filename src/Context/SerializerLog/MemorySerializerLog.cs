@@ -9,11 +9,12 @@ namespace BinarySerializer
     /// </summary>
     public class MemorySerializerLog : ISerializerLog
     {
-        public bool IsEnabled => true;
+        public bool IsEnabled { get; set; } = true;
 
         private StringBuilder _stringBuilder = new StringBuilder();
-        public string GetString => _stringBuilder?.ToString();
 
+        public string GetString() => _stringBuilder?.ToString();
+        public void Clear() => _stringBuilder?.Clear();
         public void Log(object obj) => _stringBuilder?.AppendLine(obj != null ? obj.ToString() : String.Empty);
         public void Dispose() => _stringBuilder = null;
     }
