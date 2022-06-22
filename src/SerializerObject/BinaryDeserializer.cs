@@ -60,9 +60,15 @@ namespace BinarySerializer
         #endregion
 
         #region Encoding
-
+        
         public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null)
         {
+            if (encoder == null)
+            {
+                action();
+                return;
+            }
+
             Pointer offset = CurrentPointer;
             long start = Reader.BaseStream.Position;
 
@@ -79,7 +85,7 @@ namespace BinarySerializer
                 CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             // Add the stream
-            StreamFile sf = new StreamFile(
+            StreamFile sf = new(
                 context: Context,
                 name: key,
                 stream: memStream,
@@ -135,6 +141,9 @@ namespace BinarySerializer
 
         public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false, string filename = null)
         {
+            if (encoder == null) 
+                throw new ArgumentNullException(nameof(encoder));
+            
             Pointer offset = CurrentPointer;
             long start = Reader.BaseStream.Position;
 
