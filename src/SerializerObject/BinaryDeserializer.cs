@@ -340,10 +340,14 @@ namespace BinarySerializer
                 _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
             };
 
+            var currentFile = CurrentFile;
+
             if (Defaults != null)
             {
                 if (anchor == null) 
                     anchor = Defaults.PointerAnchor;
+
+                if(Defaults.PointerFile != null) currentFile = Defaults.PointerFile;
                 
                 nullValue ??= Defaults.PointerNullValue;
             }
@@ -357,13 +361,13 @@ namespace BinarySerializer
 
                 if (ptr == null)
                 {
-                    BinaryFile file = CurrentFile.GetPointerFile(value, anchor);
+                    BinaryFile file = currentFile.GetPointerFile(value, anchor);
 
                     if (file != null)
                         ptr = new Pointer(value, file, anchor, size);
                 }
 
-                if (ptr == null && value != 0 && !allowInvalid && !CurrentFile.AllowInvalidPointer(value, anchor: anchor))
+                if (ptr == null && value != 0 && !allowInvalid && !currentFile.AllowInvalidPointer(value, anchor: anchor))
                 {
                     if (IsLogEnabled)
                         Context.Log.Log($"{logString}({size}) {name ?? DefaultName}: InvalidPointerException - {value:X16}");
