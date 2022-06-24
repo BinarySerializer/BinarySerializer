@@ -64,13 +64,19 @@ namespace BinarySerializer
 
         public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null)
         {
-            using MemoryStream decodedStream = new MemoryStream();
+            if (encoder == null)
+            {
+                action();
+                return;
+            }
+
+            using MemoryStream decodedStream = new();
             
             // Stream key
             string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
 
             // Create a temporary file for the stream to serialize to
-            StreamFile sf = new StreamFile(
+            StreamFile sf = new(
                 context: Context,
                 name: key,
                 stream: decodedStream,
@@ -99,6 +105,9 @@ namespace BinarySerializer
 
         public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false, string filename = null)
         {
+            if (encoder == null)
+                throw new ArgumentNullException(nameof(encoder));
+
             // Stream key
             string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
 
