@@ -349,14 +349,15 @@ namespace BinarySerializer
                 _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
             };
 
-            var currentFile = CurrentFile;
+            BinaryFile currentFile = CurrentFile;
 
             if (Defaults != null)
             {
                 if (anchor == null) 
                     anchor = Defaults.PointerAnchor;
 
-                if(Defaults.PointerFile != null) currentFile = Defaults.PointerFile;
+                if (Defaults.PointerFile != null)
+                    currentFile = Defaults.PointerFile;
                 
                 nullValue ??= Defaults.PointerNullValue;
             }
