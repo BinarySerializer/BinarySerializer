@@ -259,6 +259,23 @@ namespace BinarySerializer
             return obj;
         }
 
+        public override ArrayPointer<T> SerializeArrayPointer<T>(ArrayPointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, long count = 0, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null) {
+            Depth++;
+
+            CurrentFilePosition += size switch {
+                PointerSize.Pointer16 => 2,
+                PointerSize.Pointer32 => 4,
+                PointerSize.Pointer64 => 8,
+                _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
+            };
+
+            if (obj != null && obj.PointerValue != null && resolve && obj.Value != null)
+                DoAt(obj.PointerValue, () => SerializeObjectArray<T>(obj.Value, count, onPreSerialize: onPreSerialize));
+
+            Depth--;
+            return obj;
+        }
+
         public override string SerializeString(string obj, long? length = null, Encoding encoding = null, string name = null)
         {
             if (length.HasValue)

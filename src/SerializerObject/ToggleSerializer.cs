@@ -89,6 +89,11 @@ namespace BinarySerializer
             UpdateCurrentSerializer(name);
             return CurrentSerializer.SerializePointer(obj, size, anchor, resolve, onPreSerialize, allowInvalid, nullValue, name);
         }
+
+        public override ArrayPointer<T> SerializeArrayPointer<T>(ArrayPointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, long count = 0, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null) {
+            UpdateCurrentSerializer(name);
+            return CurrentSerializer.SerializeArrayPointer(obj, size, anchor, resolve, count, onPreSerialize, allowInvalid, nullValue, name);
+        }
         public override T Serialize<T>(T obj, string name = null) {
             UpdateCurrentSerializer(name);
             return CurrentSerializer.Serialize(obj, name);
