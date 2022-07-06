@@ -24,7 +24,7 @@ namespace BinarySerializer
         public static SerializeFunction<T[]> SerializeArrayUntil<T>(Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null) =>
             (s, value, name) => s.SerializeArrayUntil<T>(value, conditionCheckFunc, getLastObjFunc: getLastObjFunc, name: name);
 
-        public static SerializeFunction<T> SerializeString<T>(long? length = null, System.Text.Encoding encoding = null) =>
-            (s, value, name) => (T)(object)s.SerializeString((string)(object)value, length: length, encoding: encoding, name: name);
+        public static SerializeFunction<string> SerializeString(long? length = null, System.Text.Encoding encoding = null) =>
+            (s, value, name) => s.SerializeString(value, length: length, encoding: encoding, name: name);
     }
 }

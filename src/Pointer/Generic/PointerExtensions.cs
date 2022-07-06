@@ -39,7 +39,7 @@ namespace BinarySerializer
 
         // String
         public static Pointer<string> ResolveString(this Pointer<string> ptr, SerializerObject s, long? length = null, System.Text.Encoding encoding = null) {
-            return ptr.Resolve(s, PointerFunctions.SerializeString<string>(length: length, encoding: encoding));
+            return ptr.Resolve(s, PointerFunctions.SerializeString(length: length, encoding: encoding));
         }
     }
 }
