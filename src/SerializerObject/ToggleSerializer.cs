@@ -85,15 +85,11 @@ namespace BinarySerializer
             UpdateCurrentSerializer(name);
             return CurrentSerializer.SerializePointer(obj, size, anchor, allowInvalid, nullValue, name);
         }
-        public override Pointer<T> SerializePointer<T>(Pointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null) {
+        public override Pointer<T> SerializePointer<T>(Pointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null) {
             UpdateCurrentSerializer(name);
-            return CurrentSerializer.SerializePointer(obj, size, anchor, resolve, onPreSerialize, allowInvalid, nullValue, name);
+            return CurrentSerializer.SerializePointer(obj, size, anchor, allowInvalid, nullValue, name);
         }
 
-        public override ArrayPointer<T> SerializeArrayPointer<T>(ArrayPointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, long count = 0, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null) {
-            UpdateCurrentSerializer(name);
-            return CurrentSerializer.SerializeArrayPointer(obj, size, anchor, resolve, count, onPreSerialize, allowInvalid, nullValue, name);
-        }
         public override T Serialize<T>(T obj, string name = null) {
             UpdateCurrentSerializer(name);
             return CurrentSerializer.Serialize(obj, name);
@@ -161,7 +157,7 @@ namespace BinarySerializer
 
             return obj;
         }
-        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T, int> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null) {
+        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null) {
             if (obj == null) obj = new Pointer<T>[count];
             else if (count != obj.Length) Array.Resize(ref obj, (int)count);
 
@@ -170,8 +166,6 @@ namespace BinarySerializer
                     obj: obj[i], 
                     size: size, 
                     anchor: anchor, 
-                    resolve: resolve, 
-                    onPreSerialize: onPreSerialize == null ? (Action<T>)null : x => onPreSerialize(x, i), 
                     allowInvalid: allowInvalid, 
                     nullValue: nullValue, 
                     name: name == null ? null : $"{name}[{i}]");

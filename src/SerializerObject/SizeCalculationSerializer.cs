@@ -240,7 +240,7 @@ namespace BinarySerializer
             return obj;
         }
 
-        public override Pointer<T> SerializePointer<T>(Pointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null)
+        public override Pointer<T> SerializePointer<T>(Pointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             Depth++;
 
@@ -251,26 +251,6 @@ namespace BinarySerializer
                 PointerSize.Pointer64 => 8,
                 _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
             };
-
-            if (obj != null && obj.PointerValue != null && resolve && obj.Value != null)
-                DoAt(obj.PointerValue, () => SerializeObject<T>(obj.Value, onPreSerialize: onPreSerialize));
-
-            Depth--;
-            return obj;
-        }
-
-        public override ArrayPointer<T> SerializeArrayPointer<T>(ArrayPointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, long count = 0, Action<T> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null) {
-            Depth++;
-
-            CurrentFilePosition += size switch {
-                PointerSize.Pointer16 => 2,
-                PointerSize.Pointer32 => 4,
-                PointerSize.Pointer64 => 8,
-                _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
-            };
-
-            if (obj != null && obj.PointerValue != null && resolve && obj.Value != null)
-                DoAt(obj.PointerValue, () => SerializeObjectArray<T>(obj.Value, count, onPreSerialize: onPreSerialize));
 
             Depth--;
             return obj;
@@ -361,7 +341,7 @@ namespace BinarySerializer
             return buffer;
         }
 
-        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool resolve = false, Action<T, int> onPreSerialize = null, bool allowInvalid = false, long? nullValue = null, string name = null)
+        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
             Pointer<T>[] buffer = GetArray(obj, count);
 
@@ -370,8 +350,6 @@ namespace BinarySerializer
                 SerializePointer<T>(
                     obj: buffer[i], 
                     anchor: anchor, 
-                    resolve: resolve, 
-                    onPreSerialize: onPreSerialize == null ? (Action<T>)null : x => onPreSerialize(x, i), 
                     allowInvalid: allowInvalid, 
                     nullValue: nullValue);
 
