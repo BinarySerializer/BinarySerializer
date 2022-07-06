@@ -36,5 +36,10 @@ namespace BinarySerializer
         public static Pointer<T[]> ResolveValueArray<T>(this Pointer<T[]> ptr, SerializerObject s, long count) {
             return ptr.Resolve(s, PointerFunctions.SerializeArray<T>(count));
         }
+
+        // String
+        public static Pointer<T> ResolveString<T>(this Pointer<T> ptr, SerializerObject s, long? length = null, System.Text.Encoding encoding = null) {
+            return ptr.Resolve(s, PointerFunctions.SerializeString<T>(length: length, encoding: encoding));
+        }
     }
 }
