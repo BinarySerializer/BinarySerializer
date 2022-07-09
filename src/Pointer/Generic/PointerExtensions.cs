@@ -41,5 +41,26 @@ namespace BinarySerializer
         public static Pointer<string> ResolveString(this Pointer<string> ptr, SerializerObject s, long? length = null, System.Text.Encoding encoding = null) {
             return ptr.Resolve(s, PointerFunctions.SerializeString(length: length, encoding: encoding));
         }
+        public static Pointer<string>[] ResolveString(this Pointer<string>[] ptrs, SerializerObject s, long? length = null, System.Text.Encoding encoding = null) {
+            if (ptrs == null) return null;
+            foreach (var ptr in ptrs)
+                ptr?.ResolveString(s, length: length, encoding: encoding);
+            return ptrs;
+        }
+
+        // Pointer
+        public static Pointer<Pointer> ResolvePointer(this Pointer<Pointer> ptr, SerializerObject s, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null) {
+            return ptr.Resolve(s, PointerFunctions.SerializePointer(size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue));
+        }
+        public static Pointer<Pointer<T>> ResolvePointer<T>(this Pointer<Pointer<T>> ptr, SerializerObject s,  PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null) {
+            return ptr.Resolve(s, PointerFunctions.SerializePointer<T>(size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue));
+        }
+
+        public static Pointer<Pointer[]> ResolvePointerArray(this Pointer<Pointer[]> ptr, SerializerObject s, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null) {
+            return ptr.Resolve(s, PointerFunctions.SerializePointerArray(count, size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue));
+        }
+        public static Pointer<Pointer<T>[]> ResolvePointerArray<T>(this Pointer<Pointer<T>[]> ptr, SerializerObject s, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null) {
+            return ptr.Resolve(s, PointerFunctions.SerializePointerArray<T>(count, size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue));
+        }
     }
 }

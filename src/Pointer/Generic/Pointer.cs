@@ -30,7 +30,7 @@ namespace BinarySerializer
                 return this;
 
             s.DoAt(PointerValue, () => {
-                func(s, Value, name: nameof(Value));
+                Value = func(s, Value, name: nameof(Value));
             });
 
             return this;

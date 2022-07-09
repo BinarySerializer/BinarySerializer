@@ -26,5 +26,19 @@ namespace BinarySerializer
 
         public static SerializeFunction<string> SerializeString(long? length = null, System.Text.Encoding encoding = null) =>
             (s, value, name) => s.SerializeString(value, length: length, encoding: encoding, name: name);
+
+        public static SerializeFunction<Pointer> SerializePointer(PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null) {
+            return (s, value, name) => s.SerializePointer(value, size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue, name: name);
+        }
+        public static SerializeFunction<Pointer<T>> SerializePointer<T>(PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null) {
+            return (s, value, name) => s.SerializePointer<T>(value, size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue, name: name);
+        }
+
+        public static SerializeFunction<Pointer[]> SerializePointerArray(long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null) {
+            return (s, value, name) => s.SerializePointerArray(value, count, size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue, name: name);
+        }
+        public static SerializeFunction<Pointer<T>[]> SerializePointerArray<T>(long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null) {
+            return (s, value, name) => s.SerializePointerArray<T>(value, count, size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue, name: name);
+        }
     }
 }
