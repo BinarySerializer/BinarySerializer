@@ -3,6 +3,20 @@
 namespace BinarySerializer
 {
     public static class PointerExtensions {
+
+        public static Pointer<T>[] Resolve<T>(this Pointer<T>[] ptrs, SerializerObject s, PointerFunctions.SerializeFunction<T> func) {
+            if (ptrs == null) return null;
+            foreach (var ptr in ptrs)
+                ptr?.Resolve(s, func);
+            return ptrs;
+        }
+        public static Pointer<T>[] Resolve<T>(this Pointer<T>[] ptrs, SerializerObject s, Func<int, PointerFunctions.SerializeFunction<T>> func) {
+            if (ptrs == null) return null;
+            for (int i = 0; i < ptrs.Length; i++) {
+                ptrs[i]?.Resolve(s, func(i));
+            }
+            return ptrs;
+        }
         // Object
         public static Pointer<T> ResolveObject<T>(this Pointer<T> ptr, SerializerObject s, Action<T> onPreSerialize = null) where T : BinarySerializable, new() {
             return ptr.Resolve(s, PointerFunctions.SerializeObject<T>(onPreSerialize: onPreSerialize));
@@ -35,6 +49,12 @@ namespace BinarySerializer
         // Value array
         public static Pointer<T[]> ResolveValueArray<T>(this Pointer<T[]> ptr, SerializerObject s, long count) {
             return ptr.Resolve(s, PointerFunctions.SerializeArray<T>(count));
+        }
+        public static Pointer<T[]>[] ResolveValueArray<T>(this Pointer<T[]>[] ptrs, SerializerObject s, long count) {
+            if (ptrs == null) return null;
+            foreach (var ptr in ptrs)
+                ptr?.ResolveValueArray(s, count);
+            return ptrs;
         }
 
         // String

@@ -394,17 +394,9 @@ namespace BinarySerializer
 
         public override Pointer<T> SerializePointer<T>(Pointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
-            if (IsLogEnabled)
-            {
-                string logString = LogPrefix;
-                Context.Log.Log($"{logString}(Pointer<T>: {typeof(T)}) {name ?? DefaultName}");
-            }
-
-            Depth++;
             Pointer PointerValue = null;
-            PointerValue = SerializePointer(PointerValue, size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue, name: "Pointer");
+            PointerValue = SerializePointer(PointerValue, size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue, name: IsLogEnabled ? $"<{typeof(T)}> {name ?? DefaultName}" : name);
             Pointer<T> p = new Pointer<T>(PointerValue);
-            Depth--;
             return p;
         }
 
