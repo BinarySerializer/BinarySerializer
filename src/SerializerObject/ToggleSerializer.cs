@@ -178,7 +178,7 @@ namespace BinarySerializer
             return CurrentSerializer.SerializeString(obj, length, encoding, name);
         }
 
-        public override string[] SerializeStringArray(string[] obj, long count, int length, Encoding encoding = null, string name = null) {
+        public override string[] SerializeStringArray(string[] obj, long count, long? length = null, Encoding encoding = null, string name = null) {
             if (obj == null) obj = new string[count];
             else if (count != obj.Length) Array.Resize(ref obj, (int)count);
 
