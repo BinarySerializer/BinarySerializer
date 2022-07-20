@@ -371,18 +371,13 @@ namespace BinarySerializer
 
                 if (ptr == null)
                 {
-                    BinaryFile file = currentFile.GetPointerFile(value, anchor);
+                    if (!currentFile.TryGetPointer(value, out ptr, anchor: anchor, allowInvalid: allowInvalid, size: size)) {
+                        // Invalid pointer
+                        if (IsLogEnabled)
+                            Context.Log.Log($"{logString}({size}) {name ?? DefaultName}: InvalidPointerException - {value:X16}");
 
-                    if (file != null)
-                        ptr = new Pointer(value, file, anchor, size);
-                }
-
-                if (ptr == null && value != 0 && !allowInvalid && !currentFile.AllowInvalidPointer(value, anchor: anchor))
-                {
-                    if (IsLogEnabled)
-                        Context.Log.Log($"{logString}({size}) {name ?? DefaultName}: InvalidPointerException - {value:X16}");
-
-                    throw new PointerException($"Not a valid pointer at {CurrentPointer - 4}: {value:X16}", nameof(SerializePointer));
+                        throw new PointerException($"Not a valid pointer at {CurrentPointer - ((int)size)}: {value:X16}", nameof(SerializePointer));
+                    }
                 }
             }
 

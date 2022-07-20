@@ -159,6 +159,20 @@ namespace BinarySerializer
             return null;
         }
 
+        public virtual bool TryGetPointer(long value, out Pointer result, Pointer anchor = null, bool allowInvalid = false, PointerSize size = PointerSize.Pointer32) {
+            BinaryFile file = GetPointerFile(value, anchor);
+            Pointer ptr = null;
+
+            if (file != null)
+                ptr = new Pointer(value, file, anchor, size);
+
+            result = ptr;
+            if (ptr == null && value != 0 && !allowInvalid && !AllowInvalidPointer(value, anchor: anchor)) {
+                return false;
+            }
+            return true;
+        }
+
         protected virtual BinaryFile GetMemoryMappedPointerFile(long serializedValue, Pointer anchor = null)
         {
             // Get all memory mapped files
