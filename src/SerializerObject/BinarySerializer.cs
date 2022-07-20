@@ -457,7 +457,7 @@ namespace BinarySerializer
             return buffer;
         }
 
-        public override string[] SerializeStringArray(string[] obj, long count, int length, Encoding encoding = null, string name = null)
+        public override string[] SerializeStringArray(string[] obj, long count, long? length = null, Encoding encoding = null, string name = null)
         {
             string[] buffer = GetArray(obj, count);
             count = buffer.Length;

@@ -381,7 +381,7 @@ namespace BinarySerializer
         public abstract Pointer[] SerializePointerArray(Pointer[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null);
         public abstract Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null);
         
-        public abstract string[] SerializeStringArray(string[] obj, long count, int length, Encoding encoding = null, string name = null);
+        public abstract string[] SerializeStringArray(string[] obj, long count, long? length = null, Encoding encoding = null, string name = null);
 
         #endregion
 
