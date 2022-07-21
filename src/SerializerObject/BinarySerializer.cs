@@ -274,10 +274,14 @@ namespace BinarySerializer
                 };
             }
 
+            BinaryFile currentFile = CurrentFile;
             if (Defaults != null)
             {
                 if (anchor == null) 
                     anchor = Defaults.PointerAnchor;
+
+                if (Defaults.PointerFile != null)
+                    currentFile = Defaults.PointerFile;
 
                 nullValue ??= Defaults.PointerNullValue;
             }
@@ -288,18 +292,20 @@ namespace BinarySerializer
             if (IsLogEnabled)
                 Context.Log.Log($"{LogPrefix}({size}) {name ?? DefaultName}: {obj}");
 
+            var valueToSerialize = currentFile.GetPointerValueToSerialize(obj, anchor: anchor, nullValue: nullValue);
+
             switch (size)
             {
                 case PointerSize.Pointer16:
-                    Write((ushort)(obj?.SerializedOffset ?? nullValue ?? 0));
+                    Write((ushort)valueToSerialize);
                     break;
 
                 case PointerSize.Pointer32:
-                    Write((uint)(obj?.SerializedOffset ?? nullValue ?? 0));
+                    Write((uint)valueToSerialize);
                     break;
 
                 case PointerSize.Pointer64:
-                    Write((long)(obj?.SerializedOffset ?? nullValue ?? 0));
+                    Write((long)valueToSerialize);
                     break;
 
                 default:

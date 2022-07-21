@@ -340,6 +340,20 @@ namespace BinarySerializer
         {
             string logString = LogPrefix;
 
+            BinaryFile currentFile = CurrentFile;
+
+            if (Defaults != null) {
+                if (anchor == null)
+                    anchor = Defaults.PointerAnchor;
+
+                if (Defaults.PointerFile != null)
+                    currentFile = Defaults.PointerFile;
+
+                nullValue ??= Defaults.PointerNullValue;
+            }
+
+            Pointer ptr = CurrentFile.GetOverridePointer(CurrentAbsoluteOffset);
+
             // Read the pointer value
             long value = size switch
             {
@@ -348,21 +362,6 @@ namespace BinarySerializer
                 PointerSize.Pointer64 => Reader.ReadInt64(),
                 _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
             };
-
-            BinaryFile currentFile = CurrentFile;
-
-            if (Defaults != null)
-            {
-                if (anchor == null) 
-                    anchor = Defaults.PointerAnchor;
-
-                if (Defaults.PointerFile != null)
-                    currentFile = Defaults.PointerFile;
-                
-                nullValue ??= Defaults.PointerNullValue;
-            }
-
-            Pointer ptr = CurrentFile.GetOverridePointer(CurrentAbsoluteOffset);
 
             if (!nullValue.HasValue || value != nullValue)
             {

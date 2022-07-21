@@ -173,6 +173,9 @@ namespace BinarySerializer
             return true;
         }
 
+        public virtual long GetPointerValueToSerialize(Pointer obj, Pointer anchor = null, long? nullValue = null)
+            => obj?.SerializedOffset ?? nullValue ?? 0;
+
         protected virtual BinaryFile GetMemoryMappedPointerFile(long serializedValue, Pointer anchor = null)
         {
             // Get all memory mapped files
