@@ -11,11 +11,12 @@ namespace BinarySerializer
     {
         public bool IsEnabled { get; set; } = true;
 
-        private StringBuilder _stringBuilder = new StringBuilder();
+        private StringBuilder _stringBuilder;
+        protected StringBuilder StringBuilder => _stringBuilder ??= new StringBuilder();
 
-        public string GetString() => _stringBuilder?.ToString();
-        public void Clear() => _stringBuilder?.Clear();
-        public void Log(object obj) => _stringBuilder?.AppendLine(obj != null ? obj.ToString() : String.Empty);
+        public string GetString() => StringBuilder.ToString();
+        public void Clear() => StringBuilder.Clear();
+        public void Log(object obj) => StringBuilder.AppendLine(obj != null ? obj.ToString() : String.Empty);
         public void Dispose() => _stringBuilder = null;
     }
 }
