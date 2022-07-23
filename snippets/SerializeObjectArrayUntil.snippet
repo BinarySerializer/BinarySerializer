@@ -8,7 +8,7 @@
     </Header>
     <Snippet>
       <Code Language="CSharp" Kind="method body">
-        <![CDATA[$Property$ = s.SerializeObjectArrayUntil<$Type$>($Property$, $Condition$, name: nameof($Property$));$end$]]>
+        <![CDATA[$Property$ = s.SerializeObjectArrayUntil<$Type$>($Property$, x => $Condition$, name: nameof($Property$));$end$]]>
       </Code>
       <Declarations>
         <Literal>
