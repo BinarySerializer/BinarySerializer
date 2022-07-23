@@ -129,7 +129,7 @@ namespace BinarySerializer
                     action();
 
                     if (CurrentPointer != sf.StartPointer + sf.Length)
-                        LogWarning("Encoded block {0} was not fully deserialized: Serialized size: {1} != Total size: {2}", 
+                        Logger?.LogWarning("Encoded block {0} was not fully deserialized: Serialized size: {1} != Total size: {2}", 
                             key, CurrentPointer - sf.StartPointer, sf.Length);
                 });
             }
@@ -189,7 +189,7 @@ namespace BinarySerializer
             string key = sf.FilePath;
             
             if (endPointer != sf.StartPointer + sf.Length)
-                LogWarning("Encoded block {0} was not fully deserialized: Serialized size: {1} != Total size: {2}", 
+                Logger?.LogWarning("Encoded block {0} was not fully deserialized: Serialized size: {1} != Total size: {2}", 
                     key, endPointer - sf.StartPointer, sf.Length);
 
             Context.RemoveFile(sf);
@@ -235,7 +235,7 @@ namespace BinarySerializer
                 CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             if (!checksum.Equals(calculatedChecksum))
-                LogWarning("Checksum {0} did not match!", name);
+                Logger?.LogWarning("Checksum {0} did not match!", name);
 
             if (IsLogEnabled)
                 Context.Log.Log($"{logString}({typeof(T)}) {name ?? DefaultName}: {checksum} - Checksum to match: {calculatedChecksum} - Matched? {checksum.Equals(calculatedChecksum)}");
@@ -764,7 +764,7 @@ namespace BinarySerializer
 
                     if (b != 0 && b != 1)
                     {
-                        LogWarning("Binary boolean '{0}' ({1}) was not correctly formatted", name, b);
+                        Logger?.LogWarning("Binary boolean '{0}' ({1}) was not correctly formatted", name, b);
 
                         if (IsLogEnabled)
                             Context.Log.Log($"{LogPrefix} ({typeof(T)}): Binary boolean was not correctly formatted ({b})");

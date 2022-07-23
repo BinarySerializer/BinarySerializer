@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BinarySerializer 
+﻿namespace BinarySerializer
 {
     public abstract class BitSerializerObject 
     {
@@ -29,7 +27,7 @@ namespace BinarySerializer
             long v = SerializeBits<long>(default, length, name: name);
 
             if (logIfNotNull && v != 0)
-                SerializerObject.LogWarning("Padding at {0} (bit position {1}) contains data! Data: 0x{2:X8}", ValueOffset, pos, v);
+                Context.Logger?.LogWarning("Padding at {0} (bit position {1}) contains data! Data: 0x{2:X8}", ValueOffset, pos, v);
         }
     }
 }

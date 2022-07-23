@@ -31,7 +31,7 @@ namespace BinarySerializer
             var fullName = String.Join(".", CurrentName.Append(name).Where(x => !String.IsNullOrWhiteSpace(x)));
             var s = ShouldWriteFunc(fullName) ? Serializer : Deserializer;
             if (CurrentSerializer != s) {
-                Logger?.Log(fullName + " - " + s);
+                Logger?.LogInfo("{0} - {1}", fullName, s);
                 SwitchSerializer(s);
             }
         }

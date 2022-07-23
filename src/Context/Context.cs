@@ -30,8 +30,10 @@ namespace BinarySerializer
 
         #region Abstraction
 
+#nullable enable
         public IFileManager FileManager { get; }
-        public ILogger Logger { get; }
+        public ILogger? Logger { get; }
+#nullable restore
 
         #endregion
 

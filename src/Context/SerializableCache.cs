@@ -41,7 +41,7 @@ namespace BinarySerializer
             if (!Structs[type].ContainsKey(pointer)) 
                 Structs[type][pointer] = serializable;
             else 
-                Logger?.LogWarning($"Duplicate pointer {pointer} for type {type}");
+                Logger?.LogWarning("Duplicate pointer {0} for type {1}", pointer, type);
         }
 
         public void Clear() => Structs.Clear();
