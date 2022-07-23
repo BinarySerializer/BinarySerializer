@@ -1,20 +1,4 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/@KeyIndexDefined">True</s:Boolean>
-	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Shortcut/@EntryValue">ser</s:String>
-	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Description/@EntryValue">Serialize value</s:String>
-	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Text/@EntryValue">$Property$ = s.Serialize&lt;$Type$&gt;($Property$, name: nameof($Property$));</s:String>
-	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Reformat/@EntryValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
-	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Categories/=BinarySerializer/@EntryIndexedValue">BinarySerializer</s:String>
-	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
-	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
-	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
-	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Field/=Property/@KeyIndexDefined">True</s:Boolean>
-	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Field/=Property/Order/@EntryValue">0</s:Int64>
-	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Field/=Type/@KeyIndexDefined">True</s:Boolean>
-	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Field/=Type/Expression/@EntryValue">completeSmart()</s:String>
-	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Field/=Type/Order/@EntryValue">1</s:Int64>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=52C60137695CCF42908AFC7360E48254/@KeyIndexDefined">True</s:Boolean>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=52C60137695CCF42908AFC7360E48254/Shortcut/@EntryValue">sera</s:String>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=52C60137695CCF42908AFC7360E48254/Description/@EntryValue">Serialize value array</s:String>
@@ -33,6 +17,40 @@
 	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=52C60137695CCF42908AFC7360E48254/Field/=Type/Order/@EntryValue">1</s:Int64>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=52C60137695CCF42908AFC7360E48254/Field/=Count/@KeyIndexDefined">True</s:Boolean>
 	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=52C60137695CCF42908AFC7360E48254/Field/=Count/Order/@EntryValue">2</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Shortcut/@EntryValue">ser</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Description/@EntryValue">Serialize value</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Text/@EntryValue">$Property$ = s.Serialize&lt;$Type$&gt;($Property$, name: nameof($Property$));</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Categories/=BinarySerializer/@EntryIndexedValue">BinarySerializer</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Field/=Property/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Field/=Property/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Field/=Type/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Field/=Type/Expression/@EntryValue">completeSmart()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=436CC4E6957D1B45A6DB9D89AEC41055/Field/=Type/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Shortcut/@EntryValue">serb</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Description/@EntryValue">Serialize bits</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Text/@EntryValue">$Property$ = b.SerializeBits&lt;$Type$&gt;($Property$, $Length$, name: nameof($Property$));</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Categories/=BinarySerializer/@EntryIndexedValue">BinarySerializer</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Field/=Property/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Field/=Property/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Field/=Type/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Field/=Type/Expression/@EntryValue">completeSmart()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Field/=Type/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Field/=Length/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0616C3E9A02E1E4E892F73EA4036E58D/Field/=Length/Order/@EntryValue">2</s:Int64>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B0BA685FFB9ADC46A8E7C0D17CA8D6F6/@KeyIndexDefined">True</s:Boolean>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B0BA685FFB9ADC46A8E7C0D17CA8D6F6/Shortcut/@EntryValue">sero</s:String>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B0BA685FFB9ADC46A8E7C0D17CA8D6F6/Description/@EntryValue">Serialize object</s:String>
@@ -66,4 +84,116 @@
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=80DB5EEF9B57454E867A9DB2305AFC1D/Field/=Type/Expression/@EntryValue">completeSmart()</s:String>
 	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=80DB5EEF9B57454E867A9DB2305AFC1D/Field/=Type/Order/@EntryValue">1</s:Int64>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=80DB5EEF9B57454E867A9DB2305AFC1D/Field/=Count/@KeyIndexDefined">True</s:Boolean>
-	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=80DB5EEF9B57454E867A9DB2305AFC1D/Field/=Count/Order/@EntryValue">2</s:Int64></wpf:ResourceDictionary>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=80DB5EEF9B57454E867A9DB2305AFC1D/Field/=Count/Order/@EntryValue">2</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Shortcut/@EntryValue">seroau</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Description/@EntryValue">Serialize object array until</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Text/@EntryValue">$Property$ = s.SerializeObjectArrayUntil&lt;$Type$&gt;($Property$, x =&gt; $Condition$, name: nameof($Property$));</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Categories/=BinarySerializer/@EntryIndexedValue">BinarySerializer</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Field/=Property/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Field/=Property/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Field/=Type/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Field/=Type/Expression/@EntryValue">completeSmart()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Field/=Type/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Field/=Condition/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=355C133FAFF9AF4D8F3E4F06EC340BF7/Field/=Condition/Order/@EntryValue">2</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=88A7ECA80F3A0B4CA44A485FEF028A40/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=88A7ECA80F3A0B4CA44A485FEF028A40/Shortcut/@EntryValue">serp</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=88A7ECA80F3A0B4CA44A485FEF028A40/Description/@EntryValue">Serialize pointer</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=88A7ECA80F3A0B4CA44A485FEF028A40/Text/@EntryValue">$Property$ = s.SerializePointer($Property$, name: nameof($Property$));</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=88A7ECA80F3A0B4CA44A485FEF028A40/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=88A7ECA80F3A0B4CA44A485FEF028A40/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=88A7ECA80F3A0B4CA44A485FEF028A40/Categories/=BinarySerializer/@EntryIndexedValue">BinarySerializer</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=88A7ECA80F3A0B4CA44A485FEF028A40/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=88A7ECA80F3A0B4CA44A485FEF028A40/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=88A7ECA80F3A0B4CA44A485FEF028A40/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=88A7ECA80F3A0B4CA44A485FEF028A40/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=88A7ECA80F3A0B4CA44A485FEF028A40/Field/=Property/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=88A7ECA80F3A0B4CA44A485FEF028A40/Field/=Property/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=670094CA8D2B7B409D0FBD9E6FB46521/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=670094CA8D2B7B409D0FBD9E6FB46521/Shortcut/@EntryValue">serpa</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=670094CA8D2B7B409D0FBD9E6FB46521/Description/@EntryValue">Serialize pointer array</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=670094CA8D2B7B409D0FBD9E6FB46521/Text/@EntryValue">$Property$ = s.SerializePointerArray($Property$, $Count$, name: nameof($Property$));</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=670094CA8D2B7B409D0FBD9E6FB46521/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=670094CA8D2B7B409D0FBD9E6FB46521/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=670094CA8D2B7B409D0FBD9E6FB46521/Categories/=BinarySerializer/@EntryIndexedValue">BinarySerializer</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=670094CA8D2B7B409D0FBD9E6FB46521/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=670094CA8D2B7B409D0FBD9E6FB46521/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=670094CA8D2B7B409D0FBD9E6FB46521/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=670094CA8D2B7B409D0FBD9E6FB46521/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=670094CA8D2B7B409D0FBD9E6FB46521/Field/=Property/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=670094CA8D2B7B409D0FBD9E6FB46521/Field/=Property/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=670094CA8D2B7B409D0FBD9E6FB46521/Field/=Count/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=670094CA8D2B7B409D0FBD9E6FB46521/Field/=Count/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/Shortcut/@EntryValue">serpt</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/Description/@EntryValue">Serialize generic pointer</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/Text/@EntryValue">$Property$ = s.SerializePointer&lt;$Type$&gt;($Property$, name: nameof($Property$));</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/Categories/=BinarySerializer/@EntryIndexedValue">BinarySerializer</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/Field/=Property/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/Field/=Property/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/Field/=Type/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/Field/=Type/Expression/@EntryValue">completeSmart()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=44D4B8F23069A646AE6AC7D7162666E8/Field/=Type/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Shortcut/@EntryValue">serpta</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Description/@EntryValue">Serialize generic pointer array</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Text/@EntryValue">$Property$ = s.SerializePointerArray&lt;$Type$&gt;($Property$, $Count$, name: nameof($Property$));</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Categories/=BinarySerializer/@EntryIndexedValue">BinarySerializer</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Field/=Property/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Field/=Property/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Field/=Type/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Field/=Type/Expression/@EntryValue">completeSmart()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Field/=Type/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Field/=Count/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=B93B9AFE599E3B4AA46CA8FEA431EE61/Field/=Count/Order/@EntryValue">2</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=6BB67F463F547A4898C683D1390600DE/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=6BB67F463F547A4898C683D1390600DE/Shortcut/@EntryValue">sers</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=6BB67F463F547A4898C683D1390600DE/Description/@EntryValue">Serialize string</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=6BB67F463F547A4898C683D1390600DE/Text/@EntryValue">$Property$ = s.SerializeString($Property$, length: $Length$, name: nameof($Property$));</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=6BB67F463F547A4898C683D1390600DE/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=6BB67F463F547A4898C683D1390600DE/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=6BB67F463F547A4898C683D1390600DE/Categories/=BinarySerializer/@EntryIndexedValue">BinarySerializer</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=6BB67F463F547A4898C683D1390600DE/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=6BB67F463F547A4898C683D1390600DE/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=6BB67F463F547A4898C683D1390600DE/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=6BB67F463F547A4898C683D1390600DE/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=6BB67F463F547A4898C683D1390600DE/Field/=Property/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=6BB67F463F547A4898C683D1390600DE/Field/=Property/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=6BB67F463F547A4898C683D1390600DE/Field/=Length/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=6BB67F463F547A4898C683D1390600DE/Field/=Length/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/Shortcut/@EntryValue">sersa</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/Description/@EntryValue">Serialize string array</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/Text/@EntryValue">$Property$ = s.SerializeStringArray($Property$, $Count$, length: $Length$, name: nameof($Property$));</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/Categories/=BinarySerializer/@EntryIndexedValue">BinarySerializer</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/Field/=Property/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/Field/=Property/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/Field/=Count/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/Field/=Count/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/Field/=Length/@KeyIndexDefined">True</s:Boolean>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=0788A3CB1EDDCC4FBA5268A8EF09633E/Field/=Length/Order/@EntryValue">2</s:Int64></wpf:ResourceDictionary>
