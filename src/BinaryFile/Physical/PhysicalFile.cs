@@ -66,6 +66,7 @@ namespace BinarySerializer
             Stream s = FileManager.GetFileReadStream(SourcePath);
             length = s.Length;
             Reader reader = new Reader(s, isLittleEndian: Endianness == Endian.Little);
+            Context.Logger?.LogTrace("Created reader for file {0}", FilePath);
             return reader;
         }
 
@@ -75,6 +76,7 @@ namespace BinarySerializer
             Stream s = FileManager.GetFileWriteStream(DestinationPath, RecreateOnWrite);
             length = s.Length;
             Writer writer = new Writer(s, isLittleEndian: Endianness == Endian.Little);
+            Context.Logger?.LogTrace("Created writer for file {0}", FilePath);
             return writer;
         }
     }

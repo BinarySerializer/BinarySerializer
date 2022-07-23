@@ -218,15 +218,22 @@ namespace BinarySerializer
 
             MemoryMap.Files.Add(file);
 
+            Logger?.LogTrace("Added file {0}", file.FilePath);
+
             return file;
         }
         public void RemoveFile(string filePath) => RemoveFile(GetFile(filePath));
         public void RemoveFile(BinaryFile file)
         {
+            if (file is null)
+                return;
+
             MemoryMap.Files.Remove(file);
             deserializer?.DisposeFile(file);
             serializer?.DisposeFile(file);
-            file?.Dispose();
+            file.Dispose();
+
+            Logger?.LogTrace("Removed file {0}", file.FilePath);
         }
 
         public Pointer<T> FilePointer<T>(string relativePath) 

@@ -853,6 +853,8 @@ namespace BinarySerializer
 
             if (CurrentFile == file)
                 CurrentFile = null;
+
+            Logger?.LogTrace("Disposed file from deserializer {0}", file.FilePath);
         }
 
         #endregion
