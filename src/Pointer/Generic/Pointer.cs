@@ -20,7 +20,7 @@ namespace BinarySerializer
         public Pointer PointerValue { get; }
         public T Value { get; set; }
 
-        public Pointer<T> Resolve(SerializerObject s, PointerFunctions.SerializeFunction<T> func) {
+        public Pointer<T> ResolveValue(SerializerObject s, PointerFunctions.SerializeFunction<T> func) {
             if (s == null) 
                 throw new ArgumentNullException(nameof(s));
 
