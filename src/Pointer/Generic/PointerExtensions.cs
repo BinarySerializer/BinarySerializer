@@ -21,10 +21,11 @@ namespace BinarySerializer
         public static Pointer<T> ResolveObject<T>(this Pointer<T> ptr, SerializerObject s, Action<T> onPreSerialize = null) where T : BinarySerializable, new() {
             return ptr.ResolveValue(s, PointerFunctions.SerializeObject<T>(onPreSerialize: onPreSerialize));
         }
-        public static Pointer<T>[] ResolveObject<T>(this Pointer<T>[] ptrs, SerializerObject s, Action<T> onPreSerialize = null) where T : BinarySerializable, new() {
+        public static Pointer<T>[] ResolveObject<T>(this Pointer<T>[] ptrs, SerializerObject s, Action<T, int> onPreSerialize = null) where T : BinarySerializable, new() {
             if (ptrs == null) return null;
-            foreach (var ptr in ptrs)
-                ptr?.ResolveObject(s, onPreSerialize: onPreSerialize);
+            for (int i = 0; i < ptrs.Length; i++) {
+                ptrs[i]?.ResolveObject(s, onPreSerialize: onPreSerialize != null ? x => onPreSerialize(x, i) : null);
+            }
             return ptrs;
         }
 

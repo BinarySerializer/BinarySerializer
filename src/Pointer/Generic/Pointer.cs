@@ -38,5 +38,10 @@ namespace BinarySerializer
 
         public static implicit operator T(Pointer<T> a) => a.Value;
         public static implicit operator Pointer(Pointer<T> a) => a?.PointerValue;
+
+        public static Pointer<T> FromObject<T>(T obj) where T : BinarySerializable, new() {
+            if(obj == null) return new Pointer<T>();
+            return new Pointer<T>(obj?.Offset, value: obj);
+        }
     }
 }
