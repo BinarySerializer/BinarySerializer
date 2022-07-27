@@ -4,7 +4,9 @@ namespace BinarySerializer
 {
     public static class PointerFunctions
     {
-        public delegate T SerializeFunction<T>(SerializerObject s, T value, string name = null);
+#nullable enable
+        public delegate T? SerializeFunction<T>(SerializerObject s, T? value, string? name = null);
+#nullable restore
 
         public static SerializeFunction<T> SerializeObject<T>(Action<T> onPreSerialize = null) where T : BinarySerializable, new() {
             return (s, value, name) => s.SerializeObject<T>(value, onPreSerialize: onPreSerialize, name: name);
