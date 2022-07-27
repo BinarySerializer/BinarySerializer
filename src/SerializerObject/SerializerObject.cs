@@ -35,11 +35,11 @@ namespace BinarySerializer
 
         #region Protected Properties
 
-        protected bool DisableLogForObject { get; set; }
+        protected bool DisableSerializerLogForObject { get; set; }
 
 #nullable enable
         protected IFileManager FileManager => Context.FileManager;
-        protected ILogger? Logger => Context.Logger;
+        public ISystemLog? SystemLog => Context.SystemLog;
 #nullable restore
 
         #endregion
@@ -95,12 +95,12 @@ namespace BinarySerializer
 
         #endregion
 
-        #region Logging
+        #region Serializer Logging
 
         /// <summary>
         /// Indicates if logging is enabled for the serialization
         /// </summary>
-        public bool IsLogEnabled => Context.Log.IsEnabled && !DisableLogForObject;
+        public bool IsSerializerLogEnabled => Context.SerializerLog.IsEnabled && !DisableSerializerLogForObject;
 
         /// <summary>
         /// Writes a line to the serializer log, if enabled
@@ -449,14 +449,14 @@ namespace BinarySerializer
                 var a = Serialize<byte>(default, name: name);
 
                 if (logIfNotNull && a != 0)
-                    Logger?.LogWarning("Padding at {0} contains data! Data: 0x{1:X2}", CurrentPointer - length, a);
+                    SystemLog?.LogWarning("Padding at {0} contains data! Data: 0x{1:X2}", CurrentPointer - length, a);
             }
             else
             {
                 var a = SerializeArray<byte>(new byte[length], length, name: name);
 
                 if (logIfNotNull && a.Any(x => x != 0))
-                    Logger?.LogWarning("Padding at {0} contains data! Data: {1}", CurrentPointer - length, a.ToHexString());
+                    SystemLog?.LogWarning("Padding at {0} contains data! Data: {1}", CurrentPointer - length, a.ToHexString());
             }
         }
 
@@ -469,7 +469,7 @@ namespace BinarySerializer
                 if (throwIfNoMatch)
                     throw new Exception($"Magic '{value}' does not match expected magic of '{magic}'");
                 else
-                    Logger?.LogWarning("Magic '{0}' does not match expected magic of '{1}'", value, magic);
+                    SystemLog?.LogWarning("Magic '{0}' does not match expected magic of '{1}'", value, magic);
             }
         }
 
@@ -482,7 +482,7 @@ namespace BinarySerializer
                 if (throwIfNoMatch)
                     throw new Exception($"Magic '{value}' does not match expected magic of '{magic}'");
                 else
-                    Logger?.LogWarning("Magic '{0}' does not match expected magic of '{1}'", value, magic);
+                    SystemLog?.LogWarning("Magic '{0}' does not match expected magic of '{1}'", value, magic);
             }
         }
 

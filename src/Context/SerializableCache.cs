@@ -5,13 +5,13 @@ namespace BinarySerializer
 {
     public class SerializableCache 
     {
-        public SerializableCache(ILogger logger)
+        public SerializableCache(ISystemLog systemLog)
         {
-            Logger = logger;
+            SystemLog = systemLog;
             Structs = new Dictionary<Type, Dictionary<Pointer, BinarySerializable>>();
         }
 
-        protected ILogger Logger { get; }
+        protected ISystemLog SystemLog { get; }
 
         public Dictionary<Type, Dictionary<Pointer, BinarySerializable>> Structs { get; }
 
@@ -41,7 +41,7 @@ namespace BinarySerializer
             if (!Structs[type].ContainsKey(pointer)) 
                 Structs[type][pointer] = serializable;
             else 
-                Logger?.LogWarning("Duplicate pointer {0} for type {1}", pointer, type);
+                SystemLog?.LogWarning("Duplicate pointer {0} for type {1}", pointer, type);
         }
 
         public void Clear() => Structs.Clear();

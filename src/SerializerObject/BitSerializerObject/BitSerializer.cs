@@ -12,8 +12,8 @@ namespace BinarySerializer
             long valueToWrite = ObjectToLong<T>(value);
             Value = BitHelpers.SetBits64(Value, valueToWrite, length, Position, sign: sign);
 
-            if (SerializerObject.IsLogEnabled)
-                Context.Log.Log($"{LogPrefix}  {Position}_{length} ({typeof(T).Name}) {name ?? "<no name>"}: {valueToWrite}");
+            if (SerializerObject.IsSerializerLogEnabled)
+                Context.SerializerLog.Log($"{LogPrefix}  {Position}_{length} ({typeof(T).Name}) {name ?? "<no name>"}: {valueToWrite}");
 
             Position += length;
 

@@ -12,8 +12,8 @@ namespace BinarySerializer
             long bitValue = BitHelpers.ExtractBits64(Value, length, Position, sign: sign);
             T t = (T)LongToObject<T>(bitValue, name: name);
 
-            if (SerializerObject.IsLogEnabled)
-                Context.Log.Log($"{LogPrefix}  {Position}_{length} ({typeof(T).Name}) {name ?? "<no name>"}: {(t?.ToString() ?? "null")}");
+            if (SerializerObject.IsSerializerLogEnabled)
+                Context.SerializerLog.Log($"{LogPrefix}  {Position}_{length} ({typeof(T).Name}) {name ?? "<no name>"}: {(t?.ToString() ?? "null")}");
 
             Position += length;
 
@@ -32,10 +32,10 @@ namespace BinarySerializer
                 case TypeCode.Boolean:
                     if (input != 0 && input != 1) 
                     {
-                        Context.Logger?.LogWarning("Binary boolean '{0}' ({1}) was not correctly formatted", name, input);
+                        Context.SystemLog?.LogWarning("Binary boolean '{0}' ({1}) was not correctly formatted", name, input);
 
-                        if (SerializerObject.IsLogEnabled)
-                            Context.Log.Log($"{LogPrefix} ({typeof(T)}): Binary boolean was not correctly formatted ({input})");
+                        if (SerializerObject.IsSerializerLogEnabled)
+                            Context.SerializerLog.Log($"{LogPrefix} ({typeof(T)}): Binary boolean was not correctly formatted ({input})");
                     }
 
                     return input != 0;

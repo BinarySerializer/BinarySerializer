@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace BinarySerializer
 {
-    public interface ILogger
+    public interface ISystemLog
     {
         [StringFormatMethod("log")]
         void Log(LogLevel logLevel, object? log, params object[] args);

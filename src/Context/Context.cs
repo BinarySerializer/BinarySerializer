@@ -10,18 +10,18 @@ namespace BinarySerializer
     {
         #region Constructors
 
-        public Context(string basePath, ISerializerSettings settings = null, ISerializerLog serializerLog = null, IFileManager fileManager = null, ILogger logger = null)
+        public Context(string basePath, ISerializerSettings settings = null, ISerializerLog serializerLog = null, IFileManager fileManager = null, ISystemLog systemLog = null)
         {
             // Set properties from parameters
             FileManager = fileManager ?? new DefaultFileManager();
-            Logger = logger;
+            SystemLog = systemLog;
             BasePath = NormalizePath(basePath, true);
             Settings = settings ?? new SerializerSettings();
-            Log = serializerLog ?? new EmptySerializerLog();
+            SerializerLog = serializerLog ?? new EmptySerializerLog();
 
             // Initialize properties
             MemoryMap = new MemoryMap();
-            Cache = new SerializableCache(Logger);
+            Cache = new SerializableCache(SystemLog);
             ObjectStorage = new Dictionary<string, object>();
             AdditionalSettings = new Dictionary<Type, object>();
         }
@@ -32,7 +32,7 @@ namespace BinarySerializer
 
 #nullable enable
         public IFileManager FileManager { get; }
-        public ILogger? Logger { get; }
+        public ISystemLog? SystemLog { get; }
 #nullable restore
 
         #endregion
@@ -48,7 +48,7 @@ namespace BinarySerializer
         public string BasePath { get; }
         public MemoryMap MemoryMap { get; }
         public SerializableCache Cache { get; }
-        public ISerializerLog Log { get; }
+        public ISerializerLog SerializerLog { get; }
 
         #endregion
 
@@ -218,7 +218,7 @@ namespace BinarySerializer
 
             MemoryMap.Files.Add(file);
 
-            Logger?.LogTrace("Added file {0}", file.FilePath);
+            SystemLog?.LogTrace("Added file {0}", file.FilePath);
 
             return file;
         }
@@ -233,7 +233,7 @@ namespace BinarySerializer
             serializer?.DisposeFile(file);
             file.Dispose();
 
-            Logger?.LogTrace("Removed file {0}", file.FilePath);
+            SystemLog?.LogTrace("Removed file {0}", file.FilePath);
         }
 
         public Pointer<T> FilePointer<T>(string relativePath) 
@@ -335,7 +335,7 @@ namespace BinarySerializer
             foreach (var file in MemoryMap.Files)
                 file?.Dispose();
 
-            Log.Dispose();
+            SerializerLog.Dispose();
         }
         public void Dispose()
         {
