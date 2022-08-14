@@ -96,17 +96,24 @@ namespace BinarySerializer
         }
         public override T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null) {
 
-            Depth++;
-            CurrentName.Push(name);
-            if (obj == null) obj = new T();
-            if (obj.Context == null || obj.Context != Context) {
-                // reinitialize object
-                obj.Init(CurrentPointer);
+            try
+            {
+                Depth++;
+                CurrentName.Push(name);
+                obj ??= new T();
+                if (obj.Context == null || obj.Context != Context)
+                {
+                    // reinitialize object
+                    obj.Init(CurrentPointer);
+                }
+                onPreSerialize?.Invoke(obj);
+                obj.Serialize(this);
             }
-            onPreSerialize?.Invoke(obj);
-            obj.Serialize(this);
-            Depth--;
-            CurrentName.Pop();
+            finally
+            {
+                Depth--;
+                CurrentName.Pop();
+            }
             return obj;
         }
         public override T[] SerializeArray<T>(T[] obj, long count, string name = null) {

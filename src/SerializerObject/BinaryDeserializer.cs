@@ -317,16 +317,22 @@ namespace BinarySerializer
                 if (IsSerializerLogEnabled) 
                     Context.SerializerLog.Log($"{logString}(Object: {typeof(T)}) {name ?? DefaultName}");
 
-                Depth++;
-                onPreSerialize?.Invoke(instance);
-                instance.Serialize(this);
-                Depth--;
-
-                if (isLogTemporarilyDisabled)
+                try
                 {
-                    DisableSerializerLogForObject = false;
-                    if (IsSerializerLogEnabled)
-                        Context.SerializerLog.Log($"{logString}({typeof(T)}) {name ?? DefaultName}: {instance.ShortLog ?? "null"}");
+                    Depth++;
+                    onPreSerialize?.Invoke(instance);
+                    instance.Serialize(this);
+                }
+                finally
+                {
+                    Depth--;
+
+                    if (isLogTemporarilyDisabled)
+                    {
+                        DisableSerializerLogForObject = false;
+                        if (IsSerializerLogEnabled)
+                            Context.SerializerLog.Log($"{logString}({typeof(T)}) {name ?? DefaultName}: {instance.ShortLog ?? "null"}");
+                    }
                 }
             }
             else

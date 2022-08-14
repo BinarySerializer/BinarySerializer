@@ -216,14 +216,20 @@ namespace BinarySerializer
 
         public override T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null)
         {
-            Depth++;
+            try
+            {
+                Depth++;
 
-            if (obj.Offset == null)
-                obj.Init(CurrentPointer);
+                if (obj.Offset == null)
+                    obj.Init(CurrentPointer);
 
-            onPreSerialize?.Invoke(obj);
-            obj.Serialize(this);
-            Depth--;
+                onPreSerialize?.Invoke(obj);
+                obj.Serialize(this);
+            }
+            finally
+            {
+                Depth--;
+            }
             return obj;
         }
 
@@ -242,17 +248,22 @@ namespace BinarySerializer
 
         public override Pointer<T> SerializePointer<T>(Pointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null)
         {
-            Depth++;
-
-            CurrentFilePosition += size switch
+            try
             {
-                PointerSize.Pointer16 => 2,
-                PointerSize.Pointer32 => 4,
-                PointerSize.Pointer64 => 8,
-                _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
-            };
+                Depth++;
 
-            Depth--;
+                CurrentFilePosition += size switch
+                {
+                    PointerSize.Pointer16 => 2,
+                    PointerSize.Pointer32 => 4,
+                    PointerSize.Pointer64 => 8,
+                    _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
+                };
+            }
+            finally
+            {
+                Depth--;
+            }
             return obj;
         }
 
