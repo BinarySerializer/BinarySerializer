@@ -12,12 +12,47 @@ namespace BinarySerializer
             long bitValue = BitHelpers.ExtractBits64(Value, length, Position, sign: sign);
             T t = (T)LongToObject<T>(bitValue, name: name);
 
-            if (SerializerObject.IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{LogPrefix}  {Position}_{length} ({typeof(T).Name}) {name ?? "<no name>"}: {(t?.ToString() ?? "null")}");
+            if (SerializerObject.IsSerializerLogEnabled && !DisableSerializerLogForObject)
+                Context.SerializerLog.Log($"{LogPrefix}{Position}_{length} ({typeof(T).Name}) {name ?? DefaultName}: {(t?.ToString() ?? "null")}");
 
             Position += length;
 
             return t;
+        }
+
+        public override T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null) {
+            // There is no caching for BitSerializable objects
+            T instance = new T();
+
+            long pos = Position;
+
+            // Initialize the instance
+            instance.Init(ValueOffset, pos);
+
+            string logString = SerializerObject.IsSerializerLogEnabled ? LogPrefix : null;
+            bool isLogTemporarilyDisabled = false;
+            if (!DisableSerializerLogForObject && instance.UseShortLog) {
+                DisableSerializerLogForObject = true;
+                isLogTemporarilyDisabled = true;
+            }
+
+            if (SerializerObject.IsSerializerLogEnabled)
+                Context.SerializerLog.Log($"{logString}{pos} (Object: {typeof(T)}) {name ?? DefaultName}");
+
+            try {
+                Depth++;
+                onPreSerialize?.Invoke(instance);
+                instance.Serialize(this);
+            } finally {
+                Depth--;
+
+                if (isLogTemporarilyDisabled) {
+                    DisableSerializerLogForObject = false;
+                    if (SerializerObject.IsSerializerLogEnabled)
+                        Context.SerializerLog.Log($"{logString}{pos}_{instance?.Size ?? 0} ({typeof(T)}) {name ?? DefaultName}: {instance.ShortLog ?? "null"}");
+                }
+            }
+            return instance;
         }
 
         protected object LongToObject<T>(long input, string name = null) 

@@ -12,12 +12,50 @@ namespace BinarySerializer
             long valueToWrite = ObjectToLong<T>(value);
             Value = BitHelpers.SetBits64(Value, valueToWrite, length, Position, sign: sign);
 
-            if (SerializerObject.IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{LogPrefix}  {Position}_{length} ({typeof(T).Name}) {name ?? "<no name>"}: {valueToWrite}");
+            if (SerializerObject.IsSerializerLogEnabled && !DisableSerializerLogForObject)
+                Context.SerializerLog.Log($"{LogPrefix}  {Position}_{length} ({typeof(T).Name}) {name ?? DefaultName}: {valueToWrite}");
 
             Position += length;
 
             return value;
+        }
+
+        public override T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null) {
+            long pos = Position;
+            if (obj == null) {
+                obj = new T();
+                //obj.Init(ValueOffset, pos);
+            }
+
+            // reinitialize object
+            obj.Init(ValueOffset, pos);
+
+            string logString = SerializerObject.IsSerializerLogEnabled ? LogPrefix : null;
+            bool isLogTemporarilyDisabled = false;
+
+            if (!DisableSerializerLogForObject && obj.UseShortLog) {
+                DisableSerializerLogForObject = true;
+                isLogTemporarilyDisabled = true;
+            }
+
+            if (SerializerObject.IsSerializerLogEnabled)
+                Context.SerializerLog.Log($"{logString}{pos} (Object: {typeof(T)}) {name ?? DefaultName}");
+
+            try {
+                Depth++;
+                onPreSerialize?.Invoke(obj);
+                obj.Serialize(this);
+            } finally {
+                Depth--;
+
+                if (isLogTemporarilyDisabled) {
+                    DisableSerializerLogForObject = false;
+                    if (SerializerObject.IsSerializerLogEnabled)
+                        Context.SerializerLog.Log($"{logString}{pos}_{obj?.Size ?? 0} ({typeof(T)}) {name ?? DefaultName}: {obj.ShortLog}");
+                }
+            }
+
+            return obj;
         }
 
         protected long ObjectToLong<T>(T value) 
