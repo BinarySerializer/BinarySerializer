@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,7 +11,12 @@ namespace BinarySerializer
     {
         #region Constructors
 
-        public Context(string basePath, ISerializerSettings settings = null, ISerializerLog serializerLog = null, IFileManager fileManager = null, ISystemLog systemLog = null)
+        public Context(
+            string basePath, 
+            ISerializerSettings? settings = null, 
+            ISerializerLog? serializerLog = null, 
+            IFileManager? fileManager = null, 
+            ISystemLog? systemLog = null)
         {
             // Set properties from parameters
             FileManager = fileManager ?? new DefaultFileManager();
@@ -30,16 +36,14 @@ namespace BinarySerializer
 
         #region Abstraction
 
-#nullable enable
         public IFileManager FileManager { get; }
         public ISystemLog? SystemLog { get; }
-#nullable restore
 
         #endregion
 
         #region Internal Fields
 
-        internal object _threadLock = new object();
+        internal object _threadLock = new();
 
         #endregion
 
@@ -57,19 +61,24 @@ namespace BinarySerializer
         public ISerializerSettings Settings { get; }
 
         protected Dictionary<Type, object> AdditionalSettings { get; }
-        public T GetSettings<T>(bool throwIfNotFound = true) 
+        public T GetSettings<T>()
+            where T : class
         {
-            var s = AdditionalSettings.TryGetValue(typeof(T), out object settings) ? settings : null;
-
-            if (s != null) 
-                return (T)s;
-
-            if (throwIfNotFound)
+            if (!AdditionalSettings.TryGetValue(typeof(T), out object settings))
                 throw new ContextException($"The requested serializer settings of type {typeof(T)} could not be found");
+            
+            return (T)settings;
+        }
+        public T? TryGetSettings<T>()
+            where T : class
+        {
+            if (!AdditionalSettings.TryGetValue(typeof(T), out object settings))
+                return default;
 
-            return default;
+            return (T)settings;
         }
         public T AddSettings<T>(T settings)
+            where T : class
         {
             AdditionalSettings[typeof(T)] = settings;
             return settings;
@@ -79,10 +88,12 @@ namespace BinarySerializer
             AdditionalSettings[settingsType] = settings;
         }
         public void RemoveSettings<T>()
+            where T : class
         {
             AdditionalSettings.Remove(typeof(T));
         }
         public bool HasSettings<T>()
+            where T : class
         {
             return AdditionalSettings.ContainsKey(typeof(T));
         }
@@ -92,6 +103,8 @@ namespace BinarySerializer
         public bool SavePointersForRelocation => Settings.SavePointersForRelocation;
 
         #endregion
+
+#nullable restore
 
         #region Storage
 
