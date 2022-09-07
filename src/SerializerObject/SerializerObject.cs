@@ -408,7 +408,7 @@ namespace BinarySerializer
                     Context.AddFile(new StreamFile(Context, key, typeStream, parentPointer: CurrentPointer));
                 }
 
-                return DoAt(Context.GetFile(key).StartPointer, func);
+                return DoAt(Context.GetRequiredFile(key).StartPointer, func);
             }
             finally
             {
@@ -496,14 +496,23 @@ namespace BinarySerializer
 
         #region Settings
 
-        public T GetSettings<T>() => Context.GetSettings<T>();
+        public T GetSettings<T>() where T : class => Context.GetRequiredSettings<T>();
 
         #endregion
 
         #region Pre-Defined Pointers
 
-        public virtual Pointer GetPreDefinedPointer(string key, bool required = true) => Context.GetPreDefinedPointer(key, CurrentBinaryFile, required);
-        public virtual Pointer GetPreDefinedPointer(Enum key, bool required = true) => Context.GetPreDefinedPointer(key, CurrentBinaryFile, required);
+#nullable enable
+        public virtual Pointer GetRequiredPreDefinedPointer(string key) =>
+            Context.GetRequiredPreDefinedPointer(key, CurrentBinaryFile);
+        public virtual Pointer? GetPreDefinedPointer(string key) =>
+            Context.GetPreDefinedPointer(key, CurrentBinaryFile);
+
+        public virtual Pointer GetRequiredPreDefinedPointer(Enum key) => 
+            Context.GetRequiredPreDefinedPointer(key, CurrentBinaryFile);
+        public virtual Pointer? GetPreDefinedPointer(Enum key) =>
+            Context.GetPreDefinedPointer(key, CurrentBinaryFile);
+#nullable restore
 
         #endregion
     }

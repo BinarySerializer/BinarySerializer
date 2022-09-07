@@ -61,7 +61,7 @@ namespace BinarySerializer
         public ISerializerSettings Settings { get; }
 
         protected Dictionary<Type, object> AdditionalSettings { get; }
-        public T GetSettings<T>()
+        public T GetRequiredSettings<T>()
             where T : class
         {
             if (!AdditionalSettings.TryGetValue(typeof(T), out object settings))
@@ -69,7 +69,7 @@ namespace BinarySerializer
             
             return (T)settings;
         }
-        public T? TryGetSettings<T>()
+        public T? GetSettings<T>()
             where T : class
         {
             if (!AdditionalSettings.TryGetValue(typeof(T), out object settings))
@@ -80,12 +80,15 @@ namespace BinarySerializer
         public T AddSettings<T>(T settings)
             where T : class
         {
-            AdditionalSettings[typeof(T)] = settings;
+            AdditionalSettings[typeof(T)] = settings ?? throw new ArgumentNullException(nameof(settings));
             return settings;
         }
         public void AddSettings(object settings, Type settingsType)
         {
-            AdditionalSettings[settingsType] = settings;
+            if (settingsType == null) 
+                throw new ArgumentNullException(nameof(settingsType));
+            
+            AdditionalSettings[settingsType] = settings ?? throw new ArgumentNullException(nameof(settings));
         }
         public void RemoveSettings<T>()
             where T : class
@@ -104,31 +107,48 @@ namespace BinarySerializer
 
         #endregion
 
-#nullable restore
-
         #region Storage
 
         protected Dictionary<string, object> ObjectStorage { get; }
 
-        public T GetStoredObject<T>(string id, bool throwIfNotFound = false)
+        public T GetRequiredStoredObject<T>(string id)
+            where T : class
         {
-            if (ObjectStorage.ContainsKey(id)) 
-                return (T)ObjectStorage[id];
-
-            if (throwIfNotFound)
+            if (id == null) 
+                throw new ArgumentNullException(nameof(id));
+            
+            if (!ObjectStorage.TryGetValue(id, out object obj))
                 throw new ContextException($"The requested object with ID {id} could not be found");
 
-            return default;
+            return (T)obj;
+        }
+        public T? GetStoredObject<T>(string id)
+            where T : class
+        {
+            if (id == null)
+                throw new ArgumentNullException(nameof(id));
+            
+            if (!ObjectStorage.TryGetValue(id, out object obj))
+                return default;
+
+            return (T)obj;
         }
 
         public void RemoveStoredObject(string id)
         {
+            if (id == null)
+                throw new ArgumentNullException(nameof(id));
+
             ObjectStorage.Remove(id);
         }
 
         public T StoreObject<T>(string id, T obj)
+            where T : class
         {
-            ObjectStorage[id] = obj;
+            if (id == null) 
+                throw new ArgumentNullException(nameof(id));
+            
+            ObjectStorage[id] = obj ?? throw new ArgumentNullException(nameof(obj));
             return obj;
         }
 
@@ -136,22 +156,31 @@ namespace BinarySerializer
 
         #region Pre-Defined Pointers
 
-        protected Dictionary<string, long> PreDefinedPointers { get; set; }
+        protected Dictionary<string, long>? PreDefinedPointers { get; set; }
 
         public void AddPreDefinedPointer(string key, long pointer)
         {
+            if (key == null) 
+                throw new ArgumentNullException(nameof(key));
+            
             PreDefinedPointers ??= new Dictionary<string, long>();
 
             PreDefinedPointers[key] = pointer;
         }
         public void AddPreDefinedPointer(Enum key, long pointer)
         {
+            if (key == null) 
+                throw new ArgumentNullException(nameof(key));
+            
             PreDefinedPointers ??= new Dictionary<string, long>();
 
             PreDefinedPointers[key.ToString()] = pointer;
         }
         public void AddPreDefinedPointers(IReadOnlyCollection<KeyValuePair<string, long>> pointers)
         {
+            if (pointers == null) 
+                throw new ArgumentNullException(nameof(pointers));
+            
             PreDefinedPointers ??= new Dictionary<string, long>();
 
             foreach (var p in pointers)
@@ -160,25 +189,57 @@ namespace BinarySerializer
         public void AddPreDefinedPointers<T>(IReadOnlyCollection<KeyValuePair<T, long>> pointers)
             where T : Enum
         {
+            if (pointers == null) 
+                throw new ArgumentNullException(nameof(pointers));
+            
             PreDefinedPointers ??= new Dictionary<string, long>();
 
             foreach (var p in pointers)
                 PreDefinedPointers[p.Key.ToString()] = p.Value;
         }
 
-        public Pointer GetPreDefinedPointer(string key, BinaryFile file, bool required = true)
+        public Pointer GetRequiredPreDefinedPointer(string key, BinaryFile file)
         {
-            if (PreDefinedPointers?.ContainsKey(key) != true)
-            {
-                if (required)
-                    throw new ContextException($"Pre-defined pointer with key {key} was not found in the context using file {file?.FilePath}");
-                else
-                    return null;
-            }
+            if (key == null) 
+                throw new ArgumentNullException(nameof(key));
+            if (file == null) 
+                throw new ArgumentNullException(nameof(file));
+            
+            if (PreDefinedPointers == null || !PreDefinedPointers.TryGetValue(key, out long value))
+                throw new ContextException($"Pre-defined pointer with key {key} was not found in the context using file {file.FilePath}");
 
-            return new Pointer(PreDefinedPointers[key], file);
+            return new Pointer(value, file);
         }
-        public Pointer GetPreDefinedPointer(Enum key, BinaryFile file, bool required = true) => GetPreDefinedPointer(key.ToString(), file, required);
+        public Pointer? GetPreDefinedPointer(string key, BinaryFile file)
+        {
+            if (key == null)
+                throw new ArgumentNullException(nameof(key));
+            if (file == null)
+                throw new ArgumentNullException(nameof(file));
+
+            if (PreDefinedPointers == null || !PreDefinedPointers.TryGetValue(key, out long value))
+                return null;
+
+            return new Pointer(value, file);
+        }
+        public Pointer GetRequiredPreDefinedPointer(Enum key, BinaryFile file)
+        {
+            if (key == null) 
+                throw new ArgumentNullException(nameof(key));
+            if (file == null) 
+                throw new ArgumentNullException(nameof(file));
+
+            return GetRequiredPreDefinedPointer(key.ToString(), file);
+        }
+        public Pointer? GetPreDefinedPointer(Enum key, BinaryFile file)
+        {
+            if (key == null) 
+                throw new ArgumentNullException(nameof(key));
+            if (file == null) 
+                throw new ArgumentNullException(nameof(file));
+
+            return GetPreDefinedPointer(key.ToString(), file);
+        }
 
         #endregion
 
@@ -193,18 +254,46 @@ namespace BinarySerializer
 
         public Stream GetFileStream(string relativePath)
         {
-            Stream str = FileManager.GetFileReadStream(GetAbsoluteFilePath(NormalizePath(relativePath, false)));
-            return str;
-        }
-        public BinaryFile GetFile(string relativePath)
-        {
-            string path = NormalizePath(relativePath, false);
-            return MemoryMap.Files.FirstOrDefault<BinaryFile>(f => f.FilePath?.ToLower() == path?.ToLower() || f.Alias?.ToLower() == relativePath?.ToLower());
+            if (relativePath == null) 
+                throw new ArgumentNullException(nameof(relativePath));
+            
+            return FileManager.GetFileReadStream(GetAbsoluteFilePath(NormalizePath(relativePath, false)));
         }
 
-        public virtual string GetAbsoluteFilePath(string relativePath) => BasePath + relativePath;
+        public BinaryFile GetRequiredFile(string relativePath)
+        {
+            if (relativePath == null)
+                throw new ArgumentNullException(nameof(relativePath));
+
+            BinaryFile? file = GetFile(relativePath);
+
+            if (file == null)
+                throw new ContextException($"The requested file {relativePath} was not found");
+
+            return file;
+        }
+        public BinaryFile? GetFile(string relativePath)
+        {
+            if (relativePath == null)
+                throw new ArgumentNullException(nameof(relativePath));
+
+            string path = NormalizePath(relativePath, false);
+            return MemoryMap.Files.FirstOrDefault(f => f.FilePath?.ToLower() == path.ToLower() || f.Alias?.ToLower() == relativePath.ToLower());
+        }
+
+        public virtual string GetAbsoluteFilePath(string relativePath)
+        {
+            if (relativePath == null)
+                throw new ArgumentNullException(nameof(relativePath));
+
+            return BasePath + relativePath;
+        }
+
         public virtual string NormalizePath(string path, bool isDirectory)
         {
+            if (path == null) 
+                throw new ArgumentNullException(nameof(path));
+            
             // Get the path separator character
             string separatorChar = SeparatorChar.ToString();
 
@@ -226,6 +315,9 @@ namespace BinarySerializer
         public T AddFile<T>(T file)
             where T : BinaryFile
         {
+            if (file == null) 
+                throw new ArgumentNullException(nameof(file));
+            
             if (MemoryMap.Files.Any(x => x.FilePath == file.FilePath))
                 throw new ContextException($"A file with the path '{file.FilePath}' has already been added to the context");
 
@@ -235,8 +327,14 @@ namespace BinarySerializer
 
             return file;
         }
-        public void RemoveFile(string filePath) => RemoveFile(GetFile(filePath));
-        public void RemoveFile(BinaryFile file)
+        public void RemoveFile(string? filePath)
+        {
+            if (filePath == null) 
+                return;
+
+            RemoveFile(GetFile(filePath));
+        }
+        public void RemoveFile(BinaryFile? file)
         {
             if (file is null)
                 return;
@@ -252,37 +350,46 @@ namespace BinarySerializer
         public Pointer<T> FilePointer<T>(string relativePath) 
             where T : BinarySerializable, new()
         {
+            if (relativePath == null) 
+                throw new ArgumentNullException(nameof(relativePath));
+            
             return new Pointer<T>(FilePointer(relativePath));
         }
         public Pointer FilePointer(string relativePath)
         {
-            BinaryFile f = GetFile(relativePath);
-
-            if (f == null)
-                throw new ContextException($"File with path {relativePath} is not loaded in this Context!");
-
-            return f.StartPointer;
+            if (relativePath == null) 
+                throw new ArgumentNullException(nameof(relativePath));
+            
+            return GetRequiredFile(relativePath).StartPointer;
         }
-        public bool FileExists(BinaryFile file)
+        public bool FileExists(BinaryFile? file)
         {
+            if (file == null)
+                return false;
+
             return MemoryMap.Files.Contains(file);
         }
-        public bool FileExists(string relativePath)
+        public bool FileExists(string? relativePath)
         {
-            BinaryFile f = GetFile(relativePath);
-            return f != null;
+            if (relativePath == null)
+                return false;
+
+            return GetFile(relativePath) != null;
         }
 
-        public T GetMainFileObject<T>(string relativePath) 
+        public T? GetMainFileObject<T>(string? relativePath) 
             where T : BinarySerializable
         {
+            if (relativePath == null)
+                return null;
+
             return GetMainFileObject<T>(GetFile(relativePath));
         }
-        public T GetMainFileObject<T>(BinaryFile file) 
+        public T? GetMainFileObject<T>(BinaryFile? file) 
             where T : BinarySerializable
         {
             if (file == null)
-                return default;
+                return null;
 
             Pointer ptr = file.StartPointer;
             return Cache.FromOffset<T>(ptr);
@@ -292,7 +399,7 @@ namespace BinarySerializer
 
         #region Serializers
 
-        private BinaryDeserializer deserializer;
+        private BinaryDeserializer? deserializer;
         public BinaryDeserializer Deserializer
         {
             get
@@ -310,7 +417,7 @@ namespace BinarySerializer
             }
         }
 
-        private BinarySerializer serializer;
+        private BinarySerializer? serializer;
         public BinarySerializer Serializer
         {
             get
@@ -332,7 +439,7 @@ namespace BinarySerializer
 
         #region Events
 
-        public event EventHandler Disposed;
+        public event EventHandler? Disposed;
 
         #endregion
 
