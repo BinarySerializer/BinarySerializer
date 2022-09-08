@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
+using System.Runtime.Serialization;
 
 namespace BinarySerializer
 {
@@ -52,9 +53,10 @@ namespace BinarySerializer
         /// Initializes the struct from an offset
         /// </summary>
         /// <param name="offset">The offset the struct is located at</param>
+        /// <param name="bitOffset">The bit offset for this struct</param>
         public void Init(Pointer offset, long bitOffset) 
         {
-            Offset = offset;
+            Offset = offset ?? throw new ArgumentNullException(nameof(offset));
             BitOffset = bitOffset;
             if (Context != null && offset.Context != Context) 
                 OnChangeContext(Context, offset.Context);
@@ -64,13 +66,13 @@ namespace BinarySerializer
         /// <summary>
         /// Handles the data serialization
         /// </summary>
-        /// <param name="s">The serializer object</param>
+        /// <param name="b">The serializer object</param>
         public abstract void SerializeImpl(BitSerializerObject b);
 
         /// <summary>
         /// Serializes the data struct
         /// </summary>
-        /// <param name="s">The serializer</param>
+        /// <param name="b">The serializer</param>
         public void Serialize(BitSerializerObject b) 
         {
             OnPreSerialize(b);
@@ -83,7 +85,6 @@ namespace BinarySerializer
         protected virtual void OnPreSerialize(BitSerializerObject b) { }
         protected virtual void OnPostSerialize(BitSerializerObject b) { }
 
-        protected virtual void OnChangeContext(Context oldContext, Context newContext) {
-        }
+        protected virtual void OnChangeContext(Context oldContext, Context newContext) { }
     }
 }

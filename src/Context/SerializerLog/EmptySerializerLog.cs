@@ -1,4 +1,5 @@
-﻿namespace BinarySerializer
+﻿#nullable enable
+namespace BinarySerializer
 {
     /// <summary>
     /// An empty serializer log which is always disabled
@@ -7,7 +8,7 @@
     {
         public bool IsEnabled => false;
 
-        public void Log(object obj) { }
+        public void Log(object? obj) { }
         public void Dispose() { }
     }
 }
