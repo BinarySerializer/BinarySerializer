@@ -1,4 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System;
+using System.Runtime.CompilerServices;
 
 namespace BinarySerializer
 {
@@ -23,6 +25,9 @@ namespace BinarySerializer
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ExtractBits(byte[] buffer, int count, int offset)
         {
+            if (buffer == null) 
+                throw new ArgumentNullException(nameof(buffer));
+            
             int value = 0;
             int bufferOffset = offset / 8;
 
@@ -40,6 +45,9 @@ namespace BinarySerializer
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long ExtractBits64(byte[] buffer, int count, int offset)
         {
+            if (buffer == null) 
+                throw new ArgumentNullException(nameof(buffer));
+            
             long value = 0;
             int bufferOffset = offset / 8;
 
