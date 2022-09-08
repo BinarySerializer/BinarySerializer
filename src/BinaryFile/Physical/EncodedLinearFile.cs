@@ -1,12 +1,20 @@
-﻿using System.IO;
+﻿#nullable enable
+using System;
+using System.IO;
 
 namespace BinarySerializer
 {
     public class EncodedLinearFile : PhysicalFile
     {
-        public EncodedLinearFile(Context context, string filePath, IStreamEncoder encoder, Endian? endianness = null, long? fileLength = null) : base(context, filePath, endianness, fileLength: fileLength)
+        public EncodedLinearFile(
+            Context context, 
+            string filePath, 
+            IStreamEncoder encoder, 
+            Endian? endianness = null, 
+            long? fileLength = null) 
+            : base(context, filePath, endianness, fileLength: fileLength)
         {
-            Encoder = encoder;
+            Encoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
             length = fileLength;
         }
 
@@ -59,11 +67,11 @@ namespace BinarySerializer
         public override Writer CreateWriter() 
         {
             Stream memStream = new MemoryStream();
-            Writer writer = new Writer(memStream, isLittleEndian: Endianness == Endian.Little);
+            Writer writer = new(memStream, isLittleEndian: Endianness == Endian.Little);
             return writer;
         }
 
-        public override void EndWrite(Writer writer) 
+        public override void EndWrite(Writer? writer) 
         {
             if (writer != null) 
             {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.IO;
 
 namespace BinarySerializer
@@ -12,7 +13,7 @@ namespace BinarySerializer
             Stream stream, 
             Endian? endianness = null,
             long memoryMappedPriority = -1, 
-            Pointer parentPointer = null, 
+            Pointer? parentPointer = null, 
             bool leaveOpen = false) 
             : base(context, name, endianness, baseAddress, memoryMappedPriority: memoryMappedPriority, parentPointer: parentPointer)
         {
@@ -28,12 +29,12 @@ namespace BinarySerializer
             byte[] buffer, 
             Endian? endianness = null,
             long memoryMappedPriority = -1, 
-            Pointer parentPointer = null, 
+            Pointer? parentPointer = null, 
             bool leaveOpen = false) 
             : this(context, name, baseAddress, new MemoryStream(buffer), endianness, memoryMappedPriority, parentPointer, leaveOpen)
         { }
 
-        private Stream _stream;
+        private Stream? _stream;
 
         public override long Length { get; }
         public override bool IsMemoryMapped => true;
@@ -48,13 +49,13 @@ namespace BinarySerializer
 
         public override Reader CreateReader()
         {
-            Reader reader = new Reader(Stream, isLittleEndian: Endianness == Endian.Little, leaveOpen: LeaveOpen);
+            Reader reader = new(Stream, isLittleEndian: Endianness == Endian.Little, leaveOpen: LeaveOpen);
             return reader;
         }
 
         public override Writer CreateWriter()
         {
-            Writer writer = new Writer(Stream, isLittleEndian: Endianness == Endian.Little, leaveOpen: LeaveOpen);
+            Writer writer = new(Stream, isLittleEndian: Endianness == Endian.Little, leaveOpen: LeaveOpen);
             Stream.Position = 0;
             return writer;
         }
@@ -67,7 +68,8 @@ namespace BinarySerializer
             // Dispose and remove the reference to the stream
             if (!LeaveOpen)
                 _stream?.Dispose();
-            Stream = null;
+
+            _stream = null;
         }
     }
 }
