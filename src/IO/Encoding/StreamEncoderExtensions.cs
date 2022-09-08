@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿#nullable enable
+using System;
+using System.IO;
 
 namespace BinarySerializer
 {
@@ -15,9 +17,14 @@ namespace BinarySerializer
         /// <returns>The decoded data</returns>
         public static byte[] DecodeBuffer(this IStreamEncoder encoder, byte[] data)
         {
+            if (encoder == null) 
+                throw new ArgumentNullException(nameof(encoder));
+            if (data == null) 
+                throw new ArgumentNullException(nameof(data));
+
             // Create memory streams
-            using MemoryStream inputStream = new MemoryStream(data);
-            using MemoryStream outputStream = new MemoryStream();
+            using MemoryStream inputStream = new(data);
+            using MemoryStream outputStream = new();
 
             // Decode the data
             encoder.DecodeStream(inputStream, outputStream);
@@ -34,9 +41,14 @@ namespace BinarySerializer
         /// <returns>The encoded data</returns>
         public static byte[] EncodeBuffer(this IStreamEncoder encoder, byte[] data)
         {
+            if (encoder == null)
+                throw new ArgumentNullException(nameof(encoder));
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+
             // Create memory streams
-            using MemoryStream inputStream = new MemoryStream(data);
-            using MemoryStream outputStream = new MemoryStream();
+            using MemoryStream inputStream = new(data);
+            using MemoryStream outputStream = new();
 
             // Encode the data
             encoder.EncodeStream(inputStream, outputStream);

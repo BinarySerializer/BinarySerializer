@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.IO;
 using System.Text;
 
@@ -19,7 +20,12 @@ namespace BinarySerializer
 
         public void DecodeStream(Stream input, Stream output)
         {
-            using Reader reader = new Reader(input, isLittleEndian: false, leaveOpen: true);
+            if (input == null) 
+                throw new ArgumentNullException(nameof(input));
+            if (output == null) 
+                throw new ArgumentNullException(nameof(output));
+
+            using Reader reader = new(input, isLittleEndian: false, leaveOpen: true);
 
             byte[] decompressed;
 
@@ -55,6 +61,8 @@ namespace BinarySerializer
         }
 
         public void EncodeStream(Stream input, Stream output) => throw new NotImplementedException();
+
+#nullable disable
 
         // Huffman decoding
         private enum Command 

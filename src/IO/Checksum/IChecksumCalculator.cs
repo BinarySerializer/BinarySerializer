@@ -1,4 +1,5 @@
-﻿namespace BinarySerializer
+﻿#nullable enable
+namespace BinarySerializer
 {
     /// <summary>
     /// Interface for a checksum calculator with the generic value

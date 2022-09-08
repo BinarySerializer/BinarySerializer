@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.IO;
 using System.Text;
 
@@ -10,7 +11,8 @@ namespace BinarySerializer
     {
         #region Constructors
 
-        public Writer(Stream stream, bool isLittleEndian = true, bool leaveOpen = false) : base(new StreamWrapper(stream), new UTF8Encoding(), leaveOpen)
+        public Writer(Stream stream, bool isLittleEndian = true, bool leaveOpen = false) 
+            : base(new StreamWrapper(stream), new UTF8Encoding(), leaveOpen)
         {
             IsLittleEndian = isLittleEndian;
         }
@@ -29,12 +31,12 @@ namespace BinarySerializer
         protected uint BytesSinceAlignStart { get; set; }
         protected bool AutoAlignOn { get; set; }
 
-        protected IXORCalculator XORCalculator
+        protected IXORCalculator? XORCalculator
         {
             get => BaseStream.XORCalculator;
             set => BaseStream.XORCalculator = value;
         }
-        protected IChecksumCalculator ChecksumCalculator
+        protected IChecksumCalculator? ChecksumCalculator
         {
             get => BaseStream.ChecksumCalculator;
             set => BaseStream.ChecksumCalculator = value;
@@ -46,43 +48,49 @@ namespace BinarySerializer
 
         public override void Write(int value)
         {
-            var data = BitConverter.GetBytes(value);
-            if (IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(data);
+            byte[] data = BitConverter.GetBytes(value);
+            if (IsLittleEndian != BitConverter.IsLittleEndian) 
+                Array.Reverse(data);
             Write(data);
         }
 
         public override void Write(short value)
         {
-            var data = BitConverter.GetBytes(value);
-            if (IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(data);
+            byte[] data = BitConverter.GetBytes(value);
+            if (IsLittleEndian != BitConverter.IsLittleEndian)
+                Array.Reverse(data);
             Write(data);
         }
 
         public override void Write(uint value)
         {
-            var data = BitConverter.GetBytes(value);
-            if (IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(data);
+            byte[] data = BitConverter.GetBytes(value);
+            if (IsLittleEndian != BitConverter.IsLittleEndian) 
+                Array.Reverse(data);
             Write(data);
         }
 
         public override void Write(ushort value)
         {
-            var data = BitConverter.GetBytes(value);
-            if (IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(data);
+            byte[] data = BitConverter.GetBytes(value);
+            if (IsLittleEndian != BitConverter.IsLittleEndian) 
+                Array.Reverse(data);
             Write(data);
         }
 
         public override void Write(long value)
         {
-            var data = BitConverter.GetBytes(value);
-            if (IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(data);
+            byte[] data = BitConverter.GetBytes(value);
+            if (IsLittleEndian != BitConverter.IsLittleEndian)
+                Array.Reverse(data);
             Write(data);
         }
 
         public override void Write(ulong value)
         {
-            var data = BitConverter.GetBytes(value);
-            if (IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(data);
+            byte[] data = BitConverter.GetBytes(value);
+            if (IsLittleEndian != BitConverter.IsLittleEndian) 
+                Array.Reverse(data);
             Write(data);
         }
 
@@ -105,41 +113,43 @@ namespace BinarySerializer
 
         public override void Write(float value)
         {
-            var data = BitConverter.GetBytes(value);
-            if (IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(data);
+            byte[] data = BitConverter.GetBytes(value);
+            if (IsLittleEndian != BitConverter.IsLittleEndian) 
+                Array.Reverse(data);
             Write(data);
         }
 
         public override void Write(double value)
         {
-            var data = BitConverter.GetBytes(value);
-            if (IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(data);
+            byte[] data = BitConverter.GetBytes(value);
+            if (IsLittleEndian != BitConverter.IsLittleEndian) 
+                Array.Reverse(data);
             Write(data);
         }
 
-        public void WriteNullDelimitedString(string value, Encoding encoding)
+        public void WriteNullDelimitedString(string? value, Encoding encoding)
         {
             if (encoding == null)
                 throw new ArgumentNullException(nameof(encoding));
 
-            if (value == null) value = "";
+            value ??= String.Empty;
             byte[] data = encoding.GetBytes(value + '\0');
             Write(data);
         }
 
-        public void WriteString(string value, long size, Encoding encoding)
+        public void WriteString(string? value, long size, Encoding encoding)
         {
             if (encoding == null)
                 throw new ArgumentNullException(nameof(encoding));
 
-            value ??= "";
-            byte[] data = encoding.GetBytes(value + '\0');
+            value ??= String.Empty;
+            byte[] data = encoding.GetBytes(value);
             if (data.Length != size)
                 Array.Resize(ref data, (int)size);
             Write(data);
         }
 
-        public override void Write(byte[] buffer)
+        public override void Write(byte[]? buffer)
         {
             if (buffer == null)
                 return;
@@ -167,7 +177,8 @@ namespace BinarySerializer
         // To make sure position is a multiple of alignBytes
         public void Align(int alignBytes) 
         {
-            if (BaseStream.Position % alignBytes != 0) {
+            if (BaseStream.Position % alignBytes != 0) 
+            {
                 int length = alignBytes - (int)(BaseStream.Position % alignBytes);
                 byte[] data = new byte[length];
                 Write(data);
@@ -175,7 +186,8 @@ namespace BinarySerializer
         }
         public void AlignOffset(int alignBytes, int offset) 
         {
-            if ((BaseStream.Position - offset) % alignBytes != 0) {
+            if ((BaseStream.Position - offset) % alignBytes != 0)
+            {
                 int length = alignBytes - (int)((BaseStream.Position - offset) % alignBytes);
                 byte[] data = new byte[length];
                 Write(data);
@@ -186,7 +198,8 @@ namespace BinarySerializer
         public void Align(int blockSize, int alignBytes) 
         {
             int rest = blockSize % alignBytes;
-            if (rest > 0) {
+            if (rest > 0) 
+            {
                 int length = alignBytes - rest;
                 byte[] data = new byte[length];
                 Write(data);
@@ -195,7 +208,8 @@ namespace BinarySerializer
 
         public void AutoAlign(int alignBytes) 
         {
-            if (BytesSinceAlignStart % alignBytes != 0) {
+            if (BytesSinceAlignStart % alignBytes != 0) 
+            {
                 int length = alignBytes - (int)(BytesSinceAlignStart % alignBytes);
                 byte[] data = new byte[length];
                 Write(data);
@@ -207,20 +221,23 @@ namespace BinarySerializer
 
         #region XOR & Checksum
 
-        public void BeginXOR(IXORCalculator xorCalculator) => XORCalculator = xorCalculator;
+        public void BeginXOR(IXORCalculator? xorCalculator) => XORCalculator = xorCalculator;
         public void EndXOR() => XORCalculator = null;
-        public IXORCalculator GetXORCalculator() => XORCalculator;
+        public IXORCalculator? GetXORCalculator() => XORCalculator;
         
-        public void BeginCalculateChecksum(IChecksumCalculator checksumCalculator) => ChecksumCalculator = checksumCalculator;
-        public IChecksumCalculator PauseCalculateChecksum()
+        public void BeginCalculateChecksum(IChecksumCalculator? checksumCalculator) => ChecksumCalculator = checksumCalculator;
+        public IChecksumCalculator? PauseCalculateChecksum()
         {
-            IChecksumCalculator c = ChecksumCalculator;
+            IChecksumCalculator? c = ChecksumCalculator;
             ChecksumCalculator = null;
             return c;
 
         }
         public T EndCalculateChecksum<T>() 
         {
+            if (ChecksumCalculator == null)
+                throw new InvalidOperationException("Can't end calculating checksum before beginning");
+
             IChecksumCalculator c = ChecksumCalculator;
             ChecksumCalculator = null;
             return ((IChecksumCalculator<T>)c).ChecksumValue;

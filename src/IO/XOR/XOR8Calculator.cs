@@ -1,4 +1,5 @@
-﻿namespace BinarySerializer
+﻿#nullable enable
+namespace BinarySerializer
 {
     /// <summary>
     /// Class for basic XOR operations with a single byte key

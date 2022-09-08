@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿#nullable enable
+using System;
+using System.IO;
 
 namespace BinarySerializer
 {
@@ -10,16 +12,22 @@ namespace BinarySerializer
     {
         public XOREncoder(IXORCalculator xorCalculator, long length)
         {
-            XORCalculator = xorCalculator;
+            XORCalculator = xorCalculator ?? throw new ArgumentNullException(nameof(xorCalculator));
             Length = length;
         }
 
         public IXORCalculator XORCalculator { get; }
         public long Length { get; }
-        public string Name => $"XOR";
+
+        public string Name => "XOR";
 
         public void DecodeStream(Stream input, Stream output)
         {
+            if (input == null) 
+                throw new ArgumentNullException(nameof(input));
+            if (output == null) 
+                throw new ArgumentNullException(nameof(output));
+            
             byte[] buffer = new byte[Length];
             input.Read(buffer, 0, buffer.Length);
 

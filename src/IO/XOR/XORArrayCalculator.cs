@@ -1,4 +1,7 @@
-﻿namespace BinarySerializer
+﻿#nullable enable
+using System;
+
+namespace BinarySerializer
 {
     /// <summary>
     /// Class for XOR operations with a multi-byte key
@@ -7,7 +10,7 @@
     {
         public XORArrayCalculator(byte[] key, int byteIndex = 0, int? maxLength = null)
         {
-            Key = key;
+            Key = key ?? throw new ArgumentNullException(nameof(key));
             ByteIndex = byteIndex;
             MaxLength = maxLength;
         }

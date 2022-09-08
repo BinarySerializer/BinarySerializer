@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -37,12 +38,12 @@ namespace BinarySerializer
         protected uint BytesSinceAlignStart { get; set; }
         protected bool AutoAlignOn { get; set; }
 
-        protected IXORCalculator XORCalculator
+        protected IXORCalculator? XORCalculator
         {
             get => BaseStream.XORCalculator;
             set => BaseStream.XORCalculator = value;
         }
-        protected IChecksumCalculator ChecksumCalculator
+        protected IChecksumCalculator? ChecksumCalculator
         {
             get => BaseStream.ChecksumCalculator;
             set => BaseStream.ChecksumCalculator = value;
@@ -153,6 +154,8 @@ namespace BinarySerializer
 
         public void ReadBytes(byte[] buffer, int offset, int count, bool throwOnIncompleteRead = true)
         {
+            if (buffer == null) 
+                throw new ArgumentNullException(nameof(buffer));
             if (count < 0) 
                 throw new ArgumentOutOfRangeException(nameof(count), "Non-negative amount of bytes is required");
 
@@ -188,7 +191,7 @@ namespace BinarySerializer
 
         public string ReadNullDelimitedString(Encoding encoding)
         {
-            List<byte> bytes = new List<byte>();
+            List<byte> bytes = new();
             byte b = ReadByte();
 
             while (b != 0x0)
@@ -280,18 +283,21 @@ namespace BinarySerializer
 
         #region XOR & Checksum
 
-        public void BeginXOR(IXORCalculator xorCalculator) => XORCalculator = xorCalculator;
+        public void BeginXOR(IXORCalculator? xorCalculator) => XORCalculator = xorCalculator;
         public void EndXOR() => XORCalculator = null;
-        public IXORCalculator GetXORCalculator() => XORCalculator;
-        public void BeginCalculateChecksum(IChecksumCalculator checksumCalculator) => ChecksumCalculator = checksumCalculator;
-        public IChecksumCalculator PauseCalculateChecksum()
+        public IXORCalculator? GetXORCalculator() => XORCalculator;
+        public void BeginCalculateChecksum(IChecksumCalculator? checksumCalculator) => ChecksumCalculator = checksumCalculator;
+        public IChecksumCalculator? PauseCalculateChecksum()
         {
-            IChecksumCalculator c = ChecksumCalculator;
+            IChecksumCalculator? c = ChecksumCalculator;
             ChecksumCalculator = null;
             return c;
         }
-        public T EndCalculateChecksum<T>() 
+        public T EndCalculateChecksum<T>()
         {
+            if (ChecksumCalculator == null)
+                throw new InvalidOperationException("Can't end calculating checksum before beginning");
+
             IChecksumCalculator c = ChecksumCalculator;
             ChecksumCalculator = null;
             return ((IChecksumCalculator<T>)c).ChecksumValue;
