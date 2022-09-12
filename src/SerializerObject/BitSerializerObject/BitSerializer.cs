@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 
 namespace BinarySerializer 
 {
@@ -7,7 +8,11 @@ namespace BinarySerializer
         public BitSerializer(SerializerObject serializerObject, Pointer valueOffset, string logPrefix, long value) 
             : base(serializerObject, valueOffset, logPrefix, value) { }
 
-        public override T SerializeBits<T>(T value, int length, SignedNumberRepresentation sign = SignedNumberRepresentation.Unsigned, string name = null) 
+        public override T SerializeBits<T>(
+            T value,
+            int length,
+            SignedNumberRepresentation sign = SignedNumberRepresentation.Unsigned,
+            string? name = null)
         {
             long valueToWrite = ObjectToLong<T>(value);
             Value = BitHelpers.SetBits64(Value, valueToWrite, length, Position, sign: sign);
@@ -20,20 +25,21 @@ namespace BinarySerializer
             return value;
         }
 
-        public override T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null) {
+        public override T SerializeObject<T>(T? obj, Action<T>? onPreSerialize = null, string? name = null)
+            where T : class
+        {
             long pos = Position;
-            if (obj == null) {
-                obj = new T();
-                //obj.Init(ValueOffset, pos);
-            }
 
-            // reinitialize object
+            obj ??= new T();
+
+            // Reinitialize object
             obj.Init(ValueOffset, pos);
 
-            string logString = SerializerObject.IsSerializerLogEnabled ? LogPrefix : null;
+            string? logString = LogPrefix;
             bool isLogTemporarilyDisabled = false;
 
-            if (!DisableSerializerLogForObject && obj.UseShortLog) {
+            if (!DisableSerializerLogForObject && obj.UseShortLog) 
+            {
                 DisableSerializerLogForObject = true;
                 isLogTemporarilyDisabled = true;
             }
@@ -41,17 +47,22 @@ namespace BinarySerializer
             if (SerializerObject.IsSerializerLogEnabled)
                 Context.SerializerLog.Log($"{logString}{pos} (Object: {typeof(T)}) {name ?? DefaultName}");
 
-            try {
+            try 
+            {
                 Depth++;
                 onPreSerialize?.Invoke(obj);
                 obj.Serialize(this);
-            } finally {
+            } 
+            finally 
+            {
                 Depth--;
 
-                if (isLogTemporarilyDisabled) {
+                if (isLogTemporarilyDisabled) 
+                {
                     DisableSerializerLogForObject = false;
+                
                     if (SerializerObject.IsSerializerLogEnabled)
-                        Context.SerializerLog.Log($"{logString}{pos}_{obj?.Size ?? 0} ({typeof(T)}) {name ?? DefaultName}: {obj.ShortLog}");
+                        Context.SerializerLog.Log($"{logString}{pos}_{obj.Size} ({typeof(T)}) {name ?? DefaultName}: {obj.ShortLog}");
                 }
             }
 
@@ -102,10 +113,10 @@ namespace BinarySerializer
             else if (Nullable.GetUnderlyingType(typeof(T)) != null) 
             {
                 // It's nullable
-                Type underlyingType = Nullable.GetUnderlyingType(typeof(T));
+                Type? underlyingType = Nullable.GetUnderlyingType(typeof(T));
                 if (underlyingType == typeof(byte))
                 {
-                    var v = (byte?)(object)value;
+                    var v = (byte?)(object?)value;
                     return v ?? 0xFF;
                 } 
                 else 
@@ -114,11 +125,10 @@ namespace BinarySerializer
                 }
             } 
 
-            else if ((object)value is null)
+            else if ((object?)value is null)
                 throw new ArgumentNullException(nameof(value));
             else
                 throw new NotSupportedException($"The specified type {value.GetType().Name} is not supported.");
         }
-
     }
 }
