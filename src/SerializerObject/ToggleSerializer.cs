@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+// TODO: Move out of BinarySerializer base library? Usage is very specific and it doesn't redirect every virtual call.
+
 namespace BinarySerializer
 {
     /// <summary>
     /// A serializer which toggles between reading and writing depending on the name
     /// </summary>
-    public class ToggleSerializer : SerializerObject 
+    public class ToggleSerializer : SerializerObject
     {
         public ToggleSerializer(Context context, Func<string, bool> shouldWriteFunc, Pointer baseOffset) : base(context) {
             // Set properties
@@ -45,6 +47,8 @@ namespace BinarySerializer
         protected Stack<string> CurrentName { get; }
 
         public override long CurrentLength => CurrentSerializer.CurrentLength;
+
+        public override bool HasCurrentPointer => CurrentSerializer.HasCurrentPointer;
 
         /// <summary>
         /// The current binary file being used by the serializer

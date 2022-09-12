@@ -1,11 +1,11 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 
 namespace BinarySerializer
 {
@@ -22,7 +22,7 @@ namespace BinarySerializer
         /// <param name="context">The serializer context</param>
         protected SerializerObject(Context context)
         {
-            Context = context;
+            Context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         #endregion
@@ -36,11 +36,7 @@ namespace BinarySerializer
         #region Protected Properties
 
         protected bool DisableSerializerLogForObject { get; set; }
-
-#nullable enable
         protected IFileManager FileManager => Context.FileManager;
-        public ISystemLog? SystemLog => Context.SystemLog;
-#nullable restore
 
         #endregion
 
@@ -50,6 +46,8 @@ namespace BinarySerializer
         /// The serialize context, containing all the open files and the settings
         /// </summary>
         public Context Context { get; }
+
+        public ISystemLog? SystemLog => Context.SystemLog;
 
         /// <summary>
         /// The current depth when serializing objects
@@ -67,6 +65,12 @@ namespace BinarySerializer
         public uint CurrentLength32 => (uint)CurrentLength;
 
         /// <summary>
+        /// Indicates if the serializer has a current pointer. If one does not exist then most serialize calls
+        /// will result in an exception. Avoid this by calling <see cref="Goto"/> to set a current pointer.
+        /// </summary>
+        public abstract bool HasCurrentPointer { get; }
+
+        /// <summary>
         /// The current binary file being used by the serializer
         /// </summary>
         public abstract BinaryFile CurrentBinaryFile { get; }
@@ -74,7 +78,8 @@ namespace BinarySerializer
         /// <summary>
         /// The current pointer
         /// </summary>
-        public virtual Pointer CurrentPointer => CurrentBinaryFile == null ? null : new Pointer(CurrentAbsoluteOffset, CurrentBinaryFile, size: Context.Settings.LoggingPointerSize ?? CurrentBinaryFile.PointerSize);
+        public virtual Pointer CurrentPointer => 
+            new(CurrentAbsoluteOffset, CurrentBinaryFile, size: Context.Settings.LoggingPointerSize ?? CurrentBinaryFile.PointerSize);
 
         /// <summary>
         /// The current absolute offset
@@ -89,7 +94,7 @@ namespace BinarySerializer
         /// <summary>
         /// Default values for some serializer functions
         /// </summary>
-        public virtual SerializerDefaults Defaults { get; set; }
+        public virtual SerializerDefaults? Defaults { get; set; }
 
         public virtual bool FullSerialize => true;
 
@@ -107,28 +112,55 @@ namespace BinarySerializer
         /// </summary>
         /// <param name="logString">The string to log</param>
         /// <param name="args">The log string arguments</param>
-        [StringFormatMethod("logString")]
+        [JetBrains.Annotations.StringFormatMethod("logString")]
         public abstract void Log(string logString, params object[] args);
 
         #endregion
 
         #region Encoding
 
-        protected List<EncodedState> EncodedFiles { get; } = new List<EncodedState>();
+        private List<EncodedState>? _encodedFiles;
+        protected List<EncodedState> EncodedFiles => _encodedFiles ??= new List<EncodedState>();
 
         protected class EncodedState
         {
-            public Stream Stream { get; set; }
-            public StreamFile File { get; set; }
-            public IStreamEncoder Encoder { get; set; }
+            public EncodedState(Stream stream, StreamFile file, IStreamEncoder encoder)
+            {
+                Stream = stream ?? throw new ArgumentNullException(nameof(stream));
+                File = file ?? throw new ArgumentNullException(nameof(file));
+                Encoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
+            }
+
+            public Stream Stream { get; }
+            public StreamFile File { get; }
+            public IStreamEncoder Encoder { get; }
         }
 
-        public abstract Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false, string filename = null);
+        public abstract Pointer BeginEncoded(
+            IStreamEncoder encoder, 
+            Endian? endianness = null, 
+            bool allowLocalPointers = false, 
+            string? filename = null);
         public abstract void EndEncoded(Pointer endPointer);
-        public abstract void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null);
-        public virtual T DoEncoded<T>(IStreamEncoder encoder, Func<T> action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null)
+        public abstract void DoEncoded(
+            IStreamEncoder? encoder, 
+            Action action, 
+            Endian? endianness = null, 
+            bool allowLocalPointers = false, 
+            string? filename = null);
+
+        // TODO: Either remove this or add additional argument for default return value. We don't want this to return null!
+        public virtual T? DoEncoded<T>(
+            IStreamEncoder? encoder, 
+            Func<T> action, 
+            Endian? endianness = null, 
+            bool allowLocalPointers = false, 
+            string? filename = null)
         {
-            var obj = default(T);
+            if (action == null) 
+                throw new ArgumentNullException(nameof(action));
+            
+            T? obj = default;
 
             DoEncoded(encoder, () =>
             {
@@ -142,14 +174,23 @@ namespace BinarySerializer
 
         #region XOR
 
-        public virtual void BeginXOR(IXORCalculator xorCalculator) { }
+        public virtual void BeginXOR(IXORCalculator? xorCalculator) { }
         public virtual void EndXOR() { }
-        public virtual IXORCalculator GetXOR() => null;
+        public virtual IXORCalculator? GetXOR() => null;
 
-        public virtual void DoXOR(byte xorKey, Action action) => DoXOR(new XOR8Calculator(xorKey), action);
-        public void DoXOR(IXORCalculator xorCalculator, Action action)
+        public virtual void DoXOR(byte xorKey, Action action)
         {
-            var prevCalculator = GetXOR();
+            if (action == null) 
+                throw new ArgumentNullException(nameof(action));
+            
+            DoXOR(new XOR8Calculator(xorKey), action);
+        }
+        public void DoXOR(IXORCalculator? xorCalculator, Action action)
+        {
+            if (action == null) 
+                throw new ArgumentNullException(nameof(action));
+            
+            IXORCalculator? prevCalculator = GetXOR();
 
             if (xorCalculator == null)
                 EndXOR();
@@ -168,9 +209,9 @@ namespace BinarySerializer
 
         #region Positioning
 
-        public abstract void Goto(Pointer offset);
+        public abstract void Goto(Pointer? offset);
 
-        public void Align(int alignBytes = 4, Pointer baseOffset = null)
+        public void Align(int alignBytes = 4, Pointer? baseOffset = null)
         {
             if ((CurrentAbsoluteOffset - (baseOffset?.AbsoluteOffset ?? 0)) % alignBytes != 0)
             {
@@ -180,12 +221,15 @@ namespace BinarySerializer
             }
         }
 
-        public virtual void DoAt(Pointer offset, Action action)
+        public virtual void DoAt(Pointer? offset, Action action)
         {
             if (offset == null) 
                 return;
 
-            Pointer off_current = CurrentPointer;
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+
+            Pointer currentOffset = CurrentPointer;
             Goto(offset);
 
             try
@@ -194,18 +238,21 @@ namespace BinarySerializer
             }
             finally
             {
-                Goto(off_current);
+                Goto(currentOffset);
             }
         }
 
         // TODO: Remove this? This overload causes issues for the size serializer where DoAt is disabled thus causing this to
         //       always return null. A potential fix is to allow for a default value to be specified.
-        public virtual T DoAt<T>(Pointer offset, Func<T> action)
+        public virtual T? DoAt<T>(Pointer? offset, Func<T> action)
         {
             if (offset == null) 
                 return default;
 
-            Pointer off_current = CurrentPointer;
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+
+            Pointer? current = HasCurrentPointer ? CurrentPointer : null;
             Goto(offset);
 
             try
@@ -214,7 +261,7 @@ namespace BinarySerializer
             }
             finally
             {
-                Goto(off_current);
+                Goto(current);
             }
         }
 
@@ -222,31 +269,40 @@ namespace BinarySerializer
 
         #region Checksum
 
-        public abstract T SerializeChecksum<T>(T calculatedChecksum, string name = null);
+        public abstract T SerializeChecksum<T>(T calculatedChecksum, string? name = null);
 
         /// <summary>
         /// Begins calculating byte checksum for all following serialize operations
         /// </summary>
         /// <param name="checksumCalculator">The checksum calculator to use</param>
-        public virtual void BeginCalculateChecksum(IChecksumCalculator checksumCalculator) { }
+        public virtual void BeginCalculateChecksum(IChecksumCalculator? checksumCalculator) { }
 
         /// <summary>
         /// Pauses calculating the checksum and returns the current checksum calculator to be used when resuming
         /// </summary>
         /// <returns>The current checksum calculator or null if none is used</returns>
-        public virtual IChecksumCalculator PauseCalculateChecksum() => null;
+        public virtual IChecksumCalculator? PauseCalculateChecksum() => null;
 
         /// <summary>
         /// Ends calculating the checksum and return the value
         /// </summary>
         /// <typeparam name="T">The type of checksum value</typeparam>
+        /// <param name="value">The default value to return if no value exists</param>
         /// <returns>The checksum value</returns>
-        public virtual T EndCalculateChecksum<T>() => default;
+        public virtual T EndCalculateChecksum<T>(T value) => value;
 
-        public T DoChecksum<T>(IChecksumCalculator<T> c, Action action, ChecksumPlacement placement, bool calculateChecksum = true, string name = null)
+        public T DoChecksum<T>(
+            IChecksumCalculator<T>? c,
+            T value, 
+            ChecksumPlacement placement, 
+            string? name,
+            Action action)
         {
             // Get the current pointer
-            var p = CurrentPointer;
+            Pointer p = CurrentPointer;
+
+            // If the calculator is null we can't calculate a checksum
+            bool calculateChecksum = c != null;
 
             // Skip the length of the checksum value if it's before the data
             if (calculateChecksum && placement == ChecksumPlacement.Before)
@@ -260,16 +316,18 @@ namespace BinarySerializer
             action();
 
             if (!calculateChecksum)
-                return default;
+                return value;
 
             // End calculating the checksum
-            var v = EndCalculateChecksum<T>();
+            T v = EndCalculateChecksum<T>(value);
 
             // Serialize the checksum
             if (placement == ChecksumPlacement.Before)
-                return DoAt(p, () => SerializeChecksum(v, name));
+                DoAt(p, () => value = SerializeChecksum(v, name));
             else
-                return SerializeChecksum(v, name);
+                value = SerializeChecksum(v, name);
+
+            return value;
         }
 
         #endregion
@@ -283,8 +341,8 @@ namespace BinarySerializer
         /// <param name="obj">The value to be serialized</param>
         /// <param name="name">A name can be provided optionally, for logging or text serialization purposes</param>
         /// <returns>The value that was serialized</returns>
-        public abstract T Serialize<T>(T obj, string name = null);
-
+        public abstract T Serialize<T>(T? obj, string? name = null);
+        
         /// <summary>
         /// Serializes a <see cref="BinarySerializable"/> object
         /// </summary>
@@ -293,26 +351,41 @@ namespace BinarySerializer
         /// <param name="onPreSerialize">Optional action to run before serializing</param>
         /// <param name="name">A name can be provided optionally, for logging or text serialization purposes</param>
         /// <returns>The object that was serialized</returns>
-        public abstract T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null) where T : BinarySerializable, new();
+        public abstract T SerializeObject<T>(T? obj, Action<T>? onPreSerialize = null, string? name = null) 
+            where T : BinarySerializable, new();
 
-        public abstract Pointer SerializePointer(Pointer obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null);
+        public abstract Pointer? SerializePointer(
+            Pointer? obj, 
+            PointerSize size = PointerSize.Pointer32, 
+            Pointer? anchor = null, 
+            bool allowInvalid = false, 
+            long? nullValue = null, 
+            string? name = null);
 
-        public abstract Pointer<T> SerializePointer<T>(Pointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null);
+        public abstract Pointer<T>? SerializePointer<T>(
+            Pointer<T>? obj, 
+            PointerSize size = PointerSize.Pointer32, 
+            Pointer? anchor = null, 
+            bool allowInvalid = false, 
+            long? nullValue = null, 
+            string? name = null);
         
-        public abstract string SerializeString(string obj, long? length = null, Encoding encoding = null, string name = null);
+        public abstract string SerializeString(string? obj, long? length = null, Encoding? encoding = null, string? name = null);
 
         #endregion
 
         #region Array Serialization
 
-        public abstract T[] SerializeArraySize<T, U>(T[] obj, string name = null) where U : struct;
-        public abstract T[] SerializeArray<T>(T[] obj, long count, string name = null);
-        public T[] SerializeObjectArray<T>(T[] obj, long count, Action<T> onPreSerialize, string name = null)
+        public abstract T[] SerializeArraySize<T, U>(T[]? obj, string? name = null)
+            where U : struct;
+        public abstract T[] SerializeArray<T>(T[]? obj, long count, string? name = null);
+        public T[] SerializeObjectArray<T>(T[]? obj, long count, Action<T>? onPreSerialize, string? name = null)
             where T : BinarySerializable, new()
         {
-            return SerializeObjectArray<T>(obj, count, onPreSerialize == null ? (Action<T, int>)null : (x, _) => onPreSerialize(x), name);
+            return SerializeObjectArray<T>(obj, count, onPreSerialize == null ? (Action<T, int>?)null : (x, _) => onPreSerialize(x), name);
         }
-        public abstract T[] SerializeObjectArray<T>(T[] obj, long count, Action<T, int> onPreSerialize = null, string name = null) where T : BinarySerializable, new();
+        public abstract T[] SerializeObjectArray<T>(T[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null) 
+            where T : BinarySerializable, new();
 
         /// <summary>
         /// Serializes an array of undefined size until a specified condition is met
@@ -323,7 +396,11 @@ namespace BinarySerializer
         /// <param name="getLastObjFunc">If specified the last value when read will be ignored and this will be used to prepend a value when writing</param>
         /// <param name="name">The name</param>
         /// <returns>The array</returns>
-        public abstract T[] SerializeArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null, string name = null);
+        public abstract T[] SerializeArrayUntil<T>(
+            T[]? obj, 
+            Func<T, bool> conditionCheckFunc, 
+            Func<T>? getLastObjFunc = null, 
+            string? name = null);
 
         /// <summary>
         /// Serializes an object array of undefined size until a specified condition is met
@@ -335,18 +412,31 @@ namespace BinarySerializer
         /// <param name="onPreSerialize">Optional action to run before serializing</param>
         /// <param name="name">The name</param>
         /// <returns>The object array</returns>
-        public abstract T[] SerializeObjectArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null, Action<T, int> onPreSerialize = null, string name = null)
+        public abstract T[] SerializeObjectArrayUntil<T>(
+            T[]? obj, 
+            Func<T, bool> conditionCheckFunc, 
+            Func<T>? getLastObjFunc = null, 
+            Action<T, int>? onPreSerialize = null, 
+            string? name = null) 
             where T : BinarySerializable, new();
-        public Pointer[] SerializePointerArrayUntil(Pointer[] obj, Func<Pointer, bool> conditionCheckFunc, PointerSize size = PointerSize.Pointer32, Func<Pointer> getLastObjFunc = null, string name = null)
+        public Pointer?[] SerializePointerArrayUntil(
+            Pointer?[]? obj, 
+            Func<Pointer?, bool> conditionCheckFunc, 
+            PointerSize size = PointerSize.Pointer32, 
+            Func<Pointer?>? getLastObjFunc = null, 
+            string? name = null)
         {
+            if (conditionCheckFunc == null) 
+                throw new ArgumentNullException(nameof(conditionCheckFunc));
+            
             if (obj == null)
             {
-                var objects = new List<Pointer>();
-                var index = 0;
+                List<Pointer?> objects = new();
+                int index = 0;
 
                 while (true)
                 {
-                    var serializedObj = SerializePointer(default, size: size, name: $"{name}[{index++}]");
+                    Pointer? serializedObj = SerializePointer(default, size: size, name: $"{name}[{index++}]");
 
                     if (conditionCheckFunc(serializedObj))
                     {
@@ -372,34 +462,68 @@ namespace BinarySerializer
             return obj;
         }
 
-        public abstract Pointer[] SerializePointerArray(Pointer[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null);
-        public abstract Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null);
+        public abstract Pointer?[] SerializePointerArray(
+            Pointer?[]? obj, 
+            long count, 
+            PointerSize size = PointerSize.Pointer32, 
+            Pointer? anchor = null, 
+            bool allowInvalid = false, 
+            long? nullValue = null, 
+            string? name = null);
+        public abstract Pointer<T>?[] SerializePointerArray<T>(
+            Pointer<T>?[]? obj, 
+            long count, 
+            PointerSize size = PointerSize.Pointer32, 
+            Pointer? anchor = null, 
+            bool allowInvalid = false, 
+            long? nullValue = null, 
+            string? name = null);
         
-        public abstract string[] SerializeStringArray(string[] obj, long count, long? length = null, Encoding encoding = null, string name = null);
+        public abstract string[] SerializeStringArray(
+            string?[]? obj, 
+            long count, 
+            long? length = null, 
+            Encoding? encoding = null, 
+            string? name = null);
 
         #endregion
 
         #region Other Serialization
 
-        public virtual T SerializeFile<T>(string relativePath, T obj, Action<T> onPreSerialize = null, string name = null) where T : BinarySerializable, new()
-        {
-            T t = obj;
-            DoAt(Context.FilePointer(relativePath), () => {
-                t = SerializeObject<T>(obj, onPreSerialize: onPreSerialize, name: name);
-            });
-            return t;
-            //return Context.FilePointer<T>(relativePath)?.Resolve(this, onPreSerialize: onPreSerialize).Value;
-        }
-        public T SerializeFromBytes<T>(byte[] bytes, string key, Action<T> onPreSerialize = null, bool removeFile = true, string name = null)
+        public virtual T SerializeFile<T>(string relativePath, T? obj, Action<T>? onPreSerialize = null, string? name = null) 
             where T : BinarySerializable, new()
         {
+            Pointer? current = HasCurrentPointer ? CurrentPointer : null;
+            Goto(Context.FilePointer(relativePath));
+
+            try
+            {
+                return SerializeObject<T>(obj, onPreSerialize: onPreSerialize, name: name);
+            }
+            finally
+            {
+                Goto(current);
+            }
+        }
+
+        public T SerializeFromBytes<T>(
+            byte[] bytes, 
+            string key, 
+            Action<T>? onPreSerialize = null, 
+            bool removeFile = true, 
+            string? name = null)
+            where T : BinarySerializable, new()
+        {
+            if (bytes == null)
+                throw new ArgumentNullException(nameof(bytes));
+
             return DoAtBytes(bytes, key, () => SerializeObject<T>(default, onPreSerialize, name: name ?? key), removeFile);
         }
         public T DoAtBytes<T>(byte[] bytes, string key, Func<T> func, bool removeFile = true)
         {
-            if (bytes == null)
-                return default;
-
+            if (bytes == null) 
+                throw new ArgumentNullException(nameof(bytes));
+            
             try
             {
                 if (!Context.FileExists(key))
@@ -408,7 +532,17 @@ namespace BinarySerializer
                     Context.AddFile(new StreamFile(Context, key, typeStream, parentPointer: CurrentPointer));
                 }
 
-                return DoAt(Context.GetRequiredFile(key).StartPointer, func);
+                Pointer? current = HasCurrentPointer ? CurrentPointer : null;
+                Goto(Context.GetRequiredFile(key).StartPointer);
+
+                try
+                {
+                    return func();
+                }
+                finally
+                {
+                    Goto(current);
+                }
             }
             finally
             {
@@ -417,20 +551,28 @@ namespace BinarySerializer
             }
         }
 
-        public T DoAtEncoded<T>(Pointer offset, IStreamEncoder encoder, Func<T> action)
+        public void DoAtEncoded(Pointer? offset, IStreamEncoder? encoder, Action action)
         {
-            return DoAt(offset, () => DoEncoded(encoder, action));
-        }
-        public void DoAtEncoded(Pointer offset, IStreamEncoder encoder, Action action)
-        {
+            if (action == null) 
+                throw new ArgumentNullException(nameof(action));
+            
             DoAt(offset, () => DoEncoded(encoder, action));
         }
-        public void DoWithDefaults(SerializerDefaults defaults, Action action) {
-            var curDefaults = Defaults;
+
+        public void DoWithDefaults(SerializerDefaults? defaults, Action action) 
+        {
+            if (action == null) 
+                throw new ArgumentNullException(nameof(action));
+            
+            SerializerDefaults? curDefaults = Defaults;
             Defaults = defaults;
-            try {
+            
+            try 
+            {
                 action();
-            } finally {
+            } 
+            finally 
+            {
                 Defaults = curDefaults;
             }
         }
@@ -440,31 +582,31 @@ namespace BinarySerializer
         public abstract void SerializeBitValues(Action<SerializeBits64> serializeFunc);
         public abstract void DoBits<T>(Action<BitSerializerObject> serializeFunc);
 
-        public delegate long SerializeBits64(long value, int length, string name = null);
+        public delegate long SerializeBits64(long value, int length, string? name = null);
 
-        public void SerializePadding(int length, bool logIfNotNull = false, string name = "Padding")
+        public void SerializePadding(int length, bool logIfNotNull = false, string? name = "Padding")
         {
             if (length == 1)
             {
-                var a = Serialize<byte>(default, name: name);
+                byte a = Serialize<byte>(default, name: name);
 
                 if (logIfNotNull && a != 0)
                     SystemLog?.LogWarning("Padding at {0} contains data! Data: 0x{1:X2}", CurrentPointer - length, a);
             }
             else
             {
-                var a = SerializeArray<byte>(new byte[length], length, name: name);
+                byte[] a = SerializeArray<byte>(new byte[length], length, name: name);
 
                 if (logIfNotNull && a.Any(x => x != 0))
                     SystemLog?.LogWarning("Padding at {0} contains data! Data: {1}", CurrentPointer - length, a.ToHexString());
             }
         }
 
-        public virtual void SerializeMagic<T>(T magic, bool throwIfNoMatch = true, string name = null)
+        public virtual void SerializeMagic<T>(T magic, bool throwIfNoMatch = true, string? name = null)
         {
             T value = Serialize<T>(magic, name: name ?? "Magic");
 
-            if (!value.Equals(magic))
+            if (value?.Equals(magic) != true)
             {
                 if (throwIfNoMatch)
                     throw new Exception($"Magic '{value}' does not match expected magic of '{magic}'");
@@ -473,7 +615,12 @@ namespace BinarySerializer
             }
         }
 
-        public virtual void SerializeMagicString(string magic, long length, Encoding encoding = null, bool throwIfNoMatch = true, string name = null)
+        public virtual void SerializeMagicString(
+            string? magic, 
+            long length, 
+            Encoding? encoding = null, 
+            bool throwIfNoMatch = true, 
+            string? name = null)
         {
             var value = SerializeString(magic, length, encoding: encoding, name: name ?? "Magic");
 
@@ -502,7 +649,6 @@ namespace BinarySerializer
 
         #region Pre-Defined Pointers
 
-#nullable enable
         public virtual Pointer GetRequiredPreDefinedPointer(string key) =>
             Context.GetRequiredPreDefinedPointer(key, CurrentBinaryFile);
         public virtual Pointer? GetPreDefinedPointer(string key) =>
@@ -512,7 +658,6 @@ namespace BinarySerializer
             Context.GetRequiredPreDefinedPointer(key, CurrentBinaryFile);
         public virtual Pointer? GetPreDefinedPointer(Enum key) =>
             Context.GetPreDefinedPointer(key, CurrentBinaryFile);
-#nullable restore
 
         #endregion
     }
