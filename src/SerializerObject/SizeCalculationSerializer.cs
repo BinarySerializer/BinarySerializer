@@ -265,7 +265,7 @@ namespace BinarySerializer
             return obj;
         }
 
-        public override Pointer<T>? SerializePointer<T>(
+        public override Pointer<T> SerializePointer<T>(
             Pointer<T>? obj,
             PointerSize size = PointerSize.Pointer32,
             Pointer? anchor = null,
@@ -289,7 +289,7 @@ namespace BinarySerializer
             {
                 Depth--;
             }
-            return obj;
+            return obj ?? new Pointer<T>();
         }
 
         public override string SerializeString(string? obj, long? length = null, Encoding? encoding = null, string? name = null)
@@ -308,75 +308,80 @@ namespace BinarySerializer
 
         #region Array Serialization
 
-        public override T[] SerializeArraySize<T, U>(T[]? obj, string? name = null)
+        public override T?[] SerializeArraySize<T, U>(T?[]? obj, string? name = null)
+            where T : default
         {
-            obj ??= Array.Empty<T>();
+            obj ??= Array.Empty<T?>();
             U Size = (U)Convert.ChangeType(obj, typeof(U));
             Serialize<U>(Size);
             return obj;
         }
 
-        public override T[] SerializeArray<T>(T[]? obj, long count, string? name = null)
+        public override T[] SerializeArray<T>(T?[]? obj, long count, string? name = null)
+            where T : default
         {
-            T[] buffer = obj ?? new T[count];
+            T?[] buffer = obj ?? new T?[count];
 
             if (typeof(T) == typeof(byte))
             {
                 CurrentFilePosition += buffer.Length;
-                return buffer;
+                return buffer!;
             }
 
             for (int i = 0; i < count; i++)
-                Serialize<T>(buffer[i]);
+                buffer[i] = Serialize<T>(buffer[i]);
 
-            return buffer;
+            return buffer!;
         }
 
-        public override T[] SerializeObjectArray<T>(T[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null)
+        public override T[] SerializeObjectArray<T>(T?[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null)
+            where T : class
         {
-            T[] buffer = obj ?? new T[count];
+            T?[] buffer = obj ?? new T?[count];
 
             for (int i = 0; i < count; i++)
                 // ReSharper disable once AccessToModifiedClosure
-                SerializeObject<T>(buffer[i], onPreSerialize: onPreSerialize == null ? (Action<T>?)null : x => onPreSerialize(x, i));
+                buffer[i] = SerializeObject<T>(buffer[i], onPreSerialize: onPreSerialize == null ? (Action<T>?)null : x => onPreSerialize(x, i));
 
-            return buffer;
+            return buffer!;
         }
 
         public override T[] SerializeArrayUntil<T>(
-            T[]? obj,
+            T?[]? obj,
             Func<T, bool> conditionCheckFunc,
             Func<T>? getLastObjFunc = null,
             string? name = null)
+            where T : default
         {
-            obj ??= Array.Empty<T>();
-            T[] array = obj;
+            obj ??= Array.Empty<T?>();
+            T?[] array = obj;
 
             if (getLastObjFunc != null)
                 array = array.Append(getLastObjFunc()).ToArray();
 
             SerializeArray<T>(array, array.Length, name: name);
 
-            return obj;
+            return obj!;
         }
 
         public override T[] SerializeObjectArrayUntil<T>(
-            T[]? obj,
+            T?[]? obj,
             Func<T, bool> conditionCheckFunc,
             Func<T>? getLastObjFunc = null,
             Action<T, int>? onPreSerialize = null,
             string? name = null)
+            where T : class
         {
-            obj ??= Array.Empty<T>();
+            obj ??= Array.Empty<T?>();
 
-            T[] array = obj;
+            T?[] array = obj;
 
             if (getLastObjFunc != null)
                 array = array.Append(getLastObjFunc()).ToArray();
 
             SerializeObjectArray<T>(array, array.Length, onPreSerialize: onPreSerialize, name: name);
 
-            return obj;
+            return obj!;
         }
 
         public override Pointer?[] SerializePointerArray(
@@ -391,12 +396,12 @@ namespace BinarySerializer
             Pointer?[] buffer = obj ?? new Pointer?[count];
 
             for (int i = 0; i < count; i++)
-                SerializePointer(buffer[i], anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue);
+                buffer[i] = SerializePointer(buffer[i], anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue);
 
             return buffer;
         }
 
-        public override Pointer<T>?[] SerializePointerArray<T>(
+        public override Pointer<T>[] SerializePointerArray<T>(
             Pointer<T>?[]? obj,
             long count,
             PointerSize size = PointerSize.Pointer32,
@@ -408,13 +413,13 @@ namespace BinarySerializer
             Pointer<T>?[] buffer = obj ?? new Pointer<T>?[count];
 
             for (int i = 0; i < count; i++)
-                SerializePointer<T>(
+                buffer[i] = SerializePointer<T>(
                     obj: buffer[i], 
                     anchor: anchor, 
                     allowInvalid: allowInvalid, 
                     nullValue: nullValue);
 
-            return buffer;
+            return buffer!;
         }
 
         public override string[] SerializeStringArray(
@@ -424,12 +429,12 @@ namespace BinarySerializer
             Encoding? encoding = null,
             string? name = null)
         {
-            string[] buffer = (obj ?? new string[count])!;
+            string?[] buffer = obj ?? new string?[count];
 
             for (int i = 0; i < count; i++)
                 buffer[i] = SerializeString(buffer[i], length, encoding);
 
-            return buffer;
+            return buffer!;
         }
 
         #endregion

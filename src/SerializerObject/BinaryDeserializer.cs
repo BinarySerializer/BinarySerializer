@@ -501,10 +501,10 @@ namespace BinarySerializer
 
         #region Array Serialization
 
-        public override T[] SerializeArraySize<T, U>(T[]? obj, string? name = null)
+        public override T?[] SerializeArraySize<T, U>(T?[]? obj, string? name = null)
+            where T : default
         {
-            U size = default; // For performance reasons, don't supply this argument
-            size = Serialize<U>(size, name: $"{name ?? DefaultName}.Length");
+            U size = Serialize<U>(default, name: $"{name ?? DefaultName}.Length");
 
             // Convert size to int, slow
             int intSize = (int)Convert.ChangeType(size, typeof(int));
@@ -513,10 +513,12 @@ namespace BinarySerializer
                 obj = new T[intSize];
             else if (obj.Length != intSize)
                 Array.Resize(ref obj, intSize);
+
             return obj;
         }
 
-        public override T[] SerializeArray<T>(T[]? obj, long count, string? name = null)
+        public override T[] SerializeArray<T>(T?[]? obj, long count, string? name = null)
+            where T : default
         {
             VerifyHasCurrentPointer();
 
@@ -544,7 +546,7 @@ namespace BinarySerializer
                 string? logString = LogPrefix;
                 Context.SerializerLog.Log($"{logString}({typeof(T).Name}[{count}]) {name ?? DefaultName}");
             }
-            T[] buffer;
+            T?[] buffer;
             if (obj != null)
             {
                 buffer = obj;
@@ -554,24 +556,25 @@ namespace BinarySerializer
             }
             else
             {
-                buffer = new T[(int)count];
+                buffer = new T?[(int)count];
             }
 
             for (int i = 0; i < count; i++)
                 // Read the value
                 buffer[i] = Serialize<T>(buffer[i], name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
 
-            return buffer;
+            return buffer!;
         }
 
-        public override T[] SerializeObjectArray<T>(T[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null)
+        public override T[] SerializeObjectArray<T>(T?[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null)
+            where T : class
         {
             if (IsSerializerLogEnabled)
             {
                 string? logString = LogPrefix;
                 Context.SerializerLog.Log($"{logString}(Object[]: {typeof(T)}[{count}]) {name ?? DefaultName}");
             }
-            T[] buffer;
+            T?[] buffer;
             if (obj != null)
             {
                 buffer = obj;
@@ -581,7 +584,7 @@ namespace BinarySerializer
             }
             else
             {
-                buffer = new T[(int)count];
+                buffer = new T?[(int)count];
             }
 
             for (int i = 0; i < count; i++)
@@ -592,14 +595,15 @@ namespace BinarySerializer
                     onPreSerialize: onPreSerialize == null ? (Action<T>?)null : x => onPreSerialize(x, i), 
                     name: name == null || !IsSerializerLogEnabled ? name : $"{name}[{i}]");
 
-            return buffer;
+            return buffer!;
         }
 
         public override T[] SerializeArrayUntil<T>(
-            T[]? obj,
+            T?[]? obj,
             Func<T, bool> conditionCheckFunc,
             Func<T>? getLastObjFunc = null,
             string? name = null)
+            where T : default
         {
             if (IsSerializerLogEnabled)
                 Context.SerializerLog.Log($"{LogPrefix}({typeof(T).Name}[..]) {name ?? DefaultName}");
@@ -628,11 +632,12 @@ namespace BinarySerializer
         }
 
         public override T[] SerializeObjectArrayUntil<T>(
-            T[]? obj,
+            T?[]? obj,
             Func<T, bool> conditionCheckFunc,
             Func<T>? getLastObjFunc = null,
             Action<T, int>? onPreSerialize = null,
             string? name = null)
+            where T : class
         {
             if (IsSerializerLogEnabled)
                 Context.SerializerLog.Log($"{LogPrefix}(Object[]: {typeof(T)}[..]) {name ?? DefaultName}");
@@ -690,7 +695,7 @@ namespace BinarySerializer
             }
             else
             {
-                buffer = new Pointer[count];
+                buffer = new Pointer?[count];
             }
 
             for (int i = 0; i < count; i++)
@@ -700,7 +705,7 @@ namespace BinarySerializer
             return buffer;
         }
 
-        public override Pointer<T>?[] SerializePointerArray<T>(
+        public override Pointer<T>[] SerializePointerArray<T>(
             Pointer<T>?[]? obj,
             long count,
             PointerSize size = PointerSize.Pointer32,
@@ -726,7 +731,7 @@ namespace BinarySerializer
             }
             else
             {
-                buffer = new Pointer<T>[count];
+                buffer = new Pointer<T>?[count];
             }
 
             for (int i = 0; i < count; i++)
@@ -739,7 +744,7 @@ namespace BinarySerializer
                     nullValue: nullValue, 
                     name: name == null || !IsSerializerLogEnabled ? name : $"{name}[{i}]");
 
-            return buffer;
+            return buffer!;
         }
 
         public override string[] SerializeStringArray(
@@ -754,24 +759,24 @@ namespace BinarySerializer
                 string? logString = LogPrefix;
                 Context.SerializerLog.Log($"{logString}(String[{count}]) {name ?? DefaultName}");
             }
-            string[] buffer;
+            string?[] buffer;
             if (obj != null)
             {
-                buffer = obj!;
+                buffer = obj;
 
                 if (buffer.Length != count)
                     Array.Resize(ref buffer, (int)count);
             }
             else
             {
-                buffer = new string[(int)count];
+                buffer = new string?[(int)count];
             }
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = SerializeString(default, length, encoding, name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = SerializeString(buffer[i], length, encoding, name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
 
-            return buffer;
+            return buffer!;
         }
 
         #endregion

@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace BinarySerializer
 {
@@ -21,6 +22,7 @@ namespace BinarySerializer
         public Pointer? PointerValue { get; }
         public T? Value { get; set; }
 
+        [MemberNotNull(nameof(Context))]
         public Pointer<T> ResolveValue(SerializerObject s, PointerFunctions.SerializeFunction<T> func) 
         {
             if (s == null) 

@@ -384,7 +384,7 @@ namespace BinarySerializer
             return obj;
         }
 
-        public override Pointer<T>? SerializePointer<T>(
+        public override Pointer<T> SerializePointer<T>(
             Pointer<T>? obj,
             PointerSize size = PointerSize.Pointer32,
             Pointer? anchor = null,
@@ -392,7 +392,9 @@ namespace BinarySerializer
             long? nullValue = null,
             string? name = null)
         {
-            Pointer? pointerValue = obj?.PointerValue;
+            obj ??= new Pointer<T>();
+
+            Pointer? pointerValue = obj.PointerValue;
             pointerValue = SerializePointer(
                 obj: pointerValue, 
                 size: size, 
@@ -401,8 +403,8 @@ namespace BinarySerializer
                 nullValue: nullValue, 
                 name: IsSerializerLogEnabled ? $"<{typeof(T)}> {name ?? DefaultName}" : name);
             
-            if (obj?.PointerValue != pointerValue) 
-                obj = new Pointer<T>(pointerValue, obj == null ? default : obj.Value);
+            if (obj.PointerValue != pointerValue)
+                obj = new Pointer<T>(pointerValue, obj.Value);
 
             return obj;
         }
@@ -430,19 +432,21 @@ namespace BinarySerializer
 
         #region Array Serialization
 
-        public override T[] SerializeArraySize<T, U>(T[]? obj, string? name = null)
+        public override T?[] SerializeArraySize<T, U>(T?[]? obj, string? name = null)
+            where T : default
         {
-            obj ??= Array.Empty<T>();
+            obj ??= Array.Empty<T?>();
             U size = (U)Convert.ChangeType(obj.Length, typeof(U));
             Serialize<U>(size, name: $"{name ?? DefaultName}.Length");
             return obj;
         }
 
-        public override T[] SerializeArray<T>(T[]? obj, long count, string? name = null)
+        public override T[] SerializeArray<T>(T?[]? obj, long count, string? name = null)
+            where T : default
         {
             VerifyHasCurrentPointer();
 
-            T[] buffer = obj ?? new T[count];
+            T?[] buffer = obj ?? new T?[count];
             count = buffer.Length;
 
             if (IsSerializerLogEnabled)
@@ -466,68 +470,74 @@ namespace BinarySerializer
             if (typeof(T) == typeof(byte))
             {
                 Writer.Write((byte[])(object)buffer);
-                return buffer;
+                return buffer!;
             }
 
             for (int i = 0; i < count; i++)
-                Serialize<T>(buffer[i], name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = Serialize<T>(buffer[i], name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
 
-            return buffer;
+            return buffer!;
         }
 
-        public override T[] SerializeObjectArray<T>(T[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null)
+        public override T[] SerializeObjectArray<T>(T?[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null)
+            where T : class
         {
-            T[] buffer = obj ?? new T[count];
+            T?[] buffer = obj ?? new T?[count];
             count = buffer.Length;
 
             if (IsSerializerLogEnabled)
                 Context.SerializerLog.Log($"{LogPrefix}(Object[] {typeof(T)}[{count}]) {name ?? DefaultName}");
 
             for (int i = 0; i < count; i++)
-                SerializeObject<T>(
+                buffer[i] = SerializeObject<T>(
                     obj: buffer[i], 
                     // ReSharper disable once AccessToModifiedClosure
                     onPreSerialize: onPreSerialize == null ? (Action<T>?)null : x => onPreSerialize(x, i), 
                     name: name == null || !IsSerializerLogEnabled ? name : $"{name}[{i}]");
 
-            return buffer;
+            return buffer!;
         }
 
         public override T[] SerializeArrayUntil<T>(
-            T[]? obj,
+            T?[]? obj,
             Func<T, bool> conditionCheckFunc,
             Func<T>? getLastObjFunc = null,
             string? name = null)
+            where T : default
         {
-            obj ??= Array.Empty<T>();
+            obj ??= Array.Empty<T?>();
 
-            T[] array = obj;
+            T?[] array = obj;
 
             if (getLastObjFunc != null)
                 array = array.Append(getLastObjFunc()).ToArray();
 
             SerializeArray<T>(array, array.Length, name: name);
 
-            return obj;
+            // TODO: If some objects in the array were null then they will still be at this point! Resolve? Perhaps
+            //       first serialize the array and then optionally the last object separately afterwards? Same in
+            //       below method and size calculation serializer.
+            return obj!;
         }
 
         public override T[] SerializeObjectArrayUntil<T>(
-            T[]? obj,
+            T?[]? obj,
             Func<T, bool> conditionCheckFunc,
             Func<T>? getLastObjFunc = null,
             Action<T, int>? onPreSerialize = null,
             string? name = null)
+            where T : class
         {
             obj ??= Array.Empty<T>();
 
-            T[] array = obj;
+            T?[] array = obj;
 
             if (getLastObjFunc != null)
                 array = array.Append(getLastObjFunc()).ToArray();
 
             SerializeObjectArray<T>(array, array.Length, onPreSerialize: onPreSerialize, name: name);
 
-            return obj;
+            return obj!;
         }
 
         public override Pointer?[] SerializePointerArray(
@@ -547,7 +557,7 @@ namespace BinarySerializer
                 Context.SerializerLog.Log($"{LogPrefix}({size}[{count}]) {name ?? DefaultName}");
 
             for (int i = 0; i < count; i++)
-                SerializePointer(
+                buffer[i] = SerializePointer(
                     obj: buffer[i], 
                     size: size, 
                     anchor: anchor, 
@@ -558,7 +568,7 @@ namespace BinarySerializer
             return buffer;
         }
 
-        public override Pointer<T>?[] SerializePointerArray<T>(
+        public override Pointer<T>[] SerializePointerArray<T>(
             Pointer<T>?[]? obj,
             long count,
             PointerSize size = PointerSize.Pointer32,
@@ -574,7 +584,7 @@ namespace BinarySerializer
                 Context.SerializerLog.Log($"{LogPrefix}(Pointer<{typeof(T)}>[{count}]) {name ?? DefaultName}");
 
             for (int i = 0; i < count; i++)
-                SerializePointer<T>(
+                buffer[i] = SerializePointer<T>(
                     obj: buffer[i], 
                     size: size, 
                     anchor: anchor, 
@@ -582,7 +592,7 @@ namespace BinarySerializer
                     nullValue: nullValue, 
                     name: name == null || !IsSerializerLogEnabled ? name : $"{name}[{i}]");
 
-            return buffer;
+            return buffer!;
         }
 
         public override string[] SerializeStringArray(
@@ -592,7 +602,7 @@ namespace BinarySerializer
             Encoding? encoding = null,
             string? name = null)
         {
-            string[] buffer = (obj ?? new string[count])!;
+            string?[] buffer = obj ?? new string?[count];
             count = buffer.Length;
 
             if (IsSerializerLogEnabled)
@@ -601,7 +611,7 @@ namespace BinarySerializer
             for (int i = 0; i < count; i++)
                 buffer[i] = SerializeString(buffer[i], length, encoding, name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
 
-            return buffer;
+            return buffer!;
         }
 
         #endregion

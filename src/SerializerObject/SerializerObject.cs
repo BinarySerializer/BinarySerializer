@@ -362,7 +362,7 @@ namespace BinarySerializer
             long? nullValue = null, 
             string? name = null);
 
-        public abstract Pointer<T>? SerializePointer<T>(
+        public abstract Pointer<T> SerializePointer<T>(
             Pointer<T>? obj, 
             PointerSize size = PointerSize.Pointer32, 
             Pointer? anchor = null, 
@@ -376,15 +376,15 @@ namespace BinarySerializer
 
         #region Array Serialization
 
-        public abstract T[] SerializeArraySize<T, U>(T[]? obj, string? name = null)
+        public abstract T?[] SerializeArraySize<T, U>(T?[]? obj, string? name = null)
             where U : struct;
-        public abstract T[] SerializeArray<T>(T[]? obj, long count, string? name = null);
-        public T[] SerializeObjectArray<T>(T[]? obj, long count, Action<T>? onPreSerialize, string? name = null)
+        public abstract T[] SerializeArray<T>(T?[]? obj, long count, string? name = null);
+        public T[] SerializeObjectArray<T>(T?[]? obj, long count, Action<T>? onPreSerialize, string? name = null)
             where T : BinarySerializable, new()
         {
             return SerializeObjectArray<T>(obj, count, onPreSerialize == null ? (Action<T, int>?)null : (x, _) => onPreSerialize(x), name);
         }
-        public abstract T[] SerializeObjectArray<T>(T[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null) 
+        public abstract T[] SerializeObjectArray<T>(T?[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null) 
             where T : BinarySerializable, new();
 
         /// <summary>
@@ -397,7 +397,7 @@ namespace BinarySerializer
         /// <param name="name">The name</param>
         /// <returns>The array</returns>
         public abstract T[] SerializeArrayUntil<T>(
-            T[]? obj, 
+            T?[]? obj, 
             Func<T, bool> conditionCheckFunc, 
             Func<T>? getLastObjFunc = null, 
             string? name = null);
@@ -413,7 +413,7 @@ namespace BinarySerializer
         /// <param name="name">The name</param>
         /// <returns>The object array</returns>
         public abstract T[] SerializeObjectArrayUntil<T>(
-            T[]? obj, 
+            T?[]? obj, 
             Func<T, bool> conditionCheckFunc, 
             Func<T>? getLastObjFunc = null, 
             Action<T, int>? onPreSerialize = null, 
@@ -470,7 +470,7 @@ namespace BinarySerializer
             bool allowInvalid = false, 
             long? nullValue = null, 
             string? name = null);
-        public abstract Pointer<T>?[] SerializePointerArray<T>(
+        public abstract Pointer<T>[] SerializePointerArray<T>(
             Pointer<T>?[]? obj, 
             long count, 
             PointerSize size = PointerSize.Pointer32, 
