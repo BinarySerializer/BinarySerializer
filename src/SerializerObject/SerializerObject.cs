@@ -149,27 +149,6 @@ namespace BinarySerializer
             bool allowLocalPointers = false, 
             string? filename = null);
 
-        // TODO: Either remove this or add additional argument for default return value. We don't want this to return null!
-        public virtual T? DoEncoded<T>(
-            IStreamEncoder? encoder, 
-            Func<T> action, 
-            Endian? endianness = null, 
-            bool allowLocalPointers = false, 
-            string? filename = null)
-        {
-            if (action == null) 
-                throw new ArgumentNullException(nameof(action));
-            
-            T? obj = default;
-
-            DoEncoded(encoder, () =>
-            {
-                obj = action();
-            }, endianness: endianness, allowLocalPointers: allowLocalPointers, filename: filename);
-
-            return obj;
-        }
-
         #endregion
 
         #region XOR
