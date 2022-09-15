@@ -263,6 +263,37 @@ namespace BinarySerializer
             return ptrs!;
         }
 
+        public static Pointer<T?[]> ResolveNullableArray<T>(this Pointer<T?[]> ptr, SerializerObject s, long count)
+            where T : struct
+        {
+            if (ptr == null)
+                throw new ArgumentNullException(nameof(ptr));
+            if (s == null)
+                throw new ArgumentNullException(nameof(s));
+
+            return ptr.ResolveValue(s, PointerFunctions.SerializeNullableArray<T>(count));
+        }
+        public static Pointer<T?[]>[] ResolveNullableArray<T>(this Pointer<T?[]>?[] ptrs, SerializerObject s, long count)
+            where T : struct
+        {
+            if (ptrs == null)
+                throw new ArgumentNullException(nameof(ptrs));
+            if (s == null)
+                throw new ArgumentNullException(nameof(s));
+
+            for (int i = 0; i < ptrs.Length; i++)
+            {
+                Pointer<T?[]>? ptr = ptrs[i];
+
+                if (ptr == null)
+                    ptrs[i] = new Pointer<T?[]>();
+                else
+                    ptr.ResolveNullableArray(s, count);
+            }
+
+            return ptrs!;
+        }
+
         public static Pointer<T[]> ResolveObjectArray<T>(
             this Pointer<T[]> ptr,
             SerializerObject s,

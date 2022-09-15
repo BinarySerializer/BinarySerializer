@@ -71,6 +71,12 @@ namespace BinarySerializer
             return (s, value, name) => s.SerializeArray<T>(value, count, name: name);
         }
 
+        public static SerializeFunction<T?[]> SerializeNullableArray<T>(long count)
+            where T : struct
+        {
+            return (s, value, name) => s.SerializeNullableArray<T>(value, count, name: name);
+        }
+
         public static SerializeFunction<T[]> SerializeObjectArray<T>(long count, Action<T, int>? onPreSerialize = null)
             where T : BinarySerializable, new()
         {
@@ -114,6 +120,12 @@ namespace BinarySerializer
             where T : struct
         {
             return (s, value, name) => s.SerializeArrayUntil<T>(value, conditionCheckFunc, getLastObjFunc: getLastObjFunc, name: name);
+        }
+
+        public static SerializeFunction<T?[]> SerializeNullableArrayUntil<T>(Func<T?, bool> conditionCheckFunc, Func<T?>? getLastObjFunc = null)
+            where T : struct
+        {
+            return (s, value, name) => s.SerializeNullableArrayUntil<T>(value, conditionCheckFunc, getLastObjFunc: getLastObjFunc, name: name);
         }
 
         public static SerializeFunction<T[]> SerializeObjectArrayUntil<T>(

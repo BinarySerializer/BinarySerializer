@@ -587,6 +587,37 @@ namespace BinarySerializer
             return buffer;
         }
 
+        public override T?[] SerializeNullableArray<T>(T?[]? obj, long count, string? name = null)
+        {
+            VerifyHasCurrentPointer();
+
+            if (IsSerializerLogEnabled)
+            {
+                string? logString = LogPrefix;
+                Context.SerializerLog.Log($"{logString}({typeof(T).Name}?[{count}]) {name ?? DefaultName}");
+            }
+
+            T?[] buffer;
+            
+            if (obj != null)
+            {
+                buffer = obj;
+
+                if (buffer.Length != count)
+                    Array.Resize(ref buffer, (int)count);
+            }
+            else
+            {
+                buffer = new T?[(int)count];
+            }
+
+            for (int i = 0; i < count; i++)
+                // Read the value
+                buffer[i] = SerializeNullable<T>(buffer[i], name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+
+            return buffer;
+        }
+
         public override T[] SerializeObjectArray<T>(T?[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null)
             where T : class
         {
@@ -634,6 +665,38 @@ namespace BinarySerializer
             while (true)
             {
                 T serializedObj = Serialize<T>(default, name: $"{name}[{index}]");
+
+                index++;
+
+                if (conditionCheckFunc(serializedObj))
+                {
+                    if (getLastObjFunc == null)
+                        objects.Add(serializedObj);
+
+                    break;
+                }
+
+                objects.Add(serializedObj);
+            }
+
+            return objects.ToArray();
+        }
+
+        public override T?[] SerializeNullableArrayUntil<T>(
+            T?[]? obj, 
+            Func<T?, bool> conditionCheckFunc, 
+            Func<T?>? getLastObjFunc = null, 
+            string? name = null)
+        {
+            if (IsSerializerLogEnabled)
+                Context.SerializerLog.Log($"{LogPrefix}({typeof(T).Name}?[..]) {name ?? DefaultName}");
+
+            List<T?> objects = new();
+            int index = 0;
+
+            while (true)
+            {
+                T? serializedObj = SerializeNullable<T>(default, name: $"{name}[{index}]");
 
                 index++;
 

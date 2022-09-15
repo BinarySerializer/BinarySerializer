@@ -136,6 +136,18 @@ namespace BinarySerializer
 
             return obj;
         }
+
+        public override T?[] SerializeNullableArray<T>(T?[] obj, long count, string name = null)
+        {
+            if (obj == null) obj = new T?[count];
+            else if (count != obj.Length) Array.Resize(ref obj, (int)count);
+
+            for (int i = 0; i < count; i++)
+                obj[i] = SerializeNullable<T>(obj[i], name: name == null ? null : name + "[" + i + "]");
+
+            return obj;
+        }
+
         public override T[] SerializeObjectArray<T>(T[] obj, long count, Action<T, int> onPreSerialize = null, string name = null) {
             if (obj == null) obj = new T[count];
             else if (count != obj.Length) Array.Resize(ref obj, (int)count);
@@ -155,6 +167,16 @@ namespace BinarySerializer
 
             return obj;
         }
+
+        public override T?[] SerializeNullableArrayUntil<T>(T?[] obj, Func<T?, bool> conditionCheckFunc, Func<T?> getLastObjFunc = null,
+            string name = null)
+        {
+            for (int i = 0; i < obj.Length; i++)
+                obj[i] = SerializeNullable<T>(obj[i], name: name == null ? null : $"{name}[{i}]");
+
+            return obj;
+        }
+
         public override T[] SerializeObjectArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null,
             Action<T, int> onPreSerialize = null, string name = null)
         {

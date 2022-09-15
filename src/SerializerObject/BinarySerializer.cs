@@ -497,6 +497,22 @@ namespace BinarySerializer
             return buffer;
         }
 
+        public override T?[] SerializeNullableArray<T>(T?[]? obj, long count, string? name = null)
+        {
+            VerifyHasCurrentPointer();
+
+            T?[] buffer = obj ?? new T?[count];
+            count = buffer.Length;
+
+            if (IsSerializerLogEnabled)
+                Context.SerializerLog.Log($"{LogPrefix}({typeof(T).Name}[{count}]) {name ?? DefaultName}");
+
+            for (int i = 0; i < count; i++)
+                buffer[i] = SerializeNullable<T>(buffer[i], name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+
+            return buffer;
+        }
+
         public override T[] SerializeObjectArray<T>(T?[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null)
             where T : class
         {
@@ -530,6 +546,24 @@ namespace BinarySerializer
                 array = array.Append(getLastObjFunc()).ToArray();
 
             SerializeArray<T>(array, array.Length, name: name);
+
+            return obj;
+        }
+
+        public override T?[] SerializeNullableArrayUntil<T>(
+            T?[]? obj, 
+            Func<T?, bool> conditionCheckFunc, 
+            Func<T?>? getLastObjFunc = null, 
+            string? name = null)
+        {
+            obj ??= Array.Empty<T?>();
+
+            T?[] array = obj;
+
+            if (getLastObjFunc != null)
+                array = array.Append(getLastObjFunc()).ToArray();
+
+            SerializeNullableArray<T>(array, array.Length, name: name);
 
             return obj;
         }

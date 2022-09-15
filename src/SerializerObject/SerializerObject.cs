@@ -325,7 +325,6 @@ namespace BinarySerializer
         public abstract T Serialize<T>(T obj, string? name = null)
             where T : struct;
 
-        // TODO: Create SerializeNullableArray?
         public abstract T? SerializeNullable<T>(T? obj, string? name = null)
             where T : struct;
 
@@ -366,6 +365,10 @@ namespace BinarySerializer
             where U : struct;
         public abstract T[] SerializeArray<T>(T[]? obj, long count, string? name = null)
             where T : struct;
+
+        public abstract T?[] SerializeNullableArray<T>(T?[]? obj, long count, string? name = null)
+            where T : struct;
+
         public T[] SerializeObjectArray<T>(T?[]? obj, long count, Action<T>? onPreSerialize, string? name = null)
             where T : BinarySerializable, new()
         {
@@ -411,6 +414,13 @@ namespace BinarySerializer
             T[]? obj, 
             Func<T, bool> conditionCheckFunc, 
             Func<T>? getLastObjFunc = null, 
+            string? name = null)
+            where T : struct;
+        
+        public abstract T?[] SerializeNullableArrayUntil<T>(
+            T?[]? obj, 
+            Func<T?, bool> conditionCheckFunc, 
+            Func<T?>? getLastObjFunc = null, 
             string? name = null)
             where T : struct;
 
