@@ -433,48 +433,16 @@ namespace BinarySerializer
             Action<T, int>? onPreSerialize = null, 
             string? name = null) 
             where T : BinarySerializable, new();
-        public Pointer?[] SerializePointerArrayUntil(
-            Pointer?[]? obj, 
-            Func<Pointer?, bool> conditionCheckFunc, 
-            PointerSize size = PointerSize.Pointer32, 
-            Func<Pointer?>? getLastObjFunc = null, 
-            string? name = null)
-        {
-            if (conditionCheckFunc == null) 
-                throw new ArgumentNullException(nameof(conditionCheckFunc));
-            
-            if (obj == null)
-            {
-                List<Pointer?> objects = new();
-                int index = 0;
 
-                while (true)
-                {
-                    Pointer? serializedObj = SerializePointer(default, size: size, name: $"{name}[{index++}]");
-
-                    if (conditionCheckFunc(serializedObj))
-                    {
-                        if (getLastObjFunc == null)
-                            objects.Add(serializedObj);
-
-                        break;
-                    }
-
-                    objects.Add(serializedObj);
-                }
-
-                obj = objects.ToArray();
-            }
-            else
-            {
-                if (getLastObjFunc != null)
-                    obj = obj.Append(getLastObjFunc()).ToArray();
-
-                SerializePointerArray(obj, obj.Length, size: size, name: name);
-            }
-
-            return obj;
-        }
+        public abstract Pointer?[] SerializePointerArrayUntil(
+            Pointer?[]? obj,
+            Func<Pointer?, bool> conditionCheckFunc,
+            Func<Pointer?>? getLastObjFunc = null,
+            PointerSize size = PointerSize.Pointer32,
+            Pointer? anchor = null,
+            bool allowInvalid = false,
+            long? nullValue = null,
+            string? name = null);
 
         #endregion
 

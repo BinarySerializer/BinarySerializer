@@ -436,7 +436,7 @@ namespace BinarySerializer
 
             // Serialize the terminator value if there is one
             if (getLastObjFunc != null)
-                Serialize<T>(getLastObjFunc(), name: IsSerializerLogEnabled ? $"{name}[x]" : name);
+                Serialize<T>(getLastObjFunc());
 
             return obj;
         }
@@ -454,7 +454,7 @@ namespace BinarySerializer
 
             // Serialize the terminator value if there is one
             if (getLastObjFunc != null)
-                SerializeNullable<T>(getLastObjFunc(), name: IsSerializerLogEnabled ? $"{name}[x]" : name);
+                SerializeNullable<T>(getLastObjFunc());
 
             return obj;
         }
@@ -476,10 +476,43 @@ namespace BinarySerializer
             if (getLastObjFunc != null)
                 SerializeObject<T>(
                     obj: getLastObjFunc(), 
-                    onPreSerialize: onPreSerialize != null ? x => onPreSerialize(x, obj.Length) : null, 
-                    name: IsSerializerLogEnabled ? $"{name}[x]" : name);
+                    onPreSerialize: onPreSerialize != null ? x => onPreSerialize(x, obj.Length) : null);
 
             return obj!;
+        }
+
+        public override Pointer?[] SerializePointerArrayUntil(
+            Pointer?[]? obj, 
+            Func<Pointer?, bool> conditionCheckFunc, 
+            Func<Pointer?>? getLastObjFunc = null,
+            PointerSize size = PointerSize.Pointer32, 
+            Pointer? anchor = null, 
+            bool allowInvalid = false, 
+            long? nullValue = null,
+            string? name = null)
+        {
+            obj ??= Array.Empty<Pointer?>();
+
+            // Serialize the array
+            obj = SerializePointerArray(
+                obj: obj,
+                count: obj.Length,
+                size: size,
+                anchor: anchor,
+                allowInvalid: allowInvalid,
+                nullValue: nullValue,
+                name: name);
+
+            // Serialize the terminator pointer if there is one
+            if (getLastObjFunc != null)
+                SerializePointer(
+                    obj: getLastObjFunc(),
+                    size: size,
+                    anchor: anchor,
+                    allowInvalid: allowInvalid,
+                    nullValue: nullValue);
+
+            return obj;
         }
 
         #endregion

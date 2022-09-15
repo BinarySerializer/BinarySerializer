@@ -906,6 +906,48 @@ namespace BinarySerializer
             return objects.ToArray();
         }
 
+        public override Pointer?[] SerializePointerArrayUntil(
+            Pointer?[]? obj, 
+            Func<Pointer?, bool> conditionCheckFunc, 
+            Func<Pointer?>? getLastObjFunc = null,
+            PointerSize size = PointerSize.Pointer32, 
+            Pointer? anchor = null, 
+            bool allowInvalid = false, 
+            long? nullValue = null,
+            string? name = null)
+        {
+            if (IsSerializerLogEnabled)
+                Context.SerializerLog.Log($"{LogPrefix}(Pointer[..]) {name ?? DefaultName}");
+
+            List<Pointer?> pointers = new();
+            int index = 0;
+
+            while (true)
+            {
+                Pointer? serializedObj = SerializePointer(
+                    obj: default,
+                    size: size,
+                    anchor: anchor,
+                    allowInvalid: allowInvalid,
+                    nullValue: nullValue,
+                    name: $"{name ?? DefaultName}[{index}]");
+
+                index++;
+
+                if (conditionCheckFunc(serializedObj))
+                {
+                    if (getLastObjFunc == null)
+                        pointers.Add(serializedObj);
+
+                    break;
+                }
+
+                pointers.Add(serializedObj);
+            }
+
+            return pointers.ToArray();
+        }
+
         #endregion
 
         #region Other Serialization

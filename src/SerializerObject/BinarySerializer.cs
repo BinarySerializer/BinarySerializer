@@ -685,6 +685,41 @@ namespace BinarySerializer
             return obj!;
         }
 
+        public override Pointer?[] SerializePointerArrayUntil(
+            Pointer?[]? obj, 
+            Func<Pointer?, bool> conditionCheckFunc, 
+            Func<Pointer?>? getLastObjFunc = null,
+            PointerSize size = PointerSize.Pointer32, 
+            Pointer? anchor = null, 
+            bool allowInvalid = false, 
+            long? nullValue = null,
+            string? name = null)
+        {
+            obj ??= Array.Empty<Pointer?>();
+
+            // Serialize the array
+            obj = SerializePointerArray(
+                obj: obj, 
+                count: obj.Length, 
+                size: size, 
+                anchor: anchor, 
+                allowInvalid: allowInvalid, 
+                nullValue: nullValue, 
+                name: name);
+
+            // Serialize the terminator pointer if there is one
+            if (getLastObjFunc != null)
+                SerializePointer(
+                    obj: getLastObjFunc(),
+                    size: size,
+                    anchor: anchor,
+                    allowInvalid: allowInvalid,
+                    nullValue: nullValue,
+                    name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[x]" : name);
+
+            return obj;
+        }
+
         #endregion
 
         #region Other Serialization
