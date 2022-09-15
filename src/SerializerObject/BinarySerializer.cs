@@ -506,7 +506,7 @@ namespace BinarySerializer
             }
 
             for (int i = 0; i < count; i++)
-                buffer[i] = Serialize<T>(buffer[i], name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = Serialize<T>(buffer[i], name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer;
         }
@@ -522,7 +522,7 @@ namespace BinarySerializer
                 Context.SerializerLog.Log($"{LogPrefix}({typeof(T).Name}[{count}]) {name ?? DefaultName}");
 
             for (int i = 0; i < count; i++)
-                buffer[i] = SerializeNullable<T>(buffer[i], name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = SerializeNullable<T>(buffer[i], name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer;
         }
@@ -541,7 +541,7 @@ namespace BinarySerializer
                     obj: buffer[i], 
                     // ReSharper disable once AccessToModifiedClosure
                     onPreSerialize: onPreSerialize == null ? (Action<T>?)null : x => onPreSerialize(x, i), 
-                    name: name == null || !IsSerializerLogEnabled ? name : $"{name}[{i}]");
+                    name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer!;
         }
@@ -569,7 +569,7 @@ namespace BinarySerializer
                     anchor: anchor,
                     allowInvalid: allowInvalid,
                     nullValue: nullValue,
-                    name: name == null || !IsSerializerLogEnabled ? name : $"{name}[{i}]");
+                    name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer;
         }
@@ -596,7 +596,7 @@ namespace BinarySerializer
                     anchor: anchor,
                     allowInvalid: allowInvalid,
                     nullValue: nullValue,
-                    name: name == null || !IsSerializerLogEnabled ? name : $"{name}[{i}]");
+                    name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer!;
         }
@@ -615,7 +615,10 @@ namespace BinarySerializer
                 Context.SerializerLog.Log(LogPrefix + "(String[" + count + "]) " + (name ?? DefaultName));
 
             for (int i = 0; i < count; i++)
-                buffer[i] = SerializeString(buffer[i], length, encoding, name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = SerializeString(
+                    obj: buffer[i], 
+                    length, encoding, 
+                    name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer!;
         }
@@ -633,7 +636,7 @@ namespace BinarySerializer
 
             // Serialize the terminator value if there is one
             if (getLastObjFunc != null)
-                Serialize<T>(getLastObjFunc(), name: IsSerializerLogEnabled ? $"{name}[x]" : name);
+                Serialize<T>(getLastObjFunc(), name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[x]" : name);
 
             return obj;
         }
@@ -651,7 +654,7 @@ namespace BinarySerializer
 
             // Serialize the terminator value if there is one
             if (getLastObjFunc != null)
-                SerializeNullable<T>(getLastObjFunc(), name: IsSerializerLogEnabled ? $"{name}[x]" : name);
+                SerializeNullable<T>(getLastObjFunc(), name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[x]" : name);
 
             return obj;
         }
@@ -674,7 +677,7 @@ namespace BinarySerializer
                 SerializeObject<T>(
                     obj: getLastObjFunc(), 
                     onPreSerialize: onPreSerialize != null ? x => onPreSerialize(x, obj.Length) : null, 
-                    name: IsSerializerLogEnabled ? $"{name}[x]" : name);
+                    name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[x]" : name);
 
             return obj!;
         }

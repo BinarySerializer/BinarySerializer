@@ -623,7 +623,7 @@ namespace BinarySerializer
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = Serialize<T>(buffer[i], name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = Serialize<T>(buffer[i], name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer;
         }
@@ -654,7 +654,7 @@ namespace BinarySerializer
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = SerializeNullable<T>(buffer[i], name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = SerializeNullable<T>(buffer[i], name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer;
         }
@@ -686,7 +686,7 @@ namespace BinarySerializer
                     obj: buffer[i], 
                     // ReSharper disable once AccessToModifiedClosure
                     onPreSerialize: onPreSerialize == null ? (Action<T>?)null : x => onPreSerialize(x, i), 
-                    name: name == null || !IsSerializerLogEnabled ? name : $"{name}[{i}]");
+                    name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer!;
         }
@@ -722,7 +722,7 @@ namespace BinarySerializer
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = SerializePointer(buffer[i], size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue, name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = SerializePointer(buffer[i], size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue, name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer;
         }
@@ -764,7 +764,7 @@ namespace BinarySerializer
                     anchor: anchor,
                     allowInvalid: allowInvalid,
                     nullValue: nullValue,
-                    name: name == null || !IsSerializerLogEnabled ? name : $"{name}[{i}]");
+                    name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer!;
         }
@@ -796,7 +796,7 @@ namespace BinarySerializer
 
             for (int i = 0; i < count; i++)
                 // Read the value
-                buffer[i] = SerializeString(buffer[i], length, encoding, name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = SerializeString(buffer[i], length, encoding, name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer!;
         }
@@ -815,7 +815,7 @@ namespace BinarySerializer
 
             while (true)
             {
-                T serializedObj = Serialize<T>(default, name: $"{name}[{index}]");
+                T serializedObj = Serialize<T>(default, name: $"{name ?? DefaultName}[{index}]");
 
                 index++;
 
@@ -847,7 +847,7 @@ namespace BinarySerializer
 
             while (true)
             {
-                T? serializedObj = SerializeNullable<T>(default, name: $"{name}[{index}]");
+                T? serializedObj = SerializeNullable<T>(default, name: $"{name ?? DefaultName}[{index}]");
 
                 index++;
 
@@ -885,7 +885,7 @@ namespace BinarySerializer
                     obj: default, 
                     // ReSharper disable once AccessToModifiedClosure
                     onPreSerialize: onPreSerialize == null ? (Action<T>?)null : x => onPreSerialize(x, index), 
-                    name: $"{name}[{index}]");
+                    name: $"{name ?? DefaultName}[{index}]");
 
                 index++;
 
