@@ -374,6 +374,30 @@ namespace BinarySerializer
         public abstract T[] SerializeObjectArray<T>(T?[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null) 
             where T : BinarySerializable, new();
 
+        public abstract Pointer?[] SerializePointerArray(
+            Pointer?[]? obj,
+            long count,
+            PointerSize size = PointerSize.Pointer32,
+            Pointer? anchor = null,
+            bool allowInvalid = false,
+            long? nullValue = null,
+            string? name = null);
+        public abstract Pointer<T>[] SerializePointerArray<T>(
+            Pointer<T>?[]? obj,
+            long count,
+            PointerSize size = PointerSize.Pointer32,
+            Pointer? anchor = null,
+            bool allowInvalid = false,
+            long? nullValue = null,
+            string? name = null);
+
+        public abstract string[] SerializeStringArray(
+            string?[]? obj,
+            long count,
+            long? length = null,
+            Encoding? encoding = null,
+            string? name = null);
+
         /// <summary>
         /// Serializes an array of undefined size until a specified condition is met
         /// </summary>
@@ -449,30 +473,6 @@ namespace BinarySerializer
 
             return obj;
         }
-
-        public abstract Pointer?[] SerializePointerArray(
-            Pointer?[]? obj, 
-            long count, 
-            PointerSize size = PointerSize.Pointer32, 
-            Pointer? anchor = null, 
-            bool allowInvalid = false, 
-            long? nullValue = null, 
-            string? name = null);
-        public abstract Pointer<T>[] SerializePointerArray<T>(
-            Pointer<T>?[]? obj, 
-            long count, 
-            PointerSize size = PointerSize.Pointer32, 
-            Pointer? anchor = null, 
-            bool allowInvalid = false, 
-            long? nullValue = null, 
-            string? name = null);
-        
-        public abstract string[] SerializeStringArray(
-            string?[]? obj, 
-            long count, 
-            long? length = null, 
-            Encoding? encoding = null, 
-            string? name = null);
 
         #endregion
 
