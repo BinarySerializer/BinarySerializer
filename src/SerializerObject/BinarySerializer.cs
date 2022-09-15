@@ -215,6 +215,9 @@ namespace BinarySerializer
             if (align == 0)
                 return;
 
+            if (IsSerializerLogEnabled)
+                Context.SerializerLog.Log($"{LogPrefix}Align {alignBytes}");
+
             long count = alignBytes - align;
 
             // We can ignore logIfNotNull here since we're writing

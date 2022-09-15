@@ -264,13 +264,16 @@ namespace BinarySerializer
             
             long count = alignBytes - align;
 
+            string? logPrefix = LogPrefix;
+
+            if (IsSerializerLogEnabled)
+                Context.SerializerLog.Log($"{logPrefix}Align {alignBytes}");
+
             logIfNotNull ??= Context.Settings.LogAlignIfNotNull;
 
             // If we log we have to read the bytes to check that they are not null
             if (logIfNotNull.Value)
             {
-                string? logPrefix = LogPrefix;
-
                 byte[] bytes = Reader.ReadBytes((int)count);
 
                 // Check if any bytes are not null
