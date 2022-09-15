@@ -57,7 +57,8 @@ namespace BinarySerializer
             T value, 
             int length, 
             SignedNumberRepresentation sign = SignedNumberRepresentation.Unsigned, 
-            string? name = null);
+            string? name = null)
+            where T : struct;
 
         public void SerializePadding(int length, bool logIfNotNull = false, string? name = "Padding")
         {

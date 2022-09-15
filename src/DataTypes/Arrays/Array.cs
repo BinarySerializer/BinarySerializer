@@ -4,7 +4,8 @@
     /// Array of simple non-R1Serializable types. Mainly for files that are just simple arrays. Use <see cref="SerializerObject.SerializeArray"/> where possible
     /// </summary>
     /// <typeparam name="T">Generic value parameter, should not be <see cref="BinarySerializable"/></typeparam>
-    public class Array<T> : BinarySerializable 
+    public class Array<T> : BinarySerializable
+        where T : struct
     {
         public long Pre_Length { get; set; } = 0;
         public T[] Value { get; set; }

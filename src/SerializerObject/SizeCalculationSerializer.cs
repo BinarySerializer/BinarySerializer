@@ -206,7 +206,7 @@ namespace BinarySerializer
 
         public override T SerializeChecksum<T>(T calculatedChecksum, string? name = null)
         {
-            ReadType(calculatedChecksum);
+            ReadType(typeof(T));
             return calculatedChecksum;
         }
 
@@ -214,14 +214,16 @@ namespace BinarySerializer
 
         #region Serialization
 
-        public override T Serialize<T>(T? obj, string? name = null)
-            where T : default
+        public override T Serialize<T>(T obj, string? name = null)
         {
-            if (obj is null && typeof(T) == typeof(string))
-                obj = (T?)(object)String.Empty;
+            ReadType(typeof(T));
+            return obj;
+        }
 
-            ReadType(obj);
-            return obj!;
+        public override T? SerializeNullable<T>(T? obj, string? name = null)
+        {
+            ReadType(typeof(T));
+            return obj;
         }
 
         public override T SerializeObject<T>(T? obj, Action<T>? onPreSerialize = null, string? name = null)
@@ -317,21 +319,20 @@ namespace BinarySerializer
             return obj;
         }
 
-        public override T[] SerializeArray<T>(T?[]? obj, long count, string? name = null)
-            where T : default
+        public override T[] SerializeArray<T>(T[]? obj, long count, string? name = null)
         {
-            T?[] buffer = obj ?? new T?[count];
+            T[] buffer = obj ?? new T[count];
 
             if (typeof(T) == typeof(byte))
             {
                 CurrentFilePosition += buffer.Length;
-                return buffer!;
+                return buffer;
             }
 
             for (int i = 0; i < count; i++)
                 buffer[i] = Serialize<T>(buffer[i]);
 
-            return buffer!;
+            return buffer;
         }
 
         public override T[] SerializeObjectArray<T>(T?[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null)
@@ -347,21 +348,20 @@ namespace BinarySerializer
         }
 
         public override T[] SerializeArrayUntil<T>(
-            T?[]? obj,
+            T[]? obj,
             Func<T, bool> conditionCheckFunc,
             Func<T>? getLastObjFunc = null,
             string? name = null)
-            where T : default
         {
-            obj ??= Array.Empty<T?>();
-            T?[] array = obj;
+            obj ??= Array.Empty<T>();
+            T[] array = obj;
 
             if (getLastObjFunc != null)
                 array = array.Append(getLastObjFunc()).ToArray();
 
             SerializeArray<T>(array, array.Length, name: name);
 
-            return obj!;
+            return obj;
         }
 
         public override T[] SerializeObjectArrayUntil<T>(
@@ -494,54 +494,36 @@ namespace BinarySerializer
             CurrentFile = newFile;
         }
 
-        protected void ReadType<T>(T value)
+        protected void ReadType(Type type)
         {
-            if (value is byte[] ba)
-                CurrentFilePosition += ba.Length;
-            else if (value is Array a)
-                foreach (var item in a)
-                    ReadType(item);
-            else if (value?.GetType().IsEnum == true)
-                ReadType(Convert.ChangeType(value, Enum.GetUnderlyingType(value.GetType())));
-            else if (value is bool)
-                CurrentFilePosition += 1;
-            else if (value is sbyte)
-                CurrentFilePosition += 1;
-            else if (value is byte)
-                CurrentFilePosition += 1;
-            else if (value is short)
-                CurrentFilePosition += 2;
-            else if (value is ushort)
-                CurrentFilePosition += 2;
-            else if (value is int)
-                CurrentFilePosition += 4;
-            else if (value is uint)
-                CurrentFilePosition += 4;
-            else if (value is long)
-                CurrentFilePosition += 8;
-            else if (value is ulong)
-                CurrentFilePosition += 8;
-            else if (value is float)
-                CurrentFilePosition += 4;
-            else if (value is double)
-                CurrentFilePosition += 8;
-            else if (value is string s)
-                CurrentFilePosition += Context.DefaultEncoding.GetBytes(s + '\0').Length;
-            else if (value is UInt24)
-                CurrentFilePosition += 3;
-            else if (Nullable.GetUnderlyingType(typeof(T)) != null)
+            if (type == null) 
+                throw new ArgumentNullException(nameof(type));
+
+            TypeCode typeCode = Type.GetTypeCode(type);
+
+            CurrentFilePosition += typeCode switch
             {
-                // It's nullable
-                var underlyingType = Nullable.GetUnderlyingType(typeof(T));
-                if (underlyingType == typeof(byte))
-                    CurrentFilePosition += 1;
-                else
-                    throw new NotSupportedException($"The specified type {typeof(T)} is not supported.");
-            }
-            else if (value is null)
-                throw new ArgumentNullException(nameof(value));
-            else
-                throw new NotSupportedException($"The specified type {value.GetType().Name} is not supported.");
+                TypeCode.Boolean => 1,
+
+                TypeCode.SByte => 1,
+                TypeCode.Byte => 1,
+
+                TypeCode.Int16 => 2,
+                TypeCode.UInt16 => 2,
+
+                TypeCode.Int32 => 4,
+                TypeCode.UInt32 => 4,
+
+                TypeCode.Int64 => 8,
+                TypeCode.UInt64 => 8,
+
+                TypeCode.Single => 4,
+                TypeCode.Double => 8,
+
+                TypeCode.Object when type == typeof(UInt24) => 3,
+
+                _ => throw new NotSupportedException($"The specified type ('{type.Name}') is not supported")
+            };
         }
 
         #endregion

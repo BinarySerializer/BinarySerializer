@@ -9,7 +9,7 @@ namespace BinarySerializer
 
         public Pointer(
             long offset, 
-            BinaryFile? file, 
+            BinaryFile file, 
             Pointer? anchor = null, 
             PointerSize size = PointerSize.Pointer32, 
             OffsetType offsetType = OffsetType.Serialized)

@@ -264,12 +264,12 @@ namespace BinarySerializer
 
             long start = Reader.BaseStream.Position;
 
-            T checksum = (T)ReadAsObject<T>(name);
+            T checksum = (T)ReadAsObject(typeof(T), name);
 
             if (CurrentFile.ShouldUpdateReadMap)
                 CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
-            bool match = checksum?.Equals(calculatedChecksum) == true;
+            bool match = checksum.Equals(calculatedChecksum);
 
             if (!match)
                 SystemLog?.LogWarning("Checksum {0} did not match!", name);
@@ -316,8 +316,7 @@ namespace BinarySerializer
 
         #region Serialization
 
-        public override T Serialize<T>(T? obj, string? name = null)
-            where T : default
+        public override T Serialize<T>(T obj, string? name = null)
         {
             VerifyHasCurrentPointer();
 
@@ -325,13 +324,36 @@ namespace BinarySerializer
 
             long start = Reader.BaseStream.Position;
 
-            T t = (T)ReadAsObject<T>(name);
+            Type type = typeof(T);
+
+            T t = (T)ReadAsObject(type, name);
 
             if (CurrentFile.ShouldUpdateReadMap)
                 CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             if (IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{logString}({typeof(T).Name}) {(name ?? DefaultName)}: {(t?.ToString() ?? "null")}");
+                Context.SerializerLog.Log($"{logString}({type.Name}) {name ?? DefaultName}: {t}");
+
+            return t;
+        }
+
+        public override T? SerializeNullable<T>(T? obj, string? name = null)
+        {
+            VerifyHasCurrentPointer();
+
+            string? logString = LogPrefix;
+
+            long start = Reader.BaseStream.Position;
+
+            Type type = typeof(T);
+
+            T? t = (T?)ReadAsNullableObject(type, name);
+
+            if (CurrentFile.ShouldUpdateReadMap)
+                CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
+
+            if (IsSerializerLogEnabled)
+                Context.SerializerLog.Log($"{logString}({type.Name}?) {name ?? DefaultName}: {t?.ToString() ?? "null"}");
 
             return t;
         }
@@ -517,8 +539,7 @@ namespace BinarySerializer
             return obj;
         }
 
-        public override T[] SerializeArray<T>(T?[]? obj, long count, string? name = null)
-            where T : default
+        public override T[] SerializeArray<T>(T[]? obj, long count, string? name = null)
         {
             VerifyHasCurrentPointer();
 
@@ -546,7 +567,7 @@ namespace BinarySerializer
                 string? logString = LogPrefix;
                 Context.SerializerLog.Log($"{logString}({typeof(T).Name}[{count}]) {name ?? DefaultName}");
             }
-            T?[] buffer;
+            T[] buffer;
             if (obj != null)
             {
                 buffer = obj;
@@ -556,14 +577,14 @@ namespace BinarySerializer
             }
             else
             {
-                buffer = new T?[(int)count];
+                buffer = new T[(int)count];
             }
 
             for (int i = 0; i < count; i++)
                 // Read the value
                 buffer[i] = Serialize<T>(buffer[i], name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
 
-            return buffer!;
+            return buffer;
         }
 
         public override T[] SerializeObjectArray<T>(T?[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null)
@@ -599,11 +620,10 @@ namespace BinarySerializer
         }
 
         public override T[] SerializeArrayUntil<T>(
-            T?[]? obj,
+            T[]? obj,
             Func<T, bool> conditionCheckFunc,
             Func<T>? getLastObjFunc = null,
             string? name = null)
-            where T : default
         {
             if (IsSerializerLogEnabled)
                 Context.SerializerLog.Log($"{LogPrefix}({typeof(T).Name}[..]) {name ?? DefaultName}");
@@ -895,12 +915,9 @@ namespace BinarySerializer
         }
 
         // Helper method which returns an object so we can cast it
-        protected object ReadAsObject<T>(string? name = null)
+        protected object ReadAsObject(Type type, string? name = null)
         {
             VerifyHasCurrentPointer();
-
-            // Get the type
-            Type type = typeof(T);
 
             TypeCode typeCode = Type.GetTypeCode(type);
 
@@ -914,7 +931,7 @@ namespace BinarySerializer
                         SystemLog?.LogWarning("Binary boolean '{0}' ({1}) was not correctly formatted", name, b);
 
                         if (IsSerializerLogEnabled)
-                            Context.SerializerLog.Log($"{LogPrefix} ({typeof(T)}): Binary boolean was not correctly formatted ({b})");
+                            Context.SerializerLog.Log($"{LogPrefix} ({type}): Binary boolean was not correctly formatted ({b})");
                     }
 
                     return b != 0;
@@ -948,33 +965,42 @@ namespace BinarySerializer
 
                 case TypeCode.Double:
                     return Reader.ReadDouble();
-                case TypeCode.String:
-                    return Reader.ReadNullDelimitedString(Defaults?.StringEncoding ?? Context.DefaultEncoding);
 
+                case TypeCode.Object when type == typeof(UInt24):
+                    return Reader.ReadUInt24();
+
+                case TypeCode.String:
                 case TypeCode.Decimal:
                 case TypeCode.Char:
                 case TypeCode.DateTime:
                 case TypeCode.Empty:
                 case TypeCode.DBNull:
-                case TypeCode.Object:
-                    if (type == typeof(UInt24))
-                    {
-                        return Reader.ReadUInt24();
-                    }
-                    else if (type == typeof(byte?))
-                    {
-                        byte nullableByte = Reader.ReadByte();
-                        if (nullableByte == 0xFF) 
-                            return (byte?)null!;
-                        return nullableByte;
-                    }
-                    else
-                    {
-                        throw new NotSupportedException($"The specified generic type ('{name}') can not be read from the reader");
-                    }
                 default:
                     throw new NotSupportedException($"The specified generic type ('{name}') can not be read from the reader");
             }
+        }
+
+        protected object? ReadAsNullableObject(Type underlyingType, string? name = null)
+        {
+            VerifyHasCurrentPointer();
+
+            TypeCode typeCode = Type.GetTypeCode(underlyingType);
+
+            return typeCode switch
+            {
+                TypeCode.SByte => toNullable(Reader.ReadSByte(), -1),
+                TypeCode.Byte => toNullable(Reader.ReadByte(), Byte.MaxValue),
+                TypeCode.Int16 => toNullable(Reader.ReadInt16(), -1),
+                TypeCode.UInt16 => toNullable(Reader.ReadUInt16(), UInt16.MaxValue),
+                TypeCode.Int32 => toNullable(Reader.ReadInt32(), -1),
+                TypeCode.UInt32 => toNullable(Reader.ReadUInt32(), UInt32.MaxValue),
+                TypeCode.Int64 => toNullable(Reader.ReadInt64(), -1),
+                TypeCode.UInt64 => toNullable(Reader.ReadUInt64(), UInt64.MaxValue),
+                TypeCode.Object when underlyingType == typeof(UInt24) => toNullable(Reader.ReadUInt24(), UInt24.MaxValue),
+                _ => throw new NotSupportedException($"The specified nullable generic type ('{name}') can not be read from the reader")
+            };
+
+            T? toNullable<T>(T value, T nullValue) where T : struct => value.Equals(nullValue) ? null : value;
         }
 
         #endregion

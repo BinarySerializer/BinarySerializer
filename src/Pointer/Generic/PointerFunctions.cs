@@ -34,14 +34,29 @@ namespace BinarySerializer
                 name: name);
         }
 
-        public static SerializeFunction<T> Serialize<T>() =>
-            (s, value, name) => s.Serialize<T>(value, name: name);
+        public static SerializeFunction<T> Serialize<T>() 
+            where T : struct
+        {
+            return (s, value, name) => s.Serialize<T>(value, name: name);
+        }
 
-        public static SerializeFunction<T[]> SerializeArray<T>(long count) =>
-            (s, value, name) => s.SerializeArray<T>(value, count, name: name);
+        public static SerializeFunction<T[]> SerializeArray<T>(long count)
+            where T : struct
+        {
+            return (s, value, name) => s.SerializeArray<T>(value, count, name: name);
+        }
 
-        public static SerializeFunction<T[]> SerializeArrayUntil<T>(Func<T, bool> conditionCheckFunc, Func<T>? getLastObjFunc = null) =>
-            (s, value, name) => s.SerializeArrayUntil<T>(value, conditionCheckFunc, getLastObjFunc: getLastObjFunc, name: name);
+        public static SerializeFunction<T[]> SerializeArrayUntil<T>(Func<T, bool> conditionCheckFunc, Func<T>? getLastObjFunc = null)
+            where T : struct
+        {
+            return (s, value, name) => s.SerializeArrayUntil<T>(value, conditionCheckFunc, getLastObjFunc: getLastObjFunc, name: name);
+        }
+
+        public static SerializeFunction<T?> SerializeNullable<T>()
+            where T : struct
+        {
+            return (s, value, name) => s.SerializeNullable<T>(value, name: name);
+        }
 
         public static SerializeFunction<string> SerializeString(long? length = null, Encoding? encoding = null) =>
             (s, value, name) => s.SerializeString(value, length: length, encoding: encoding, name: name);

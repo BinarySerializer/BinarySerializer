@@ -116,6 +116,7 @@ namespace BinarySerializer
 
         // Value
         public static Pointer<T> Resolve<T>(this Pointer<T> ptr, SerializerObject s)
+            where T : struct
         {
             if (ptr == null) 
                 throw new ArgumentNullException(nameof(ptr));
@@ -125,6 +126,7 @@ namespace BinarySerializer
             return ptr.ResolveValue(s, PointerFunctions.Serialize<T>());
         }
         public static Pointer<T>[] Resolve<T>(this Pointer<T>?[] ptrs, SerializerObject s) 
+            where T : struct
         {
             if (ptrs == null) 
                 throw new ArgumentNullException(nameof(ptrs));
@@ -143,9 +145,42 @@ namespace BinarySerializer
 
             return ptrs!;
         }
+
+        // Nullable value
+        public static Pointer<T?> ResolveNullable<T>(this Pointer<T?> ptr, SerializerObject s)
+            where T : struct
+        {
+            if (ptr == null) 
+                throw new ArgumentNullException(nameof(ptr));
+            if (s == null) 
+                throw new ArgumentNullException(nameof(s));
+            
+            return ptr.ResolveValue(s, PointerFunctions.SerializeNullable<T>());
+        }
+        public static Pointer<T?>[] ResolveNullable<T>(this Pointer<T?>?[] ptrs, SerializerObject s) 
+            where T : struct
+        {
+            if (ptrs == null) 
+                throw new ArgumentNullException(nameof(ptrs));
+            if (s == null) 
+                throw new ArgumentNullException(nameof(s));
+
+            for (int i = 0; i < ptrs.Length; i++)
+            {
+                Pointer<T?>? ptr = ptrs[i];
+
+                if (ptr == null)
+                    ptrs[i] = new Pointer<T?>();
+                else
+                    ptr.ResolveNullable(s);
+            }
+
+            return ptrs!;
+        }
         
         // Value array
         public static Pointer<T[]> ResolveArray<T>(this Pointer<T[]> ptr, SerializerObject s, long count)
+            where T : struct
         {
             if (ptr == null) 
                 throw new ArgumentNullException(nameof(ptr));
@@ -155,6 +190,7 @@ namespace BinarySerializer
             return ptr.ResolveValue(s, PointerFunctions.SerializeArray<T>(count));
         }
         public static Pointer<T[]>[] ResolveArray<T>(this Pointer<T[]>?[] ptrs, SerializerObject s, long count) 
+            where T : struct
         {
             if (ptrs == null) 
                 throw new ArgumentNullException(nameof(ptrs));

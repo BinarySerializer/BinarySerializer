@@ -15,10 +15,10 @@ namespace BinarySerializer
             string? name = null) 
         {
             long bitValue = BitHelpers.ExtractBits64(Value, length, Position, sign: sign);
-            T t = (T)LongToObject<T>(bitValue, name: name);
+            T t = (T)LongToObject(bitValue, typeof(T), name: name);
 
             if (SerializerObject.IsSerializerLogEnabled && !DisableSerializerLogForObject)
-                Context.SerializerLog.Log($"{LogPrefix}{Position}_{length} ({typeof(T).Name}) {name ?? DefaultName}: {(t?.ToString() ?? "null")}");
+                Context.SerializerLog.Log($"{LogPrefix}{Position}_{length} ({typeof(T).Name}) {name ?? DefaultName}: {t}");
 
             Position += length;
 
@@ -69,11 +69,8 @@ namespace BinarySerializer
             return instance;
         }
 
-        protected object LongToObject<T>(long input, string? name = null) 
+        protected object LongToObject(long input, Type type, string? name = null) 
         {
-            // Get the type
-            Type type = typeof(T);
-
             TypeCode typeCode = Type.GetTypeCode(type);
 
             switch (typeCode) 
@@ -84,7 +81,7 @@ namespace BinarySerializer
                         Context.SystemLog?.LogWarning("Binary boolean '{0}' ({1}) was not correctly formatted", name, input);
 
                         if (SerializerObject.IsSerializerLogEnabled)
-                            Context.SerializerLog.Log($"{LogPrefix} ({typeof(T)}): Binary boolean was not correctly formatted ({input})");
+                            Context.SerializerLog.Log($"{LogPrefix} ({type}): Binary boolean was not correctly formatted ({input})");
                     }
 
                     return input != 0;
@@ -119,27 +116,14 @@ namespace BinarySerializer
                 case TypeCode.Double:
                     return BitConverter.ToDouble(BitConverter.GetBytes(input), 0);
 
+                case TypeCode.Object when type == typeof(UInt24):
+                    return new UInt24((uint)input);
+
                 case TypeCode.Decimal:
                 case TypeCode.Char:
                 case TypeCode.DateTime:
                 case TypeCode.Empty:
                 case TypeCode.DBNull:
-                case TypeCode.Object:
-                    if (type == typeof(UInt24)) 
-                    {
-                        return new UInt24((uint)input);
-                    } 
-                    else if (type == typeof(byte?)) 
-                    {
-                        byte nullableByte = (byte)input;
-                        if (nullableByte == 0xFF) 
-                            return (byte?)null!;
-                        return nullableByte;
-                    } 
-                    else 
-                    {
-                        throw new NotSupportedException($"The specified generic type ('{name}') can not be read from the BitDeserializer");
-                    }
                 default:
                     throw new NotSupportedException($"The specified generic type ('{name}') can not be read from the BitDeserializer");
             }

@@ -248,7 +248,8 @@ namespace BinarySerializer
 
         #region Checksum
 
-        public abstract T SerializeChecksum<T>(T calculatedChecksum, string? name = null);
+        public abstract T SerializeChecksum<T>(T calculatedChecksum, string? name = null)
+            where T : struct;
 
         /// <summary>
         /// Begins calculating byte checksum for all following serialize operations
@@ -276,6 +277,7 @@ namespace BinarySerializer
             ChecksumPlacement placement, 
             string? name,
             Action action)
+            where T : struct
         {
             // Get the current pointer
             Pointer p = CurrentPointer;
@@ -320,8 +322,13 @@ namespace BinarySerializer
         /// <param name="obj">The value to be serialized</param>
         /// <param name="name">A name can be provided optionally, for logging or text serialization purposes</param>
         /// <returns>The value that was serialized</returns>
-        public abstract T Serialize<T>(T? obj, string? name = null);
-        
+        public abstract T Serialize<T>(T obj, string? name = null)
+            where T : struct;
+
+        // TODO: Create SerializeNullableArray?
+        public abstract T? SerializeNullable<T>(T? obj, string? name = null)
+            where T : struct;
+
         /// <summary>
         /// Serializes a <see cref="BinarySerializable"/> object
         /// </summary>
@@ -357,7 +364,8 @@ namespace BinarySerializer
 
         public abstract T?[] SerializeArraySize<T, U>(T?[]? obj, string? name = null)
             where U : struct;
-        public abstract T[] SerializeArray<T>(T?[]? obj, long count, string? name = null);
+        public abstract T[] SerializeArray<T>(T[]? obj, long count, string? name = null)
+            where T : struct;
         public T[] SerializeObjectArray<T>(T?[]? obj, long count, Action<T>? onPreSerialize, string? name = null)
             where T : BinarySerializable, new()
         {
@@ -376,10 +384,11 @@ namespace BinarySerializer
         /// <param name="name">The name</param>
         /// <returns>The array</returns>
         public abstract T[] SerializeArrayUntil<T>(
-            T?[]? obj, 
+            T[]? obj, 
             Func<T, bool> conditionCheckFunc, 
             Func<T>? getLastObjFunc = null, 
-            string? name = null);
+            string? name = null)
+            where T : struct;
 
         /// <summary>
         /// Serializes an object array of undefined size until a specified condition is met
@@ -559,7 +568,8 @@ namespace BinarySerializer
         public abstract void DoEndian(Endian endianness, Action action);
 
         public abstract void SerializeBitValues(Action<SerializeBits64> serializeFunc);
-        public abstract void DoBits<T>(Action<BitSerializerObject> serializeFunc);
+        public abstract void DoBits<T>(Action<BitSerializerObject> serializeFunc)
+            where T : struct;
 
         public delegate long SerializeBits64(long value, int length, string? name = null);
 
@@ -582,10 +592,11 @@ namespace BinarySerializer
         }
 
         public virtual void SerializeMagic<T>(T magic, bool throwIfNoMatch = true, string? name = null)
+            where T : struct
         {
             T value = Serialize<T>(magic, name: name ?? "Magic");
 
-            if (value?.Equals(magic) != true)
+            if (!value.Equals(magic))
             {
                 if (throwIfNoMatch)
                     throw new Exception($"Magic '{value}' does not match expected magic of '{magic}'");

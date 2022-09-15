@@ -98,6 +98,13 @@ namespace BinarySerializer
             UpdateCurrentSerializer(name);
             return CurrentSerializer.Serialize(obj, name);
         }
+
+        public override T? SerializeNullable<T>(T? obj, string name = null)
+        {
+            UpdateCurrentSerializer(name);
+            return CurrentSerializer.SerializeNullable(obj, name);
+        }
+
         public override T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null) {
 
             try
