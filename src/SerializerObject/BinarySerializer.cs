@@ -628,12 +628,12 @@ namespace BinarySerializer
         {
             obj ??= Array.Empty<T>();
 
-            T[] array = obj;
+            // Serialize the array
+            obj = SerializeArray<T>(obj, obj.Length, name: name);
 
+            // Serialize the terminator value if there is one
             if (getLastObjFunc != null)
-                array = array.Append(getLastObjFunc()).ToArray();
-
-            SerializeArray<T>(array, array.Length, name: name);
+                Serialize<T>(getLastObjFunc(), name: IsSerializerLogEnabled ? $"{name}[x]" : name);
 
             return obj;
         }
@@ -646,12 +646,12 @@ namespace BinarySerializer
         {
             obj ??= Array.Empty<T?>();
 
-            T?[] array = obj;
+            // Serialize the array
+            obj = SerializeNullableArray<T>(obj, obj.Length, name: name);
 
+            // Serialize the terminator value if there is one
             if (getLastObjFunc != null)
-                array = array.Append(getLastObjFunc()).ToArray();
-
-            SerializeNullableArray<T>(array, array.Length, name: name);
+                SerializeNullable<T>(getLastObjFunc(), name: IsSerializerLogEnabled ? $"{name}[x]" : name);
 
             return obj;
         }
@@ -664,17 +664,17 @@ namespace BinarySerializer
             string? name = null)
             where T : class
         {
-            obj ??= Array.Empty<T>();
+            obj ??= Array.Empty<T?>();
 
-            T?[] array = obj;
+            // Serialize the array
+            obj = SerializeObjectArray<T>(obj, obj.Length, onPreSerialize: onPreSerialize, name: name);
 
+            // Serialize the terminator object if there is one
             if (getLastObjFunc != null)
-                array = array.Append(getLastObjFunc()).ToArray();
-
-            // TODO: If some objects in the array were null then they will still be at this point! Resolve? Perhaps
-            //       first serialize the array and then optionally the last object separately afterwards? Same in
-            //       size calculation serializer.
-            SerializeObjectArray<T>(array, array.Length, onPreSerialize: onPreSerialize, name: name);
+                SerializeObject<T>(
+                    obj: getLastObjFunc(), 
+                    onPreSerialize: onPreSerialize != null ? x => onPreSerialize(x, obj.Length) : null, 
+                    name: IsSerializerLogEnabled ? $"{name}[x]" : name);
 
             return obj!;
         }

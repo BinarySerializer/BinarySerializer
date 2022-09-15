@@ -430,12 +430,13 @@ namespace BinarySerializer
             string? name = null)
         {
             obj ??= Array.Empty<T>();
-            T[] array = obj;
 
+            // Serialize the array
+            obj = SerializeArray<T>(obj, obj.Length, name: name);
+
+            // Serialize the terminator value if there is one
             if (getLastObjFunc != null)
-                array = array.Append(getLastObjFunc()).ToArray();
-
-            SerializeArray<T>(array, array.Length, name: name);
+                Serialize<T>(getLastObjFunc(), name: IsSerializerLogEnabled ? $"{name}[x]" : name);
 
             return obj;
         }
@@ -447,12 +448,13 @@ namespace BinarySerializer
             string? name = null)
         {
             obj ??= Array.Empty<T?>();
-            T?[] array = obj;
 
+            // Serialize the array
+            obj = SerializeNullableArray<T>(obj, obj.Length, name: name);
+
+            // Serialize the terminator value if there is one
             if (getLastObjFunc != null)
-                array = array.Append(getLastObjFunc()).ToArray();
-
-            SerializeNullableArray<T>(array, array.Length, name: name);
+                SerializeNullable<T>(getLastObjFunc(), name: IsSerializerLogEnabled ? $"{name}[x]" : name);
 
             return obj;
         }
@@ -467,12 +469,15 @@ namespace BinarySerializer
         {
             obj ??= Array.Empty<T?>();
 
-            T?[] array = obj;
+            // Serialize the array
+            obj = SerializeObjectArray<T>(obj, obj.Length, onPreSerialize: onPreSerialize, name: name);
 
+            // Serialize the terminator object if there is one
             if (getLastObjFunc != null)
-                array = array.Append(getLastObjFunc()).ToArray();
-
-            SerializeObjectArray<T>(array, array.Length, onPreSerialize: onPreSerialize, name: name);
+                SerializeObject<T>(
+                    obj: getLastObjFunc(), 
+                    onPreSerialize: onPreSerialize != null ? x => onPreSerialize(x, obj.Length) : null, 
+                    name: IsSerializerLogEnabled ? $"{name}[x]" : name);
 
             return obj!;
         }
