@@ -650,6 +650,116 @@ namespace BinarySerializer
             return buffer!;
         }
 
+        public override Pointer?[] SerializePointerArray(
+            Pointer?[]? obj,
+            long count,
+            PointerSize size = PointerSize.Pointer32,
+            Pointer? anchor = null,
+            bool allowInvalid = false,
+            long? nullValue = null,
+            string? name = null)
+        {
+            if (IsSerializerLogEnabled)
+            {
+                string? logString = LogPrefix;
+                Context.SerializerLog.Log($"{logString}({size}[{count}]) {name ?? DefaultName}");
+            }
+
+            Pointer?[] buffer;
+
+            if (obj != null)
+            {
+                buffer = obj;
+
+                if (buffer.Length != count)
+                    Array.Resize(ref buffer, (int)count);
+            }
+            else
+            {
+                buffer = new Pointer?[count];
+            }
+
+            for (int i = 0; i < count; i++)
+                // Read the value
+                buffer[i] = SerializePointer(buffer[i], size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue, name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+
+            return buffer;
+        }
+
+        public override Pointer<T>[] SerializePointerArray<T>(
+            Pointer<T>?[]? obj,
+            long count,
+            PointerSize size = PointerSize.Pointer32,
+            Pointer? anchor = null,
+            bool allowInvalid = false,
+            long? nullValue = null,
+            string? name = null)
+        {
+            if (IsSerializerLogEnabled)
+            {
+                string? logString = LogPrefix;
+                Context.SerializerLog.Log($"{logString}(Pointer<{typeof(T)}>[{count}]) {name ?? DefaultName}");
+            }
+
+            Pointer<T>?[] buffer;
+
+            if (obj != null)
+            {
+                buffer = obj;
+
+                if (buffer.Length != count)
+                    Array.Resize(ref buffer, (int)count);
+            }
+            else
+            {
+                buffer = new Pointer<T>?[count];
+            }
+
+            for (int i = 0; i < count; i++)
+                // Read the value
+                buffer[i] = SerializePointer<T>(
+                    obj: buffer[i],
+                    size: size,
+                    anchor: anchor,
+                    allowInvalid: allowInvalid,
+                    nullValue: nullValue,
+                    name: name == null || !IsSerializerLogEnabled ? name : $"{name}[{i}]");
+
+            return buffer!;
+        }
+
+        public override string[] SerializeStringArray(
+            string?[]? obj,
+            long count,
+            long? length = null,
+            Encoding? encoding = null,
+            string? name = null)
+        {
+            if (IsSerializerLogEnabled)
+            {
+                string? logString = LogPrefix;
+                Context.SerializerLog.Log($"{logString}(String[{count}]) {name ?? DefaultName}");
+            }
+            string?[] buffer;
+            if (obj != null)
+            {
+                buffer = obj;
+
+                if (buffer.Length != count)
+                    Array.Resize(ref buffer, (int)count);
+            }
+            else
+            {
+                buffer = new string?[(int)count];
+            }
+
+            for (int i = 0; i < count; i++)
+                // Read the value
+                buffer[i] = SerializeString(buffer[i], length, encoding, name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+
+            return buffer!;
+        }
+
         public override T[] SerializeArrayUntil<T>(
             T[]? obj,
             Func<T, bool> conditionCheckFunc,
@@ -750,116 +860,6 @@ namespace BinarySerializer
             }
 
             return objects.ToArray();
-        }
-
-        public override Pointer?[] SerializePointerArray(
-            Pointer?[]? obj,
-            long count,
-            PointerSize size = PointerSize.Pointer32,
-            Pointer? anchor = null,
-            bool allowInvalid = false,
-            long? nullValue = null,
-            string? name = null)
-        {
-            if (IsSerializerLogEnabled)
-            {
-                string? logString = LogPrefix;
-                Context.SerializerLog.Log($"{logString}({size}[{count}]) {name ?? DefaultName}");
-            }
-
-            Pointer?[] buffer;
-
-            if (obj != null)
-            {
-                buffer = obj;
-
-                if (buffer.Length != count)
-                    Array.Resize(ref buffer, (int)count);
-            }
-            else
-            {
-                buffer = new Pointer?[count];
-            }
-
-            for (int i = 0; i < count; i++)
-                // Read the value
-                buffer[i] = SerializePointer(buffer[i], size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue, name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
-
-            return buffer;
-        }
-
-        public override Pointer<T>[] SerializePointerArray<T>(
-            Pointer<T>?[]? obj,
-            long count,
-            PointerSize size = PointerSize.Pointer32,
-            Pointer? anchor = null,
-            bool allowInvalid = false,
-            long? nullValue = null,
-            string? name = null)
-        {
-            if (IsSerializerLogEnabled)
-            {
-                string? logString = LogPrefix;
-                Context.SerializerLog.Log($"{logString}(Pointer<{typeof(T)}>[{count}]) {name ?? DefaultName}");
-            }
-
-            Pointer<T>?[] buffer;
-
-            if (obj != null)
-            {
-                buffer = obj;
-
-                if (buffer.Length != count)
-                    Array.Resize(ref buffer, (int)count);
-            }
-            else
-            {
-                buffer = new Pointer<T>?[count];
-            }
-
-            for (int i = 0; i < count; i++)
-                // Read the value
-                buffer[i] = SerializePointer<T>(
-                    obj: buffer[i], 
-                    size: size, 
-                    anchor: anchor, 
-                    allowInvalid: allowInvalid, 
-                    nullValue: nullValue, 
-                    name: name == null || !IsSerializerLogEnabled ? name : $"{name}[{i}]");
-
-            return buffer!;
-        }
-
-        public override string[] SerializeStringArray(
-            string?[]? obj,
-            long count,
-            long? length = null,
-            Encoding? encoding = null,
-            string? name = null)
-        {
-            if (IsSerializerLogEnabled)
-            {
-                string? logString = LogPrefix;
-                Context.SerializerLog.Log($"{logString}(String[{count}]) {name ?? DefaultName}");
-            }
-            string?[] buffer;
-            if (obj != null)
-            {
-                buffer = obj;
-
-                if (buffer.Length != count)
-                    Array.Resize(ref buffer, (int)count);
-            }
-            else
-            {
-                buffer = new string?[(int)count];
-            }
-
-            for (int i = 0; i < count; i++)
-                // Read the value
-                buffer[i] = SerializeString(buffer[i], length, encoding, name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
-
-            return buffer!;
         }
 
         #endregion
