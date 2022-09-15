@@ -34,6 +34,11 @@ namespace BinarySerializer
         public bool IgnoreCacheOnRead { get; set; }
 
         /// <summary>
+        /// Indicates if the default should be to check and log if bytes skipped for an alignment are not null
+        /// </summary>
+        public bool LogAlignIfNotNull => false;
+
+        /// <summary>
         /// The pointer size to use when logging a <see cref="Pointer"/>. Set to <see langword="null"/> to dynamically determine the appropriate size.
         /// </summary>
         public PointerSize? LoggingPointerSize { get; set; } = PointerSize.Pointer32;

@@ -66,6 +66,10 @@ namespace BinarySerializer
         }
 
         public override void Goto(Pointer offset) => CurrentSerializer.Goto(offset);
+        public override void Align(int alignBytes = 4, Pointer baseOffset = null, bool? logIfNotNull = null)
+        {
+            CurrentSerializer.Align(alignBytes, baseOffset, logIfNotNull);
+        }
 
         public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null) {
             SwitchSerializer(Deserializer);

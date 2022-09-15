@@ -195,6 +195,19 @@ namespace BinarySerializer
             CurrentFilePosition = offset.FileOffset;
         }
 
+        public override void Align(int alignBytes = 4, Pointer? baseOffset = null, bool? logIfNotNull = null)
+        {
+            long align = (CurrentAbsoluteOffset - (baseOffset?.AbsoluteOffset ?? 0)) % alignBytes;
+
+            // Make sure we need to align
+            if (align == 0)
+                return;
+
+            long count = alignBytes - align;
+
+            Goto(CurrentPointer + count);
+        }
+
         public override void DoAt(Pointer? offset, Action action) { }
 
         // TODO: Resolve issues with this when not used

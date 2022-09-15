@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine.UIElements;
 
 namespace BinarySerializer
 {
@@ -250,6 +251,47 @@ namespace BinarySerializer
                 SwitchToFile(offset.File);
 
             Reader.BaseStream.Position = offset.FileOffset;
+        }
+
+        public override void Align(int alignBytes = 4, Pointer? baseOffset = null, bool? logIfNotNull = null)
+        {
+            VerifyHasCurrentPointer();
+
+            long align = (CurrentAbsoluteOffset - (baseOffset?.AbsoluteOffset ?? 0)) % alignBytes;
+
+            // Make sure we need to align
+            if (align == 0) 
+                return;
+            
+            long count = alignBytes - align;
+
+            logIfNotNull ??= Context.Settings.LogAlignIfNotNull;
+
+            // If we log we have to read the bytes to check that they are not null
+            if (logIfNotNull.Value)
+            {
+                string? logPrefix = LogPrefix;
+
+                byte[] bytes = Reader.ReadBytes((int)count);
+
+                // Check if any bytes are not null
+                if (bytes.Any(x => x != 0))
+                {
+                    if (IsSerializerLogEnabled)
+                    {
+                        string log = $"{logPrefix}({nameof(Byte)}[{count}]) Align: ";
+                        log += bytes.ToHexString(align: 16, newLinePrefix: new string(' ', log.Length), maxLines: 10);
+                        Context.SerializerLog.Log(log);
+                    }
+
+                    SystemLog?.LogWarning("Align bytes at {0} contains data! Data: {1}", 
+                        CurrentPointer - count, bytes.ToHexString(align: 16, maxLines: 1));
+                }
+            }
+            else
+            {
+                Goto(CurrentPointer + count);
+            }
         }
 
         #endregion

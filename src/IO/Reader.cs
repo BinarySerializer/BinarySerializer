@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -11,7 +10,7 @@ namespace BinarySerializer
     /// <summary>
     /// An extended version of the <see cref="BinaryReader"/> for reading binary data
     /// </summary>
-    public class Reader : BinaryReader 
+    public class Reader : BinaryReader
     {
         #region Constructors
 
@@ -34,9 +33,6 @@ namespace BinarySerializer
         protected byte[] ValueBuffer { get; } = new byte[8];
 
         protected bool RequiresByteReversing => IsLittleEndian != BitConverter.IsLittleEndian;
-
-        protected uint BytesSinceAlignStart { get; set; }
-        protected bool AutoAlignOn { get; set; }
 
         protected IXORCalculator? XORCalculator
         {
@@ -172,21 +168,6 @@ namespace BinarySerializer
 
             if (throwOnIncompleteRead && numRead != count)
                 throw new EndOfStreamException();
-
-            if (AutoAlignOn)
-                BytesSinceAlignStart += (uint)count;
-        }
-
-        public override sbyte ReadSByte() => (sbyte)ReadByte();
-
-        public override byte ReadByte()
-        {
-            byte result = base.ReadByte();
-
-            if (AutoAlignOn)
-                BytesSinceAlignStart++;
-
-            return result;
         }
 
         public string ReadNullDelimitedString(Encoding encoding)
@@ -235,48 +216,19 @@ namespace BinarySerializer
 
         #region Alignment
 
-        public bool AutoAligning
+        public void Align(long alignBytes)
         {
-            get => AutoAlignOn;
-            set
-            {
-                AutoAlignOn = value;
-                BytesSinceAlignStart = 0;
-            }
+            long align = BaseStream.Position % alignBytes;
+
+            if (align != 0)
+                BaseStream.Position += alignBytes - align;
         }
-
-        // To make sure position is a multiple of alignBytes
-        public void Align(int alignBytes)
+        public void Align(long alignBytes, long offset)
         {
-            if (BaseStream.Position % alignBytes != 0)
-                ReadBytes(alignBytes - (int)(BaseStream.Position % alignBytes));
-        }
-        public void AlignOffset(int alignBytes, int offset)
-        {
-            if ((BaseStream.Position - offset) % alignBytes != 0)
-                ReadBytes(alignBytes - (int)((BaseStream.Position - offset) % alignBytes));
-        }
+            long align = (BaseStream.Position - offset) % alignBytes;
 
-        // To make sure position is a multiple of alignBytes after reading a block of blocksize, regardless of prior position
-        public void Align(int blockSize, int alignBytes)
-        {
-            int rest = blockSize % alignBytes;
-
-            if (rest > 0)
-            {
-                byte[] aligned = ReadBytes(alignBytes - rest);
-
-                if (aligned.Any(b => b != 0x0))
-                    throw new Exception("A data byte was skipped during alignment");
-            }
-        }
-        
-        public void AutoAlign(int alignBytes)
-        {
-            if (BytesSinceAlignStart % alignBytes != 0)
-                ReadBytes(alignBytes - (int)(BytesSinceAlignStart % alignBytes));
-
-            BytesSinceAlignStart = 0;
+            if (align != 0)
+                BaseStream.Position += alignBytes - align;
         }
 
         #endregion

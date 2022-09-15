@@ -28,9 +28,6 @@ namespace BinarySerializer
 
         #region Protected Properties
 
-        protected uint BytesSinceAlignStart { get; set; }
-        protected bool AutoAlignOn { get; set; }
-
         protected IXORCalculator? XORCalculator
         {
             get => BaseStream.XORCalculator;
@@ -149,72 +146,23 @@ namespace BinarySerializer
             Write(data);
         }
 
-        public override void Write(byte[]? buffer)
-        {
-            if (buffer == null)
-                return;
-
-            base.Write(buffer);
-
-            if (AutoAlignOn)
-                BytesSinceAlignStart += (uint)buffer.Length;
-        }
-
-        public override void Write(byte value)
-        {
-            base.Write(value);
-
-            if (AutoAlignOn)
-                BytesSinceAlignStart++;
-        }
-
-        public override void Write(sbyte value) => Write((byte)value);
-
         #endregion
 
         #region Alignment
 
-        // To make sure position is a multiple of alignBytes
-        public void Align(int alignBytes) 
+        public void Align(long alignBytes)
         {
-            if (BaseStream.Position % alignBytes != 0) 
-            {
-                int length = alignBytes - (int)(BaseStream.Position % alignBytes);
-                byte[] data = new byte[length];
-                Write(data);
-            }
-        }
-        public void AlignOffset(int alignBytes, int offset) 
-        {
-            if ((BaseStream.Position - offset) % alignBytes != 0)
-            {
-                int length = alignBytes - (int)((BaseStream.Position - offset) % alignBytes);
-                byte[] data = new byte[length];
-                Write(data);
-            }
-        }
+            long align = BaseStream.Position % alignBytes;
 
-        // To make sure position is a multiple of alignBytes after reading a block of blocksize, regardless of prior position
-        public void Align(int blockSize, int alignBytes) 
-        {
-            int rest = blockSize % alignBytes;
-            if (rest > 0) 
-            {
-                int length = alignBytes - rest;
-                byte[] data = new byte[length];
-                Write(data);
-            }
+            if (align != 0)
+                BaseStream.Position += alignBytes - align;
         }
-
-        public void AutoAlign(int alignBytes) 
+        public void Align(long alignBytes, long offset)
         {
-            if (BytesSinceAlignStart % alignBytes != 0) 
-            {
-                int length = alignBytes - (int)(BytesSinceAlignStart % alignBytes);
-                byte[] data = new byte[length];
-                Write(data);
-            }
-            BytesSinceAlignStart = 0;
+            long align = (BaseStream.Position - offset) % alignBytes;
+
+            if (align != 0)
+                BaseStream.Position += alignBytes - align;
         }
 
         #endregion

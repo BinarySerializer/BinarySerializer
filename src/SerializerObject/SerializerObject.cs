@@ -190,15 +190,7 @@ namespace BinarySerializer
 
         public abstract void Goto(Pointer? offset);
 
-        public void Align(int alignBytes = 4, Pointer? baseOffset = null)
-        {
-            if ((CurrentAbsoluteOffset - (baseOffset?.AbsoluteOffset ?? 0)) % alignBytes != 0)
-            {
-                Pointer ptr = CurrentPointer;
-
-                Goto(ptr + (alignBytes - (ptr.AbsoluteOffset - (baseOffset?.AbsoluteOffset ?? 0)) % alignBytes));
-            }
-        }
+        public abstract void Align(int alignBytes = 4, Pointer? baseOffset = null, bool? logIfNotNull = null);
 
         public virtual void DoAt(Pointer? offset, Action action)
         {
@@ -597,7 +589,7 @@ namespace BinarySerializer
                 byte[] a = SerializeArray<byte>(new byte[length], length, name: name);
 
                 if (logIfNotNull && a.Any(x => x != 0))
-                    SystemLog?.LogWarning("Padding at {0} contains data! Data: {1}", CurrentPointer - length, a.ToHexString());
+                    SystemLog?.LogWarning("Padding at {0} contains data! Data: {1}", CurrentPointer - length, a.ToHexString(align: 16, maxLines: 1));
             }
         }
 

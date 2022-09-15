@@ -207,6 +207,20 @@ namespace BinarySerializer
             Writer.BaseStream.Position = offset.FileOffset;
         }
 
+        public override void Align(int alignBytes = 4, Pointer? baseOffset = null, bool? logIfNotNull = null)
+        {
+            long align = (CurrentAbsoluteOffset - (baseOffset?.AbsoluteOffset ?? 0)) % alignBytes;
+
+            // Make sure we need to align
+            if (align == 0)
+                return;
+
+            long count = alignBytes - align;
+
+            // We can ignore logIfNotNull here since we're writing
+            Goto(CurrentPointer + count);
+        }
+
         #endregion
 
         #region Checksum

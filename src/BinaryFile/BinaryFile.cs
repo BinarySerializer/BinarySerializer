@@ -215,7 +215,6 @@ namespace BinarySerializer
             writer?.Dispose();
         }
 
-        // TODO: Dispose pattern
         public virtual void Dispose() { }
 
         #endregion
