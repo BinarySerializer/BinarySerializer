@@ -1,7 +1,7 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -10,7 +10,7 @@ namespace BinarySerializer
     /// <summary>
     /// An extended version of the <see cref="BinaryReader"/> for reading binary data
     /// </summary>
-    public class Reader : BinaryReader 
+    public class Reader : BinaryReader
     {
         #region Constructors
 
@@ -34,15 +34,12 @@ namespace BinarySerializer
 
         protected bool RequiresByteReversing => IsLittleEndian != BitConverter.IsLittleEndian;
 
-        protected uint BytesSinceAlignStart { get; set; }
-        protected bool AutoAlignOn { get; set; }
-
-        protected IXORCalculator XORCalculator
+        protected IXORCalculator? XORCalculator
         {
             get => BaseStream.XORCalculator;
             set => BaseStream.XORCalculator = value;
         }
-        protected IChecksumCalculator ChecksumCalculator
+        protected IChecksumCalculator? ChecksumCalculator
         {
             get => BaseStream.ChecksumCalculator;
             set => BaseStream.ChecksumCalculator = value;
@@ -153,6 +150,8 @@ namespace BinarySerializer
 
         public void ReadBytes(byte[] buffer, int offset, int count, bool throwOnIncompleteRead = true)
         {
+            if (buffer == null) 
+                throw new ArgumentNullException(nameof(buffer));
             if (count < 0) 
                 throw new ArgumentOutOfRangeException(nameof(count), "Non-negative amount of bytes is required");
 
@@ -169,26 +168,11 @@ namespace BinarySerializer
 
             if (throwOnIncompleteRead && numRead != count)
                 throw new EndOfStreamException();
-
-            if (AutoAlignOn)
-                BytesSinceAlignStart += (uint)count;
-        }
-
-        public override sbyte ReadSByte() => (sbyte)ReadByte();
-
-        public override byte ReadByte()
-        {
-            byte result = base.ReadByte();
-
-            if (AutoAlignOn)
-                BytesSinceAlignStart++;
-
-            return result;
         }
 
         public string ReadNullDelimitedString(Encoding encoding)
         {
-            List<byte> bytes = new List<byte>();
+            List<byte> bytes = new();
             byte b = ReadByte();
 
             while (b != 0x0)
@@ -232,66 +216,40 @@ namespace BinarySerializer
 
         #region Alignment
 
-        public bool AutoAligning
+        public void Align(long alignBytes)
         {
-            get => AutoAlignOn;
-            set
-            {
-                AutoAlignOn = value;
-                BytesSinceAlignStart = 0;
-            }
+            long align = BaseStream.Position % alignBytes;
+
+            if (align != 0)
+                BaseStream.Position += alignBytes - align;
         }
-
-        // To make sure position is a multiple of alignBytes
-        public void Align(int alignBytes)
+        public void Align(long alignBytes, long offset)
         {
-            if (BaseStream.Position % alignBytes != 0)
-                ReadBytes(alignBytes - (int)(BaseStream.Position % alignBytes));
-        }
-        public void AlignOffset(int alignBytes, int offset)
-        {
-            if ((BaseStream.Position - offset) % alignBytes != 0)
-                ReadBytes(alignBytes - (int)((BaseStream.Position - offset) % alignBytes));
-        }
+            long align = (BaseStream.Position - offset) % alignBytes;
 
-        // To make sure position is a multiple of alignBytes after reading a block of blocksize, regardless of prior position
-        public void Align(int blockSize, int alignBytes)
-        {
-            int rest = blockSize % alignBytes;
-
-            if (rest > 0)
-            {
-                byte[] aligned = ReadBytes(alignBytes - rest);
-
-                if (aligned.Any(b => b != 0x0))
-                    throw new Exception("A data byte was skipped during alignment");
-            }
-        }
-        
-        public void AutoAlign(int alignBytes)
-        {
-            if (BytesSinceAlignStart % alignBytes != 0)
-                ReadBytes(alignBytes - (int)(BytesSinceAlignStart % alignBytes));
-
-            BytesSinceAlignStart = 0;
+            if (align != 0)
+                BaseStream.Position += alignBytes - align;
         }
 
         #endregion
 
         #region XOR & Checksum
 
-        public void BeginXOR(IXORCalculator xorCalculator) => XORCalculator = xorCalculator;
+        public void BeginXOR(IXORCalculator? xorCalculator) => XORCalculator = xorCalculator;
         public void EndXOR() => XORCalculator = null;
-        public IXORCalculator GetXORCalculator() => XORCalculator;
-        public void BeginCalculateChecksum(IChecksumCalculator checksumCalculator) => ChecksumCalculator = checksumCalculator;
-        public IChecksumCalculator PauseCalculateChecksum()
+        public IXORCalculator? GetXORCalculator() => XORCalculator;
+        public void BeginCalculateChecksum(IChecksumCalculator? checksumCalculator) => ChecksumCalculator = checksumCalculator;
+        public IChecksumCalculator? PauseCalculateChecksum()
         {
-            IChecksumCalculator c = ChecksumCalculator;
+            IChecksumCalculator? c = ChecksumCalculator;
             ChecksumCalculator = null;
             return c;
         }
-        public T EndCalculateChecksum<T>() 
+        public T EndCalculateChecksum<T>()
         {
+            if (ChecksumCalculator == null)
+                throw new InvalidOperationException("Can't end calculating checksum before beginning");
+
             IChecksumCalculator c = ChecksumCalculator;
             ChecksumCalculator = null;
             return ((IChecksumCalculator<T>)c).ChecksumValue;

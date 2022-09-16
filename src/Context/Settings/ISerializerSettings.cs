@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿#nullable enable
+using System.Text;
 
 namespace BinarySerializer
 {
@@ -31,6 +32,11 @@ namespace BinarySerializer
         /// Indicates if caching read objects should be ignored
         /// </summary>
         bool IgnoreCacheOnRead { get; }
+
+        /// <summary>
+        /// Indicates if the default should be to check and log if bytes skipped for an alignment are not null
+        /// </summary>
+        bool LogAlignIfNotNull { get; }
 
         /// <summary>
         /// The pointer size to use when logging a <see cref="Pointer"/>. Set to <see langword="null"/> to dynamically determine the appropriate size.

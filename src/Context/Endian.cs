@@ -1,4 +1,5 @@
-﻿namespace BinarySerializer
+﻿#nullable enable
+namespace BinarySerializer
 {
     public enum Endian
     {

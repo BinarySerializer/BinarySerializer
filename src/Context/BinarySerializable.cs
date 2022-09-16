@@ -1,7 +1,16 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
+using System.Runtime.Serialization;
 
 namespace BinarySerializer
 {
+    // TODO: Enabling nullable in this class is a bit difficult due to the Context and Offset properties. These will be null
+    //       by default, such as if the class is instantiated manually. However when in a SerializeImpl method we can know
+    //       that they won't be null.
+    //       Best solution is probably to throw if Context or Offset are null in the getter and then introduce a bool
+    //       to check if the class has been initialized (i.e. they are not null). This would however be a major breaking
+    //       change, so I've yet to do it.
+    //       Same applies for BitSerializable.
+
     /// <summary>
     /// Base type for serializable structs
     /// </summary>
@@ -49,7 +58,7 @@ namespace BinarySerializer
         /// <param name="offset">The offset the struct is located at</param>
         public void Init(Pointer offset) 
         {
-            Offset = offset;
+            Offset = offset ?? throw new ArgumentNullException(nameof(offset));
             if (Context != null && offset.Context != Context) 
                 OnChangeContext(Context, offset.Context);
             Context = offset.Context;
@@ -95,7 +104,6 @@ namespace BinarySerializer
             }
         }
 
-        protected virtual void OnChangeContext(Context oldContext, Context newContext) {
-        }
+        protected virtual void OnChangeContext(Context oldContext, Context newContext) { }
     }
 }

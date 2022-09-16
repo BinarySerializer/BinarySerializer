@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 
 namespace BinarySerializer
 {
@@ -17,7 +18,7 @@ namespace BinarySerializer
         /// <param name="filePath">The file path to read from</param>
         /// <param name="onPreSerialize">Optional action to run before serializing</param>
         /// <returns>The file data</returns>
-        public static T Read<T>(Context context, string filePath, Action<SerializerObject, T> onPreSerialize = null)
+        public static T Read<T>(Context context, string filePath, Action<SerializerObject, T>? onPreSerialize = null)
             where T : BinarySerializable, new()
         {
             if (context == null)
@@ -28,7 +29,7 @@ namespace BinarySerializer
             lock (context._threadLock)
             {
                 // Try cached version, to avoid creating the deserializer unless necessary
-                T mainObj = context.GetMainFileObject<T>(filePath);
+                T? mainObj = context.GetMainFileObject<T>(filePath);
 
                 if (mainObj != null)
                     return mainObj;
@@ -41,7 +42,7 @@ namespace BinarySerializer
                     relativePath: filePath,
                     obj: null,
                     onPreSerialize: onPreSerialize == null
-                        ? (Action<T>)null
+                        ? (Action<T>?)null
                         : x => onPreSerialize(s, x),
                     name: filePath);
             }
@@ -56,7 +57,7 @@ namespace BinarySerializer
         /// <param name="onPreSerialize">Optional action to run before serializing</param>
         /// <param name="name">Optional name for logging</param>
         /// <returns>The file data</returns>
-        public static T Read<T>(Context context, Pointer offset, Action<SerializerObject, T> onPreSerialize = null, string name = null)
+        public static T Read<T>(Context context, Pointer offset, Action<SerializerObject, T>? onPreSerialize = null, string? name = null)
             where T : BinarySerializable, new()
         {
             if (context == null) 
@@ -66,7 +67,7 @@ namespace BinarySerializer
 
             lock (context._threadLock)
             {
-                T mainObj = default;
+                T? mainObj = default;
 
                 // Get a deserializer
                 BinaryDeserializer s = context.Deserializer;
@@ -77,12 +78,12 @@ namespace BinarySerializer
                     mainObj = context.Deserializer.SerializeObject<T>(
                         obj: mainObj,
                         onPreSerialize: onPreSerialize == null
-                            ? (Action<T>)null
+                            ? (Action<T>?)null
                             : x => onPreSerialize(s, x),
                         name: name);
                 });
 
-                return mainObj;
+                return mainObj!;
             }
         }
 
@@ -92,7 +93,7 @@ namespace BinarySerializer
         /// <param name="context">The context</param>
         /// <param name="filePath">The file path to write to</param>
         /// <param name="onPreSerialize">Optional action to run before serializing</param>
-        public static T Write<T>(Context context, string filePath, Action<SerializerObject, T> onPreSerialize = null)
+        public static T Write<T>(Context context, string filePath, Action<SerializerObject, T>? onPreSerialize = null)
             where T : BinarySerializable, new()
         {
             if (context == null)
@@ -102,7 +103,7 @@ namespace BinarySerializer
 
             lock (context._threadLock)
             {
-                T obj = context.Cache.FromOffset<T>(context.FilePointer(filePath));
+                T? obj = context.Cache.FromOffset<T>(context.FilePointer(filePath));
 
                 if (obj == null)
                     throw new ContextException($"There is no cached object of type {typeof(T)} for {filePath}");
@@ -114,7 +115,7 @@ namespace BinarySerializer
                     relativePath: filePath,
                     obj: obj,
                     onPreSerialize: onPreSerialize == null
-                        ? (Action<T>)null
+                        ? (Action<T>?)null
                         : x => onPreSerialize(s, x),
                     name: filePath);
             }
@@ -127,7 +128,7 @@ namespace BinarySerializer
         /// <param name="filePath">The file path to write to</param>
         /// <param name="obj">The object to write</param>
         /// <param name="onPreSerialize">Optional action to run before serializing</param>
-        public static T Write<T>(Context context, string filePath, T obj, Action<SerializerObject, T> onPreSerialize = null)
+        public static T Write<T>(Context context, string filePath, T obj, Action<SerializerObject, T>? onPreSerialize = null)
             where T : BinarySerializable, new()
         {
             if (context == null)
@@ -146,7 +147,7 @@ namespace BinarySerializer
                     relativePath: filePath,
                     obj: obj,
                     onPreSerialize: onPreSerialize == null
-                        ? (Action<T>)null
+                        ? (Action<T>?)null
                         : x => onPreSerialize(s, x),
                     name: filePath);
             }
@@ -160,7 +161,7 @@ namespace BinarySerializer
         /// <param name="obj">The object to write</param>
         /// <param name="onPreSerialize">Optional action to run before serializing</param>
         /// <param name="name">Optional name for logging</param>
-        public static T Write<T>(Context context, Pointer offset, T obj, Action<SerializerObject, T> onPreSerialize = null, string name = null)
+        public static T Write<T>(Context context, Pointer offset, T obj, Action<SerializerObject, T>? onPreSerialize = null, string? name = null)
             where T : BinarySerializable, new()
         {
             if (context == null)
@@ -180,7 +181,7 @@ namespace BinarySerializer
                     obj = s.SerializeObject(
                         obj: obj,
                         onPreSerialize: onPreSerialize == null
-                            ? (Action<T>)null
+                            ? (Action<T>?)null
                             : x => onPreSerialize(s, x),
                         name: name);
                 });

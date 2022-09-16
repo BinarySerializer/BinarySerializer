@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace BinarySerializer
 
         public StreamWrapper(Stream innerStream)
         {
-            InnerStream = innerStream;
+            InnerStream = innerStream ?? throw new ArgumentNullException(nameof(innerStream));
         }
 
         #endregion
@@ -23,8 +24,8 @@ namespace BinarySerializer
 
         public Stream InnerStream { get; }
 
-        public IXORCalculator XORCalculator { get; set; }
-        public IChecksumCalculator ChecksumCalculator { get; set; }
+        public IXORCalculator? XORCalculator { get; set; }
+        public IChecksumCalculator? ChecksumCalculator { get; set; }
 
         #endregion
 
@@ -181,11 +182,11 @@ namespace BinarySerializer
         }
 
         // Other
-        public override object InitializeLifetimeService() => InnerStream.InitializeLifetimeService();
+        public override object? InitializeLifetimeService() => InnerStream.InitializeLifetimeService();
         public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => InnerStream.CopyToAsync(destination, bufferSize, cancellationToken);
 
         // Common override methods
-        public override bool Equals(object obj) => InnerStream.Equals(obj);
+        public override bool Equals(object? obj) => InnerStream.Equals(obj);
         public override int GetHashCode() => InnerStream.GetHashCode();
         public override string ToString() => InnerStream.ToString();
 

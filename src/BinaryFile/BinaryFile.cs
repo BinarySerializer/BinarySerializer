@@ -1,5 +1,7 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 
@@ -18,7 +20,13 @@ namespace BinarySerializer
         /// <param name="baseAddress">The base address for the file. If the file is not memory mapped this should be 0.</param>
         /// <param name="startPointer">The start pointer for the file. If null it will be the same as <see cref="BaseAddress"/></param>
         /// <param name="memoryMappedPriority">e file priority if memory mapped. Default is the address if set to -1.</param>
-        protected BinaryFile(Context context, string filePath, Endian? endianness = null, long baseAddress = 0, Pointer startPointer = null, long memoryMappedPriority = -1)
+        protected BinaryFile(
+            Context context, 
+            string filePath, 
+            Endian? endianness = null, 
+            long baseAddress = 0, 
+            Pointer? startPointer = null, 
+            long memoryMappedPriority = -1)
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
             FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
@@ -54,7 +62,7 @@ namespace BinarySerializer
         /// <summary>
         /// Files can be identified with an alias besides <see cref="FilePath"/>
         /// </summary>
-        public string Alias { get; set; }
+        public string? Alias { get; set; }
 
         /// <summary>
         /// The file path relative to the main directory in the context
@@ -126,7 +134,7 @@ namespace BinarySerializer
         /// <summary>
         /// The file to redirect to if <see cref="FileRedirectBehavior"/> is set to <see cref="RedirectBehavior.SpecifiedFile"/>
         /// </summary>
-        public BinaryFile RedirectFile { get; set; }
+        public BinaryFile? RedirectFile { get; set; }
 
         #endregion
 
@@ -141,7 +149,7 @@ namespace BinarySerializer
         /// <param name="serializedValue">The serialized pointer value</param>
         /// <param name="anchor">An optional anchor for the pointer</param>
         /// <returns></returns>
-        public virtual BinaryFile GetPointerFile(long serializedValue, Pointer anchor = null)
+        public virtual BinaryFile? GetPointerFile(long serializedValue, Pointer? anchor = null)
         {
             if (IsMemoryMapped)
                 return GetMemoryMappedPointerFile(serializedValue, anchor);
@@ -149,9 +157,9 @@ namespace BinarySerializer
                 return GetLocalPointerFile(serializedValue, anchor);
         }
 
-        protected virtual BinaryFile GetLocalPointerFile(long serializedValue, Pointer anchor = null)
+        protected virtual BinaryFile? GetLocalPointerFile(long serializedValue, Pointer? anchor = null)
         {
-            var anchorOffset = anchor?.AbsoluteOffset ?? 0;
+            long anchorOffset = anchor?.AbsoluteOffset ?? 0;
 
             if (serializedValue + anchorOffset >= BaseAddress && serializedValue + anchorOffset <= BaseAddress + Length)
                 return this;
@@ -159,27 +167,34 @@ namespace BinarySerializer
             return null;
         }
 
-        public virtual bool TryGetPointer(long value, out Pointer result, Pointer anchor = null, bool allowInvalid = false, PointerSize size = PointerSize.Pointer32) {
-            BinaryFile file = GetPointerFile(value, anchor);
-            Pointer ptr = null;
+        public virtual bool TryGetPointer(
+            long value, 
+            out Pointer? result, 
+            Pointer? anchor = null, 
+            bool allowInvalid = false, 
+            PointerSize size = PointerSize.Pointer32) 
+        {
+            BinaryFile? file = GetPointerFile(value, anchor);
+            Pointer? ptr = null;
 
             if (file != null)
                 ptr = new Pointer(value, file, anchor, size);
 
             result = ptr;
-            if (ptr == null && value != 0 && !allowInvalid && !AllowInvalidPointer(value, anchor: anchor)) {
+
+            if (ptr == null && value != 0 && !allowInvalid && !AllowInvalidPointer(value, anchor: anchor))
                 return false;
-            }
+
             return true;
         }
 
-        public virtual long GetPointerValueToSerialize(Pointer obj, Pointer anchor = null, long? nullValue = null)
-            => obj?.SerializedOffset ?? nullValue ?? 0;
+        public virtual long GetPointerValueToSerialize(Pointer? obj, Pointer? anchor = null, long? nullValue = null) => 
+            obj?.SerializedOffset ?? nullValue ?? 0;
 
-        protected virtual BinaryFile GetMemoryMappedPointerFile(long serializedValue, Pointer anchor = null)
+        protected virtual BinaryFile? GetMemoryMappedPointerFile(long serializedValue, Pointer? anchor = null)
         {
             // Get all memory mapped files
-            var files = Context.MemoryMap.Files.Where(x => x.IsMemoryMapped);
+            IEnumerable<BinaryFile> files = Context.MemoryMap.Files.Where(x => x.IsMemoryMapped);
 
             // Sort based on the base address
             files = files.OrderByDescending(file => file.MemoryMappedPriority);
@@ -188,13 +203,13 @@ namespace BinarySerializer
             return files.Select(f => f.GetLocalPointerFile(serializedValue, anchor)).FirstOrDefault(p => p != null);
         }
 
-        public virtual bool AllowInvalidPointer(long serializedValue, Pointer anchor = null) => false;
+        public virtual bool AllowInvalidPointer(long serializedValue, Pointer? anchor = null) => false;
 
-        public virtual void EndRead(Reader reader)
+        public virtual void EndRead(Reader? reader)
         {
             reader?.Dispose();
         }
-        public virtual void EndWrite(Writer writer)
+        public virtual void EndWrite(Writer? writer)
         {
             writer?.Flush();
             writer?.Dispose();
@@ -206,22 +221,26 @@ namespace BinarySerializer
 
         #region Override Pointers
 
-        protected Dictionary<long, Pointer> OverridePointers { get; set; }
+        protected Dictionary<long, Pointer>? OverridePointers { get; set; }
 
         public virtual void AddOverridePointer(long offset, Pointer pointer)
         {
-            if (OverridePointers == null)
-                OverridePointers = new Dictionary<long, Pointer>();
-
+            if (pointer == null) 
+                throw new ArgumentNullException(nameof(pointer));
+            
+            OverridePointers ??= new Dictionary<long, Pointer>();
             OverridePointers.Add(offset, pointer);
         }
-        public virtual Pointer GetOverridePointer(long offset) => OverridePointers?.ContainsKey(offset) == true ? OverridePointers[offset] : null;
+
+        public virtual Pointer? GetOverridePointer(long offset) =>
+            OverridePointers != null && OverridePointers.TryGetValue(offset, out Pointer value) ? value : null;
 
         #endregion
 
         #region File Map
 
-        public virtual bool[] FileReadMap { get; protected set; }
+        public virtual bool[]? FileReadMap { get; protected set; }
+        [MemberNotNullWhen(true, nameof(FileReadMap))]
         public bool ShouldUpdateReadMap => FileReadMap != null;
         protected bool ShouldInitFileReadMap { get; set; }
 
@@ -245,6 +264,12 @@ namespace BinarySerializer
         }
         public void ExportFileReadMap(string outputFilePath)
         {
+            if (outputFilePath == null) 
+                throw new ArgumentNullException(nameof(outputFilePath));
+            
+            if (FileReadMap == null)
+                throw new InvalidOperationException("Can not export a file read map before it has been initialized");
+
             File.WriteAllBytes(outputFilePath, FileReadMap.Select(x => (byte)(x ? 0xFF : 0x00)).ToArray());
         }
 
@@ -252,16 +277,18 @@ namespace BinarySerializer
 
         #region Region
 
-        protected SortedList<long, Region> Regions { get; set; }
+        protected SortedList<long, Region>? Regions { get; set; }
 
         public void AddRegion(long offset, long length, string name)
         {
-            if (Regions == null)
-                Regions = new SortedList<long, Region>();
+            if (name == null) 
+                throw new ArgumentNullException(nameof(name));
+            
+            Regions ??= new SortedList<long, Region>();
             Regions[offset] = new Region(offset, length, name);
         }
 
-        public Region GetRegion(long offset)
+        public Region? GetRegion(long offset)
         {
             if (Regions == null) 
                 return null;
@@ -305,22 +332,19 @@ namespace BinarySerializer
 
         #region Labels
 
-        protected Dictionary<long, string> Labels { get; set; }
+        protected Dictionary<long, string>? Labels { get; set; }
 
         public void AddLabel(long offset, string label)
         {
-            Labels ??= new Dictionary<long, string>();
+            if (label == null)
+                throw new ArgumentNullException(nameof(label));
 
+            Labels ??= new Dictionary<long, string>();
             Labels[offset] = label;
         }
 
-        public string GetLabel(long offset)
-        {
-            if (Labels?.ContainsKey(offset) != true)
-                return null;
-
-            return Labels[offset];
-        }
+        public string? GetLabel(long offset) =>
+            Labels != null && Labels.TryGetValue(offset, out string value) ? value : null;
 
         #endregion
 

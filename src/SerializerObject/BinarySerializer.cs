@@ -1,5 +1,7 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -25,8 +27,8 @@ namespace BinarySerializer
 
         protected HashSet<BinarySerializable> WrittenObjects { get; }
         protected Dictionary<BinaryFile, Writer> Writers { get; }
-        protected Writer Writer { get; set; }
-        protected BinaryFile CurrentFile { get; set; }
+        protected Writer? Writer { get; set; }
+        protected BinaryFile? CurrentFile { get; set; }
 
         #endregion
 
@@ -35,24 +37,27 @@ namespace BinarySerializer
         /// <summary>
         /// The current length of the data being serialized
         /// </summary>
-        public override long CurrentLength => Writer.BaseStream.Length; // can be modified!
+        public override long CurrentLength => Writer?.BaseStream.Length ?? throw new SerializerMissingCurrentPointerException();
+
+        [MemberNotNullWhen(true, nameof(CurrentFile), nameof(Writer))]
+        public override bool HasCurrentPointer => CurrentFile != null && Writer != null;
 
         /// <summary>
         /// The current binary file being used by the serializer
         /// </summary>
-        public override BinaryFile CurrentBinaryFile => CurrentFile;
+        public override BinaryFile CurrentBinaryFile => CurrentFile ?? throw new SerializerMissingCurrentPointerException();
 
         /// <summary>
         /// The current file offset
         /// </summary>
-        public override long CurrentFileOffset => Writer.BaseStream.Position;
+        public override long CurrentFileOffset => Writer?.BaseStream.Position ?? throw new SerializerMissingCurrentPointerException();
 
         #endregion
 
         #region Logging
 
-        protected string LogPrefix => IsSerializerLogEnabled ? $"(W) {CurrentPointer}:{new string(' ', (Depth + 1) * 2)}" : null;
-        public override void Log(string logString, params object[] args)
+        protected string? LogPrefix => IsSerializerLogEnabled ? $"(W) {CurrentPointer}:{new string(' ', (Depth + 1) * 2)}" : null;
+        public override void Log(string logString, params object?[] args)
         {
             if (IsSerializerLogEnabled)
                 Context.SerializerLog.Log(LogPrefix + String.Format(logString, args));
@@ -62,8 +67,18 @@ namespace BinarySerializer
 
         #region Encoding
 
-        public override void DoEncoded(IStreamEncoder encoder, Action action, Endian? endianness = null, bool allowLocalPointers = false, string filename = null)
+        public override void DoEncoded(
+            IStreamEncoder? encoder, 
+            Action action, 
+            Endian? endianness = null, 
+            bool allowLocalPointers = false, 
+            string? filename = null)
         {
+            if (action == null) 
+                throw new ArgumentNullException(nameof(action));
+         
+            VerifyHasCurrentPointer();
+            
             if (encoder == null)
             {
                 action();
@@ -103,18 +118,24 @@ namespace BinarySerializer
             }
         }
 
-        public override Pointer BeginEncoded(IStreamEncoder encoder, Endian? endianness = null, bool allowLocalPointers = false, string filename = null)
+        public override Pointer BeginEncoded(
+            IStreamEncoder encoder, 
+            Endian? endianness = null, 
+            bool allowLocalPointers = false, 
+            string? filename = null)
         {
             if (encoder == null)
                 throw new ArgumentNullException(nameof(encoder));
+
+            VerifyHasCurrentPointer();
 
             // Stream key
             string key = filename ?? $"{CurrentPointer}_{encoder.Name}";
 
             // Add the stream
-            MemoryStream memStream = new MemoryStream();
+            MemoryStream memStream = new();
 
-            StreamFile sf = new StreamFile(
+            StreamFile sf = new(
                 context: Context,
                 name: key,
                 stream: memStream,
@@ -124,22 +145,22 @@ namespace BinarySerializer
 
             Context.AddFile(sf);
 
-            EncodedFiles.Add(new EncodedState()
-            {
-                File = sf,
-                Stream = memStream,
-                Encoder = encoder
-            });
+            EncodedFiles.Add(new EncodedState(memStream, sf, encoder));
 
             return sf.StartPointer;
         }
 
         public override void EndEncoded(Pointer endPointer)
         {
-            EncodedState encodedFile = EncodedFiles.FirstOrDefault(ef => ef.File == endPointer.File);
+            if (endPointer == null) 
+                throw new ArgumentNullException(nameof(endPointer));
+            
+            EncodedState? encodedFile = EncodedFiles.FirstOrDefault(ef => ef.File == endPointer.File);
 
-            if (encodedFile == null) 
+            if (encodedFile == null)
                 return;
+
+            VerifyHasCurrentPointer();
 
             EncodedFiles.Remove(encodedFile);
 
@@ -153,30 +174,61 @@ namespace BinarySerializer
 
         #region XOR
 
-        public override void BeginXOR(IXORCalculator xorCalculator) => Writer.BeginXOR(xorCalculator);
-        public override void EndXOR() => Writer.EndXOR();
-        public override IXORCalculator GetXOR() => Writer.GetXORCalculator();
+        public override void BeginXOR(IXORCalculator? xorCalculator)
+        {
+            VerifyHasCurrentPointer();
+            Writer.BeginXOR(xorCalculator);
+        }
+
+        public override void EndXOR()
+        {
+            VerifyHasCurrentPointer();
+            Writer.EndXOR();
+        }
+
+        public override IXORCalculator? GetXOR()
+        {
+            VerifyHasCurrentPointer();
+            return Writer.GetXORCalculator();
+        }
 
         #endregion
 
         #region Positioning
 
-        public override void Goto(Pointer offset)
+        public override void Goto(Pointer? offset)
         {
             if (offset == null) 
                 return;
 
-            if (offset.File != CurrentFile)
+            if (offset.File != CurrentFile || !HasCurrentPointer)
                 SwitchToFile(offset.File);
 
             Writer.BaseStream.Position = offset.FileOffset;
+        }
+
+        public override void Align(int alignBytes = 4, Pointer? baseOffset = null, bool? logIfNotNull = null)
+        {
+            long align = (CurrentAbsoluteOffset - (baseOffset?.AbsoluteOffset ?? 0)) % alignBytes;
+
+            // Make sure we need to align
+            if (align == 0)
+                return;
+
+            if (IsSerializerLogEnabled)
+                Context.SerializerLog.Log($"{LogPrefix}Align {alignBytes}");
+
+            long count = alignBytes - align;
+
+            // We can ignore logIfNotNull here since we're writing
+            Goto(CurrentPointer + count);
         }
 
         #endregion
 
         #region Checksum
 
-        public override T SerializeChecksum<T>(T calculatedChecksum, string name = null)
+        public override T SerializeChecksum<T>(T calculatedChecksum, string? name = null)
         {
             if (IsSerializerLogEnabled)
                 Context.SerializerLog.Log($"{LogPrefix}({typeof(T)}) {name ?? DefaultName}: {calculatedChecksum}");
@@ -189,48 +241,76 @@ namespace BinarySerializer
         /// Begins calculating byte checksum for all decrypted bytes read from the stream
         /// </summary>
         /// <param name="checksumCalculator">The checksum calculator to use</param>
-        public override void BeginCalculateChecksum(IChecksumCalculator checksumCalculator) => Writer.BeginCalculateChecksum(checksumCalculator);
+        public override void BeginCalculateChecksum(IChecksumCalculator? checksumCalculator)
+        {
+            VerifyHasCurrentPointer();
+            Writer.BeginCalculateChecksum(checksumCalculator);
+        }
 
-        public override IChecksumCalculator PauseCalculateChecksum() => Writer.PauseCalculateChecksum();
+        public override IChecksumCalculator? PauseCalculateChecksum()
+        {
+            VerifyHasCurrentPointer();
+            return Writer.PauseCalculateChecksum();
+        }
 
         /// <summary>
         /// Ends calculating the checksum and return the value
         /// </summary>
         /// <typeparam name="T">The type of checksum value</typeparam>
+        /// <param name="value">The default value to return if no value exists</param>
         /// <returns>The checksum value</returns>
-        public override T EndCalculateChecksum<T>() => Writer.EndCalculateChecksum<T>();
+        public override T EndCalculateChecksum<T>(T value)
+        {
+            VerifyHasCurrentPointer();
+            return Writer.EndCalculateChecksum<T>();
+        }
 
         #endregion
 
         #region Serialization
 
-        public override T Serialize<T>(T obj, string name = null)
+        public override T Serialize<T>(T obj, string? name = null)
         {
             if (IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{LogPrefix}({typeof(T).Name}) {(name ?? DefaultName)}: {obj?.ToString() ?? "null"}");
+                Context.SerializerLog.Log($"{LogPrefix}({typeof(T).Name}) {name ?? DefaultName}: {obj}");
 
             Write(obj);
+
             return obj;
         }
 
-        public override T SerializeObject<T>(T obj, Action<T> onPreSerialize = null, string name = null)
+        public override T? SerializeNullable<T>(T? obj, string? name = null)
+        {
+            Type type = typeof(T);
+
+            if (IsSerializerLogEnabled)
+                Context.SerializerLog.Log($"{LogPrefix}({type.Name}?) {name ?? DefaultName}: {obj}");
+
+            WriteNullable(type, obj);
+
+            return obj;
+        }
+
+        public override T SerializeObject<T>(T? obj, Action<T>? onPreSerialize = null, string? name = null)
+            where T : class
         {
             if (obj == null) 
             {
                 obj = new T();
                 obj.Init(CurrentPointer);
             }
-
-            if (WrittenObjects.Contains(obj))
+            else if (WrittenObjects.Contains(obj))
             {
                 Goto(CurrentPointer + obj.Size);
                 return obj;
             }
+            else
+            {
+                // Reinitialize object
+                obj.Init(CurrentPointer);
+            }
 
-            // reinitialize object
-            obj.Init(CurrentPointer);
-
-            string logString = IsSerializerLogEnabled ? LogPrefix : null;
+            string? logString = LogPrefix;
             bool isLogTemporarilyDisabled = false;
 
             if (!DisableSerializerLogForObject && obj.UseShortLog)
@@ -265,21 +345,41 @@ namespace BinarySerializer
             return obj;
         }
 
-        public override Pointer SerializePointer(Pointer obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null)
+        public override Pointer? SerializePointer(
+            Pointer? obj,
+            PointerSize size = PointerSize.Pointer32,
+            Pointer? anchor = null,
+            bool allowInvalid = false,
+            long? nullValue = null,
+            string? name = null)
         {
+            VerifyHasCurrentPointer();
+
             // Redirect pointer files for pointer which have removed files, such as if the pointer is serialized within encoded data
             if (obj != null && !Context.FileExists(obj.File))
             {
                 obj = CurrentBinaryFile.FileRedirectBehavior switch
                 {
-                    BinaryFile.RedirectBehavior.Throw => throw new ContextException($"The file for the pointer {obj} does not exist in the current context"),
-                    BinaryFile.RedirectBehavior.CurrentFile => new Pointer(obj.AbsoluteOffset, CurrentBinaryFile, obj.Anchor, obj.Size, Pointer.OffsetType.Absolute),
-                    BinaryFile.RedirectBehavior.SpecifiedFile => new Pointer(obj.AbsoluteOffset, CurrentBinaryFile.RedirectFile, obj.Anchor, obj.Size, Pointer.OffsetType.Absolute),
+                    BinaryFile.RedirectBehavior.Throw => 
+                        throw new ContextException($"The file for the pointer {obj} does not exist in the current context"),
+                    
+                    BinaryFile.RedirectBehavior.CurrentFile => 
+                        new Pointer(obj.AbsoluteOffset, CurrentBinaryFile, obj.Anchor, obj.Size, Pointer.OffsetType.Absolute),
+                    
+                    BinaryFile.RedirectBehavior.SpecifiedFile when CurrentBinaryFile.RedirectFile != null => 
+                        new Pointer(
+                            offset: obj.AbsoluteOffset, 
+                            file: CurrentBinaryFile.RedirectFile, 
+                            anchor: obj.Anchor, 
+                            size: obj.Size, 
+                            offsetType: Pointer.OffsetType.Absolute),
+                    
                     _ => obj
                 };
             }
 
             BinaryFile currentFile = CurrentFile;
+
             if (Defaults != null)
             {
                 if (anchor == null) 
@@ -297,20 +397,20 @@ namespace BinarySerializer
             if (IsSerializerLogEnabled)
                 Context.SerializerLog.Log($"{LogPrefix}({size}) {name ?? DefaultName}: {obj}");
 
-            var valueToSerialize = currentFile.GetPointerValueToSerialize(obj, anchor: anchor, nullValue: nullValue);
+            long valueToSerialize = currentFile.GetPointerValueToSerialize(obj, anchor: anchor, nullValue: nullValue);
 
             switch (size)
             {
                 case PointerSize.Pointer16:
-                    Write((ushort)valueToSerialize);
+                    Writer.Write((ushort)valueToSerialize);
                     break;
 
                 case PointerSize.Pointer32:
-                    Write((uint)valueToSerialize);
+                    Writer.Write((uint)valueToSerialize);
                     break;
 
                 case PointerSize.Pointer64:
-                    Write((long)valueToSerialize);
+                    Writer.Write((long)valueToSerialize);
                     break;
 
                 default:
@@ -320,18 +420,37 @@ namespace BinarySerializer
             return obj;
         }
 
-        public override Pointer<T> SerializePointer<T>(Pointer<T> obj, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null)
+        public override Pointer<T> SerializePointer<T>(
+            Pointer<T>? obj,
+            PointerSize size = PointerSize.Pointer32,
+            Pointer? anchor = null,
+            bool allowInvalid = false,
+            long? nullValue = null,
+            string? name = null)
         {
-            Pointer PointerValue = obj?.PointerValue;
-            PointerValue = SerializePointer(PointerValue, size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue, name: IsSerializerLogEnabled ? $"<{typeof(T)}> {name ?? DefaultName}" : name);
-            if (obj?.PointerValue != PointerValue) {
-                obj = new Pointer<T>(PointerValue, obj == null ? default : obj.Value);
-            }
+            obj ??= new Pointer<T>();
+
+            Pointer? pointerValue = obj.PointerValue;
+            pointerValue = SerializePointer(
+                obj: pointerValue, 
+                size: size, 
+                anchor: anchor, 
+                allowInvalid: allowInvalid, 
+                nullValue: nullValue, 
+                name: IsSerializerLogEnabled ? $"<{typeof(T)}> {name ?? DefaultName}" : name);
+            
+            if (obj.PointerValue != pointerValue)
+                obj = new Pointer<T>(pointerValue, obj.Value);
+
             return obj;
         }
 
-        public override string SerializeString(string obj, long? length = null, Encoding encoding = null, string name = null)
+        public override string SerializeString(string? obj, long? length = null, Encoding? encoding = null, string? name = null)
         {
+            VerifyHasCurrentPointer();
+
+            obj ??= String.Empty;
+
             if (IsSerializerLogEnabled)
                 Context.SerializerLog.Log($"{LogPrefix}(String) {name ?? DefaultName}: {obj}");
 
@@ -349,16 +468,20 @@ namespace BinarySerializer
 
         #region Array Serialization
 
-        public override T[] SerializeArraySize<T, U>(T[] obj, string name = null)
+        public override T?[] SerializeArraySize<T, U>(T?[]? obj, string? name = null)
+            where T : default
         {
-            U Size = (U)Convert.ChangeType(obj?.Length ?? 0, typeof(U));
-            Serialize<U>(Size, name: $"{name ?? DefaultName}.Length");
+            obj ??= Array.Empty<T?>();
+            U size = (U)Convert.ChangeType(obj.Length, typeof(U));
+            Serialize<U>(size, name: $"{name ?? DefaultName}.Length");
             return obj;
         }
 
-        public override T[] SerializeArray<T>(T[] obj, long count, string name = null)
+        public override T[] SerializeArray<T>(T[]? obj, long count, string? name = null)
         {
-            T[] buffer = GetArray(obj, count);
+            VerifyHasCurrentPointer();
+
+            T[] buffer = obj ?? new T[count];
             count = buffer.Length;
 
             if (IsSerializerLogEnabled)
@@ -366,8 +489,11 @@ namespace BinarySerializer
                 if (typeof(T) == typeof(byte))
                 {
                     string normalLog = $"{LogPrefix}({typeof(T).Name}[{count}]) {name ?? DefaultName}: ";
-                    Context.SerializerLog.Log(normalLog + 
-                                    ((byte[])(object)buffer).ToHexString(align: 16, newLinePrefix: new string(' ', normalLog.Length), maxLines: 10));
+                    string hexStr = ((byte[])(object)buffer).ToHexString(
+                        align: 16, 
+                        newLinePrefix: new string(' ', normalLog.Length), 
+                        maxLines: 10);
+                    Context.SerializerLog.Log(normalLog + hexStr);
                 }
                 else
                 {
@@ -383,104 +509,215 @@ namespace BinarySerializer
             }
 
             for (int i = 0; i < count; i++)
-                // Read the value
-                Serialize<T>(buffer[i], name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = Serialize<T>(buffer[i], name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer;
         }
 
-        public override T[] SerializeObjectArray<T>(T[] obj, long count, Action<T, int> onPreSerialize = null, string name = null)
+        public override T?[] SerializeNullableArray<T>(T?[]? obj, long count, string? name = null)
         {
-            T[] buffer = GetArray(obj, count);
+            VerifyHasCurrentPointer();
+
+            T?[] buffer = obj ?? new T?[count];
+            count = buffer.Length;
+
+            if (IsSerializerLogEnabled)
+                Context.SerializerLog.Log($"{LogPrefix}({typeof(T).Name}[{count}]) {name ?? DefaultName}");
+
+            for (int i = 0; i < count; i++)
+                buffer[i] = SerializeNullable<T>(buffer[i], name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
+
+            return buffer;
+        }
+
+        public override T[] SerializeObjectArray<T>(T?[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null)
+            where T : class
+        {
+            T?[] buffer = obj ?? new T?[count];
             count = buffer.Length;
 
             if (IsSerializerLogEnabled)
                 Context.SerializerLog.Log($"{LogPrefix}(Object[] {typeof(T)}[{count}]) {name ?? DefaultName}");
 
             for (int i = 0; i < count; i++)
-                // Read the value
-                SerializeObject<T>(
+                buffer[i] = SerializeObject<T>(
                     obj: buffer[i], 
-                    onPreSerialize: onPreSerialize == null ? (Action<T>)null : x => onPreSerialize(x, i), 
-                    name: name == null || !IsSerializerLogEnabled ? name : $"{name}[{i}]");
+                    // ReSharper disable once AccessToModifiedClosure
+                    onPreSerialize: onPreSerialize == null ? (Action<T>?)null : x => onPreSerialize(x, i), 
+                    name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
-            return buffer;
+            return buffer!;
         }
 
-        public override T[] SerializeArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null, string name = null)
+        public override Pointer?[] SerializePointerArray(
+            Pointer?[]? obj,
+            long count,
+            PointerSize size = PointerSize.Pointer32,
+            Pointer? anchor = null,
+            bool allowInvalid = false,
+            long? nullValue = null,
+            string? name = null)
         {
-            T[] array = obj;
+            Pointer?[] buffer = obj ?? new Pointer?[count];
 
-            if (getLastObjFunc != null)
-                array = array.Append(getLastObjFunc()).ToArray();
-
-            SerializeArray<T>(array, array.Length, name: name);
-
-            return obj;
-        }
-
-        public override T[] SerializeObjectArrayUntil<T>(T[] obj, Func<T, bool> conditionCheckFunc, Func<T> getLastObjFunc = null,
-            Action<T, int> onPreSerialize = null, string name = null)
-        {
-            T[] array = obj;
-
-            if (getLastObjFunc != null)
-                array = array.Append(getLastObjFunc()).ToArray();
-
-            SerializeObjectArray<T>(array, array.Length, onPreSerialize: onPreSerialize, name: name);
-
-            return obj;
-        }
-
-        public override Pointer[] SerializePointerArray(Pointer[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null)
-        {
-            Pointer[] buffer = GetArray(obj, count);
             count = buffer.Length;
 
             if (IsSerializerLogEnabled)
                 Context.SerializerLog.Log($"{LogPrefix}({size}[{count}]) {name ?? DefaultName}");
 
             for (int i = 0; i < count; i++)
-                // Read the value
-                SerializePointer(buffer[i], size: size, anchor: anchor, allowInvalid: allowInvalid, nullValue: nullValue, name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = SerializePointer(
+                    obj: buffer[i],
+                    size: size,
+                    anchor: anchor,
+                    allowInvalid: allowInvalid,
+                    nullValue: nullValue,
+                    name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer;
         }
 
-        public override Pointer<T>[] SerializePointerArray<T>(Pointer<T>[] obj, long count, PointerSize size = PointerSize.Pointer32, Pointer anchor = null, bool allowInvalid = false, long? nullValue = null, string name = null)
+        public override Pointer<T>[] SerializePointerArray<T>(
+            Pointer<T>?[]? obj,
+            long count,
+            PointerSize size = PointerSize.Pointer32,
+            Pointer? anchor = null,
+            bool allowInvalid = false,
+            long? nullValue = null,
+            string? name = null)
         {
-            Pointer<T>[] buffer = GetArray(obj, count);
+            Pointer<T>?[] buffer = obj ?? new Pointer<T>?[count];
             count = buffer.Length;
 
             if (IsSerializerLogEnabled)
                 Context.SerializerLog.Log($"{LogPrefix}(Pointer<{typeof(T)}>[{count}]) {name ?? DefaultName}");
 
             for (int i = 0; i < count; i++)
-                // Read the value
-                SerializePointer<T>(
-                    obj: buffer[i], 
-                    size: size, 
-                    anchor: anchor, 
-                    allowInvalid: allowInvalid, 
-                    nullValue: nullValue, 
-                    name: name == null || !IsSerializerLogEnabled ? name : $"{name}[{i}]");
+                buffer[i] = SerializePointer<T>(
+                    obj: buffer[i],
+                    size: size,
+                    anchor: anchor,
+                    allowInvalid: allowInvalid,
+                    nullValue: nullValue,
+                    name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
-            return buffer;
+            return buffer!;
         }
 
-        public override string[] SerializeStringArray(string[] obj, long count, long? length = null, Encoding encoding = null, string name = null)
+        public override string[] SerializeStringArray(
+            string?[]? obj,
+            long count,
+            long? length = null,
+            Encoding? encoding = null,
+            string? name = null)
         {
-            string[] buffer = GetArray(obj, count);
+            string?[] buffer = obj ?? new string?[count];
             count = buffer.Length;
 
             if (IsSerializerLogEnabled)
                 Context.SerializerLog.Log(LogPrefix + "(String[" + count + "]) " + (name ?? DefaultName));
 
             for (int i = 0; i < count; i++)
-                // Read the value
-                SerializeString(buffer[i], length, encoding, name: (name == null || !IsSerializerLogEnabled) ? name : $"{name}[{i}]");
+                buffer[i] = SerializeString(
+                    obj: buffer[i], 
+                    length, encoding, 
+                    name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
-            return buffer;
+            return buffer!;
+        }
+
+        public override T[] SerializeArrayUntil<T>(
+            T[]? obj,
+            Func<T, bool> conditionCheckFunc,
+            Func<T>? getLastObjFunc = null,
+            string? name = null)
+        {
+            obj ??= Array.Empty<T>();
+
+            // Serialize the array
+            obj = SerializeArray<T>(obj, obj.Length, name: name);
+
+            // Serialize the terminator value if there is one
+            if (getLastObjFunc != null)
+                Serialize<T>(getLastObjFunc(), name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[x]" : name);
+
+            return obj;
+        }
+
+        public override T?[] SerializeNullableArrayUntil<T>(
+            T?[]? obj, 
+            Func<T?, bool> conditionCheckFunc, 
+            Func<T?>? getLastObjFunc = null, 
+            string? name = null)
+        {
+            obj ??= Array.Empty<T?>();
+
+            // Serialize the array
+            obj = SerializeNullableArray<T>(obj, obj.Length, name: name);
+
+            // Serialize the terminator value if there is one
+            if (getLastObjFunc != null)
+                SerializeNullable<T>(getLastObjFunc(), name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[x]" : name);
+
+            return obj;
+        }
+
+        public override T[] SerializeObjectArrayUntil<T>(
+            T?[]? obj,
+            Func<T, bool> conditionCheckFunc,
+            Func<T>? getLastObjFunc = null,
+            Action<T, int>? onPreSerialize = null,
+            string? name = null)
+            where T : class
+        {
+            obj ??= Array.Empty<T?>();
+
+            // Serialize the array
+            obj = SerializeObjectArray<T>(obj, obj.Length, onPreSerialize: onPreSerialize, name: name);
+
+            // Serialize the terminator object if there is one
+            if (getLastObjFunc != null)
+                SerializeObject<T>(
+                    obj: getLastObjFunc(), 
+                    onPreSerialize: onPreSerialize != null ? x => onPreSerialize(x, obj.Length) : null, 
+                    name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[x]" : name);
+
+            return obj!;
+        }
+
+        public override Pointer?[] SerializePointerArrayUntil(
+            Pointer?[]? obj, 
+            Func<Pointer?, bool> conditionCheckFunc, 
+            Func<Pointer?>? getLastObjFunc = null,
+            PointerSize size = PointerSize.Pointer32, 
+            Pointer? anchor = null, 
+            bool allowInvalid = false, 
+            long? nullValue = null,
+            string? name = null)
+        {
+            obj ??= Array.Empty<Pointer?>();
+
+            // Serialize the array
+            obj = SerializePointerArray(
+                obj: obj, 
+                count: obj.Length, 
+                size: size, 
+                anchor: anchor, 
+                allowInvalid: allowInvalid, 
+                nullValue: nullValue, 
+                name: name);
+
+            // Serialize the terminator pointer if there is one
+            if (getLastObjFunc != null)
+                SerializePointer(
+                    obj: getLastObjFunc(),
+                    size: size,
+                    anchor: anchor,
+                    allowInvalid: allowInvalid,
+                    nullValue: nullValue,
+                    name: IsSerializerLogEnabled ? $"{name ?? DefaultName}[x]" : name);
+
+            return obj;
         }
 
         #endregion
@@ -489,11 +726,17 @@ namespace BinarySerializer
 
         public override void DoEndian(Endian endianness, Action action)
         {
+            if (action == null) 
+                throw new ArgumentNullException(nameof(action));
+            
+            VerifyHasCurrentPointer();
+
             Writer w = Writer;
             bool isLittleEndian = w.IsLittleEndian;
+            
             if (isLittleEndian != (endianness == Endian.Little))
             {
-                w.IsLittleEndian = (endianness == Endian.Little);
+                w.IsLittleEndian = endianness == Endian.Little;
                 action();
                 w.IsLittleEndian = isLittleEndian;
             }
@@ -507,7 +750,10 @@ namespace BinarySerializer
 
         public override void DoBits<T>(Action<BitSerializerObject> serializeFunc) 
         {
-            var serializer = new BitSerializer(this, CurrentPointer, LogPrefix, 0);
+            if (serializeFunc == null)
+                throw new ArgumentNullException(nameof(serializeFunc));
+
+            BitSerializer serializer = new(this, CurrentPointer, LogPrefix, 0);
 
             // Set bits
             serializeFunc(serializer);
@@ -515,6 +761,7 @@ namespace BinarySerializer
             // Serialize value
             Serialize<T>((T)Convert.ChangeType(serializer.Value, typeof(T)), name: "Value");
         }
+
         #endregion
 
         #region Public Helpers
@@ -525,27 +772,28 @@ namespace BinarySerializer
 
         #region Protected Helpers
 
-        protected T[] GetArray<T>(T[] obj, long count)
+        [MemberNotNull(nameof(CurrentFile), nameof(Writer))]
+        protected void VerifyHasCurrentPointer()
         {
-            // Create or resize array if necessary
-            return obj ?? new T[(int)count];
+            if (!HasCurrentPointer)
+                throw new SerializerMissingCurrentPointerException();
         }
 
         /// <summary>
         /// Writes a supported value to the stream
         /// </summary>
         /// <param name="value">The value</param>
-        protected void Write<T>(T value)
+        protected void Write(object value)
         {
-            if (value is byte[] ba)
-                Writer.Write(ba);
+            if (value == null) 
+                throw new ArgumentNullException(nameof(value));
+            
+            VerifyHasCurrentPointer();
 
-            else if (value is Array a)
-                foreach (var item in a)
-                    Write(item);
+            Type type = value.GetType();
 
-            else if (value?.GetType().IsEnum == true)
-                Write(Convert.ChangeType(value, Enum.GetUnderlyingType(value.GetType())));
+            if (type.IsEnum)
+                Write(Convert.ChangeType(value, Enum.GetUnderlyingType(type)));
 
             else if (value is bool bo)
                 Writer.Write((byte)(bo ? 1 : 0));
@@ -580,40 +828,56 @@ namespace BinarySerializer
             else if (value is double dou)
                 Writer.Write(dou);
 
-            else if (value is string s)
-                Writer.WriteNullDelimitedString(s, Defaults?.StringEncoding ?? Context.DefaultEncoding);
-
             else if (value is UInt24 u24)
                 Writer.Write(u24);
 
-            else if (Nullable.GetUnderlyingType(typeof(T)) != null)
-            {
-                // It's nullable
-                Type underlyingType = Nullable.GetUnderlyingType(typeof(T));
-                if (underlyingType == typeof(byte))
-                {
-                    var v = (byte?)(object)value;
-                    
-                    if (v.HasValue)
-                        Writer.Write(v.Value);
-                    else
-                        Writer.Write((byte)0xFF);
-                }
-                else
-                {
-                    throw new NotSupportedException($"The specified type {typeof(T)} is not supported.");
-                }
-            }
-            else if ((object)value is null)
-                throw new ArgumentNullException(nameof(value));
             else
-                throw new NotSupportedException($"The specified type {value.GetType().Name} is not supported.");
+                throw new NotSupportedException($"The specified type {type.Name} is not supported.");
         }
 
+        protected void WriteNullable(Type type, object? value)
+        {
+            VerifyHasCurrentPointer();
+
+            if (type.IsEnum)
+                Write(Convert.ChangeType(value, Enum.GetUnderlyingType(type)));
+
+            else if (type == typeof(sbyte))
+                Writer.Write((byte)((sbyte?)value ?? -1));
+
+            else if (type == typeof(byte))
+                Writer.Write((byte?)value ?? Byte.MaxValue);
+
+            else if (type == typeof(short))
+                Writer.Write((short?)value ?? -1);
+
+            else if (type == typeof(ushort))
+                Writer.Write((ushort?)value ?? UInt16.MaxValue);
+
+            else if (type == typeof(int))
+                Writer.Write((int?)value ?? -1);
+
+            else if (type == typeof(uint))
+                Writer.Write((uint?)value ?? UInt32.MaxValue);
+
+            else if (type == typeof(long))
+                Writer.Write((long?)value ?? -1);
+
+            else if (type == typeof(ulong))
+                Writer.Write((ulong?)value ?? UInt64.MaxValue);
+
+            else if (type == typeof(UInt24))
+                Writer.Write((UInt24?)value ?? UInt24.MaxValue);
+
+            else
+                throw new NotSupportedException($"The specified nullable type {type.Name} is not supported.");
+        }
+
+        [MemberNotNull(nameof(CurrentFile), nameof(Writer))]
         protected void SwitchToFile(BinaryFile newFile)
         {
             if (newFile == null)
-                return;
+                throw new ArgumentNullException(nameof(newFile));
 
             if (!Writers.ContainsKey(newFile))
                 Writers.Add(newFile, newFile.CreateWriter());
@@ -635,9 +899,9 @@ namespace BinarySerializer
             Writer = null;
         }
 
-        public void DisposeFile(BinaryFile file)
+        public void DisposeFile(BinaryFile? file)
         {
-            if (!Writers.ContainsKey(file)) 
+            if (file == null || !Writers.ContainsKey(file)) 
                 return;
 
             Writer w = Writers[file];

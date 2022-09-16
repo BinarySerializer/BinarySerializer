@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 
 namespace BinarySerializer
 {
@@ -21,7 +22,13 @@ namespace BinarySerializer
         /// Add a pointer to possibly relocate later
         /// </summary>
         /// <param name="pointer">Pointer to add to list of relocated objects</param>
-        public void AddPointer(Pointer pointer) => Pointers.Add(pointer);
+        public void AddPointer(Pointer? pointer)
+        {
+            if (pointer == null) 
+                return;
+            
+            Pointers.Add(pointer);
+        }
 
         public void ClearPointers() => Pointers.Clear();
     }

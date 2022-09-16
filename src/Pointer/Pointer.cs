@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 
 namespace BinarySerializer
 {
@@ -6,26 +7,31 @@ namespace BinarySerializer
     {
         #region Constructor
 
-        public Pointer(long offset, BinaryFile file, Pointer anchor = null, PointerSize size = PointerSize.Pointer32, OffsetType offsetType = OffsetType.Serialized)
+        public Pointer(
+            long offset, 
+            BinaryFile file, 
+            Pointer? anchor = null, 
+            PointerSize size = PointerSize.Pointer32, 
+            OffsetType offsetType = OffsetType.Serialized)
         {
             Anchor = anchor;
-            File = file;
+            File = file ?? throw new ArgumentNullException(nameof(file));
             Size = size;
             Context = file.Context;
 
             AbsoluteOffset = offsetType switch
             {
                 OffsetType.Serialized when anchor != null => anchor.AbsoluteOffset + offset,
-                OffsetType.File => (offset + File?.BaseAddress) ?? offset,
+                OffsetType.File => offset + file.BaseAddress,
                 _ => offset
             };
 
             if (offsetType == OffsetType.File)
                 FileOffset = offset;
             else
-                FileOffset = (AbsoluteOffset - File?.BaseAddress) ?? AbsoluteOffset;
+                FileOffset = AbsoluteOffset - file.BaseAddress;
 
-            if (Context != null && Context.SavePointersForRelocation && file.SavePointersToMemoryMap)
+            if (Context.SavePointersForRelocation && file.SavePointersToMemoryMap)
                 Context.MemoryMap.AddPointer(this);
         }
 
@@ -34,7 +40,7 @@ namespace BinarySerializer
         #region Public Properties
 
         public Context Context { get; }
-        public Pointer Anchor { get; private set; }
+        public Pointer? Anchor { get; private set; }
         public BinaryFile File { get; }
         public PointerSize Size { get; }
 
@@ -45,7 +51,7 @@ namespace BinarySerializer
         {
             get
             {
-                var off = AbsoluteOffset;
+                long off = AbsoluteOffset;
                 if (Anchor != null)
                     off -= Anchor.AbsoluteOffset;
                 return off;
@@ -75,20 +81,20 @@ namespace BinarySerializer
             long regionOffset = 0;
 
             // Attempt to get a region
-            BinaryFile.Region region = File?.GetRegion(FileOffset);
+            BinaryFile.Region? region = File.GetRegion(FileOffset);
 
             // Get the offset within the region
             if (region != null)
                 regionOffset = FileOffset - region.Offset;
 
             // Attempt to get a label
-            string label = File?.GetLabel(FileOffset);
+            string? label = File.GetLabel(FileOffset);
 
             // Create the initial string
-            var str = $"{File?.FilePath ?? "<no file>"}|0x{GetAddressString(AbsoluteOffset)}";
+            string str = $"{File.FilePath}|0x{GetAddressString(AbsoluteOffset)}";
 
             // Add file offset if the file is memory mapped
-            if (File != null && File.BaseAddress != 0) 
+            if (File.BaseAddress != 0) 
                 str += $"[0x{GetAddressString(FileOffset)}]";
 
             // Add serialized offset if an anchor is specified
@@ -110,10 +116,10 @@ namespace BinarySerializer
 
         #region Equality and comparison
 
-        public override bool Equals(object obj) => obj is Pointer p && this == p;
+        public override bool Equals(object? obj) => obj is Pointer p && this == p;
         public override int GetHashCode() => AbsoluteOffset.GetHashCode() ^ File.GetHashCode();
-        public bool Equals(Pointer other) => this == other;
-        public int CompareTo(Pointer other)
+        public bool Equals(Pointer? other) => this == other;
+        public int CompareTo(Pointer? other)
         {
             if (ReferenceEquals(this, other))
                 return 0;
@@ -128,7 +134,7 @@ namespace BinarySerializer
 
         #region Operators
 
-        public static bool operator ==(Pointer x, Pointer y)
+        public static bool operator ==(Pointer? x, Pointer? y)
         {
             if (ReferenceEquals(x, y))
                 return true;
@@ -138,13 +144,41 @@ namespace BinarySerializer
 
             return x.AbsoluteOffset == y.AbsoluteOffset && x.File == y.File;
         }
-        public static bool operator !=(Pointer x, Pointer y) => !(x == y);
+        public static bool operator !=(Pointer? x, Pointer? y) => !(x == y);
 
-        public static Pointer operator +(Pointer x, long y) => new Pointer(x.AbsoluteOffset + y, x.File, size: x.Size) { Anchor = x.Anchor };
-        public static Pointer operator -(Pointer x, long y) => new Pointer(x.AbsoluteOffset - y, x.File, size: x.Size) { Anchor = x.Anchor };
+        public static Pointer operator +(Pointer x, long y)
+        {
+            if (x == null) 
+                throw new ArgumentNullException(nameof(x));
 
-        public static long operator +(Pointer x, Pointer y) => x.AbsoluteOffset + y.AbsoluteOffset;
-        public static long operator -(Pointer x, Pointer y) => x.AbsoluteOffset - y.AbsoluteOffset;
+            return new Pointer(x.AbsoluteOffset + y, x.File, size: x.Size) { Anchor = x.Anchor };
+        }
+        public static Pointer operator -(Pointer x, long y)
+        {
+            if (x == null) 
+                throw new ArgumentNullException(nameof(x));
+            
+            return new Pointer(x.AbsoluteOffset - y, x.File, size: x.Size) { Anchor = x.Anchor };
+        }
+
+        public static long operator +(Pointer x, Pointer y)
+        {
+            if (x == null) 
+                throw new ArgumentNullException(nameof(x));
+            if (y == null) 
+                throw new ArgumentNullException(nameof(y));
+            
+            return x.AbsoluteOffset + y.AbsoluteOffset;
+        }
+        public static long operator -(Pointer x, Pointer y)
+        {
+            if (x == null) 
+                throw new ArgumentNullException(nameof(x));
+            if (y == null) 
+                throw new ArgumentNullException(nameof(y));
+            
+            return x.AbsoluteOffset - y.AbsoluteOffset;
+        }
 
         #endregion
 

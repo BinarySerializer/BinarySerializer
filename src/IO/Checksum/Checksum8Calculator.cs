@@ -1,4 +1,7 @@
-﻿namespace BinarySerializer
+﻿#nullable enable
+using System;
+
+namespace BinarySerializer
 {
     /// <summary>
     /// Checksum calculator for an 8-bit checksum
@@ -36,6 +39,9 @@
         /// <param name="count">The amount of bytes to read from the array</param>
         public void AddBytes(byte[] bytes, int offset, int count)
         {
+            if (bytes == null) 
+                throw new ArgumentNullException(nameof(bytes));
+            
             for (int i = 0; i < count; i++)
                 AddByte(bytes[offset + i]);
         }

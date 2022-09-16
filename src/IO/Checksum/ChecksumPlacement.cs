@@ -1,4 +1,5 @@
-﻿namespace BinarySerializer
+﻿#nullable enable
+namespace BinarySerializer
 {
     /// <summary>
     /// The placement for a checksum
