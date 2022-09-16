@@ -56,10 +56,49 @@ namespace BinarySerializer
         #region Logging
 
         protected string? LogPrefix => IsSerializerLogEnabled ? $"(R) {CurrentPointer}:{new string(' ', (Depth + 1) * 2)}" : null;
+
+        protected void WriteLogPrefix() => WriteLogPrefix(CurrentPointer, Depth);
+        protected void WriteLogPrefix(Pointer pointer) => WriteLogPrefix(pointer, Depth);
+        protected void WriteLogPrefix(Pointer pointer, int depth)
+        {
+            SerializerLog.Write("(R) ");
+            SerializerLog.Write(pointer);
+            SerializerLog.Write(":");
+            SerializerLog.Write(new string(' ', (depth + 1) * 2));
+        }
+        protected void WriteLogDataType(string typeName)
+        {
+            SerializerLog.Write("(");
+            SerializerLog.Write(typeName);
+            SerializerLog.Write(") ");
+        }
+        protected void WriteLogDataType(string typeName, long? arrayLength)
+        {
+            SerializerLog.Write("(");
+            SerializerLog.Write(typeName);
+            SerializerLog.Write("[");
+            SerializerLog.Write(arrayLength?.ToString() ?? "..");
+            SerializerLog.Write("]) ");
+        }
+        protected void WriteLogDataName(string? name, bool hasValue = true)
+        {
+            SerializerLog.Write(name ?? DefaultName);
+
+            if (hasValue)
+                SerializerLog.Write(": ");
+        }
+        protected void WriteLogData(object? value)
+        {
+            SerializerLog.Write(value ?? "null");
+        }
+        protected void WriteLogLineEnd() => SerializerLog.WriteLine(null);
         public override void Log(string logString, params object?[] args)
         {
-            if (IsSerializerLogEnabled)
-                Context.SerializerLog.Log(LogPrefix + String.Format(logString, args));
+            if (!IsSerializerLogEnabled)
+                return;
+            
+            WriteLogPrefix();
+            SerializerLog.WriteLine(String.Format(logString, args));
         }
 
         #endregion
@@ -264,10 +303,14 @@ namespace BinarySerializer
             
             long count = alignBytes - align;
 
-            string? logPrefix = LogPrefix;
+            Pointer? startPointer = IsSerializerLogEnabled ? CurrentPointer : null;
 
             if (IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{logPrefix}Align {alignBytes}");
+            {
+                WriteLogPrefix();
+                SerializerLog.Write("Align ");
+                SerializerLog.WriteLine(alignBytes);
+            }
 
             logIfNotNull ??= Context.Settings.LogAlignIfNotNull;
 
@@ -281,9 +324,12 @@ namespace BinarySerializer
                 {
                     if (IsSerializerLogEnabled)
                     {
-                        string log = $"{logPrefix}({nameof(Byte)}[{count}]) Align: ";
-                        log += bytes.ToHexString(align: 16, newLinePrefix: new string(' ', log.Length), maxLines: 10);
-                        Context.SerializerLog.Log(log);
+                        WriteLogPrefix(startPointer!);
+                        WriteLogDataType(nameof(Byte), count);
+                        SerializerLog.Write("Align: ");
+                        // TODO: Return to this
+                        //log += bytes.ToHexString(align: 16, newLinePrefix: new string(' ', log.Length), maxLines: 10);
+                        //Context.SerializerLog.Log(log);
                     }
 
                     SystemLog?.LogWarning("Align bytes at {0} contains data! Data: {1}", 
@@ -304,7 +350,8 @@ namespace BinarySerializer
         {
             VerifyHasCurrentPointer();
 
-            string? logString = LogPrefix;
+            if (IsSerializerLogEnabled)
+                WriteLogPrefix();
 
             long start = Reader.BaseStream.Position;
 
@@ -319,7 +366,15 @@ namespace BinarySerializer
                 SystemLog?.LogWarning("Checksum {0} did not match!", name);
 
             if (IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{logString}({typeof(T)}) {name ?? DefaultName}: {checksum} - Checksum to match: {calculatedChecksum} - Matched? {match}");
+            {
+                WriteLogDataType(typeof(T).ToString());
+                WriteLogDataName(name);
+                SerializerLog.Write(checksum);
+                SerializerLog.Write(" - Checksum to match: ");
+                SerializerLog.Write(calculatedChecksum);
+                SerializerLog.Write(" - Matched? ");
+                SerializerLog.WriteLine(match);
+            }
 
             return checksum;
         }
@@ -364,7 +419,8 @@ namespace BinarySerializer
         {
             VerifyHasCurrentPointer();
 
-            string? logString = LogPrefix;
+            if (IsSerializerLogEnabled)
+                WriteLogPrefix();
 
             long start = Reader.BaseStream.Position;
 
@@ -376,7 +432,12 @@ namespace BinarySerializer
                 CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             if (IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{logString}({type.Name}) {name ?? DefaultName}: {t}");
+            {
+                WriteLogDataType(type.Name);
+                WriteLogDataName(name);
+                WriteLogData(t);
+                WriteLogLineEnd();
+            }
 
             return t;
         }
@@ -385,7 +446,8 @@ namespace BinarySerializer
         {
             VerifyHasCurrentPointer();
 
-            string? logString = LogPrefix;
+            if (IsSerializerLogEnabled)
+                WriteLogPrefix();
 
             long start = Reader.BaseStream.Position;
 
@@ -397,7 +459,12 @@ namespace BinarySerializer
                 CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             if (IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{logString}({type.Name}?) {name ?? DefaultName}: {t?.ToString() ?? "null"}");
+            {
+                WriteLogDataType($"{type.Name}?");
+                WriteLogDataName(name);
+                WriteLogData(t);
+                WriteLogLineEnd();
+            }
 
             return t;
         }
@@ -428,7 +495,6 @@ namespace BinarySerializer
                 if (!ignoreCacheOnRead)
                     Context.Cache.Add<T>(instance);
 
-                string? logString = IsSerializerLogEnabled ? LogPrefix : null;
                 bool isLogTemporarilyDisabled = false;
                 if (!DisableSerializerLogForObject && instance.UseShortLog)
                 {
@@ -436,8 +502,13 @@ namespace BinarySerializer
                     isLogTemporarilyDisabled = true;
                 }
 
-                if (IsSerializerLogEnabled) 
-                    Context.SerializerLog.Log($"{logString}(Object: {typeof(T)}) {name ?? DefaultName}");
+                if (IsSerializerLogEnabled)
+                {
+                    WriteLogPrefix(current);
+                    WriteLogDataType($"Object: {typeof(T)}");
+                    WriteLogDataName(name, hasValue: false);
+                    WriteLogLineEnd();
+                }
 
                 try
                 {
@@ -453,7 +524,13 @@ namespace BinarySerializer
                     {
                         DisableSerializerLogForObject = false;
                         if (IsSerializerLogEnabled)
-                            Context.SerializerLog.Log($"{logString}({typeof(T)}) {name ?? DefaultName}: {instance.ShortLog ?? "null"}");
+                        {
+                            WriteLogPrefix(current);
+                            WriteLogDataType(typeof(T).ToString());
+                            WriteLogDataName(name);
+                            WriteLogData(instance.ShortLog);
+                            WriteLogLineEnd();
+                        }
                     }
                 }
             }
@@ -474,7 +551,8 @@ namespace BinarySerializer
         {
             VerifyHasCurrentPointer();
 
-            string? logString = LogPrefix;
+            if (IsSerializerLogEnabled)
+                WriteLogPrefix();
 
             BinaryFile currentFile = CurrentFile;
 
@@ -511,15 +589,23 @@ namespace BinarySerializer
                     {
                         // Invalid pointer
                         if (IsSerializerLogEnabled)
-                            Context.SerializerLog.Log($"{logString}({size}) {name ?? DefaultName}: InvalidPointerException - {value:X16}");
+                        {
+                            WriteLogDataType(size.ToString());
+                            WriteLogDataName(name);
+                            SerializerLog.WriteLine($"InvalidPointerException - {value:X16}");
+                        }
 
-                        throw new PointerException($"Not a valid pointer at {CurrentPointer - ((int)size)}: {value:X16}", nameof(SerializePointer));
+                        throw new PointerException($"Not a valid pointer at {CurrentPointer - (int)size}: {value:X16}", nameof(SerializePointer));
                     }
                 }
             }
 
             if (IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{logString}({size}) {name ?? DefaultName}: {ptr}");
+            {
+                WriteLogDataType(size.ToString());
+                WriteLogDataName(name);
+                SerializerLog.WriteLine(ptr);
+            }
 
             return ptr;
         }
@@ -546,7 +632,8 @@ namespace BinarySerializer
         {
             VerifyHasCurrentPointer();
 
-            string? logString = LogPrefix;
+            if (IsSerializerLogEnabled)
+                WriteLogPrefix();
 
             long origPos = Reader.BaseStream.Position;
 
@@ -558,7 +645,12 @@ namespace BinarySerializer
                 CurrentFile.UpdateReadMap(origPos, Reader.BaseStream.Position - origPos);
 
             if (IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{logString}(String) {name ?? DefaultName}: {t}");
+            {
+                WriteLogDataType(nameof(String));
+                WriteLogDataName(name);
+                WriteLogData(t);
+                WriteLogLineEnd();
+            }
 
             return t;
         }
@@ -608,8 +700,10 @@ namespace BinarySerializer
             }
             if (IsSerializerLogEnabled)
             {
-                string? logString = LogPrefix;
-                Context.SerializerLog.Log($"{logString}({typeof(T).Name}[{count}]) {name ?? DefaultName}");
+                WriteLogPrefix();
+                WriteLogDataType(typeof(T).Name, count);
+                WriteLogDataName(name, hasValue: false);
+                WriteLogLineEnd();
             }
             T[] buffer;
             if (obj != null)
@@ -637,8 +731,10 @@ namespace BinarySerializer
 
             if (IsSerializerLogEnabled)
             {
-                string? logString = LogPrefix;
-                Context.SerializerLog.Log($"{logString}({typeof(T).Name}?[{count}]) {name ?? DefaultName}");
+                WriteLogPrefix();
+                WriteLogDataType($"{typeof(T).Name}?", count);
+                WriteLogDataName(name, hasValue: false);
+                WriteLogLineEnd();
             }
 
             T?[] buffer;
@@ -667,8 +763,10 @@ namespace BinarySerializer
         {
             if (IsSerializerLogEnabled)
             {
-                string? logString = LogPrefix;
-                Context.SerializerLog.Log($"{logString}(Object[]: {typeof(T)}[{count}]) {name ?? DefaultName}");
+                WriteLogPrefix();
+                WriteLogDataType($"Object[]: {typeof(T)}", count);
+                WriteLogDataName(name, hasValue: false);
+                WriteLogLineEnd();
             }
             T?[] buffer;
             if (obj != null)
@@ -705,8 +803,10 @@ namespace BinarySerializer
         {
             if (IsSerializerLogEnabled)
             {
-                string? logString = LogPrefix;
-                Context.SerializerLog.Log($"{logString}({size}[{count}]) {name ?? DefaultName}");
+                WriteLogPrefix();
+                WriteLogDataType(size.ToString(), count);
+                WriteLogDataName(name, hasValue: false);
+                WriteLogLineEnd();
             }
 
             Pointer?[] buffer;
@@ -741,8 +841,10 @@ namespace BinarySerializer
         {
             if (IsSerializerLogEnabled)
             {
-                string? logString = LogPrefix;
-                Context.SerializerLog.Log($"{logString}(Pointer<{typeof(T)}>[{count}]) {name ?? DefaultName}");
+                WriteLogPrefix();
+                WriteLogDataType($"{size}<{typeof(T)}>", count);
+                WriteLogDataName(name, hasValue: false);
+                WriteLogLineEnd();
             }
 
             Pointer<T>?[] buffer;
@@ -781,8 +883,10 @@ namespace BinarySerializer
         {
             if (IsSerializerLogEnabled)
             {
-                string? logString = LogPrefix;
-                Context.SerializerLog.Log($"{logString}(String[{count}]) {name ?? DefaultName}");
+                WriteLogPrefix();
+                WriteLogDataType(nameof(String), count);
+                WriteLogDataName(name, hasValue: false);
+                WriteLogLineEnd();
             }
             string?[] buffer;
             if (obj != null)
@@ -811,7 +915,12 @@ namespace BinarySerializer
             string? name = null)
         {
             if (IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{LogPrefix}({typeof(T).Name}[..]) {name ?? DefaultName}");
+            {
+                WriteLogPrefix();
+                WriteLogDataType(typeof(T).Name, null);
+                WriteLogDataName(name, hasValue: false);
+                WriteLogLineEnd();
+            }
 
             List<T> objects = new();
             int index = 0;
@@ -843,7 +952,12 @@ namespace BinarySerializer
             string? name = null)
         {
             if (IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{LogPrefix}({typeof(T).Name}?[..]) {name ?? DefaultName}");
+            {
+                WriteLogPrefix();
+                WriteLogDataType($"{typeof(T).Name}?", null);
+                WriteLogDataName(name, hasValue: false);
+                WriteLogLineEnd();
+            }
 
             List<T?> objects = new();
             int index = 0;
@@ -877,7 +991,12 @@ namespace BinarySerializer
             where T : class
         {
             if (IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{LogPrefix}(Object[]: {typeof(T)}[..]) {name ?? DefaultName}");
+            {
+                WriteLogPrefix();
+                WriteLogDataType($"Object[]: {typeof(T)}", null);
+                WriteLogDataName(name, hasValue: false);
+                WriteLogLineEnd();
+            }
 
             List<T> objects = new();
             int index = 0;
@@ -917,7 +1036,12 @@ namespace BinarySerializer
             string? name = null)
         {
             if (IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{LogPrefix}(Pointer[..]) {name ?? DefaultName}");
+            {
+                WriteLogPrefix();
+                WriteLogDataType(size.ToString(), null);
+                WriteLogDataName(name, hasValue: false);
+                WriteLogLineEnd();
+            }
 
             List<Pointer?> pointers = new();
             int index = 0;
@@ -1012,7 +1136,7 @@ namespace BinarySerializer
 
             if (IsSerializerLogEnabled && logs != null)
                 foreach (string l in logs)
-                    Context.SerializerLog.Log(l);
+                    SerializerLog.WriteLine(l);
         }
 
         public override void DoBits<T>(Action<BitSerializerObject> serializeFunc) 
@@ -1073,14 +1197,17 @@ namespace BinarySerializer
             switch (typeCode)
             {
                 case TypeCode.Boolean:
-                    var b = Reader.ReadByte();
+                    byte b = Reader.ReadByte();
 
                     if (b != 0 && b != 1)
                     {
                         SystemLog?.LogWarning("Binary boolean '{0}' ({1}) was not correctly formatted", name, b);
 
                         if (IsSerializerLogEnabled)
-                            Context.SerializerLog.Log($"{LogPrefix} ({type}): Binary boolean was not correctly formatted ({b})");
+                        {
+                            WriteLogPrefix(CurrentPointer - 1);
+                            SerializerLog.WriteLine($"({type}): Binary boolean was not correctly formatted ({b})");
+                        }
                     }
 
                     return b != 0;

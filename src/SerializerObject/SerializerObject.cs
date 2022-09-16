@@ -37,6 +37,7 @@ namespace BinarySerializer
 
         protected bool DisableSerializerLogForObject { get; set; }
         protected IFileManager FileManager => Context.FileManager;
+        protected ISerializerLog SerializerLog => Context.SerializerLog;
 
         #endregion
 

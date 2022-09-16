@@ -1,5 +1,4 @@
 ﻿#nullable enable
-using System;
 using System.Text;
 
 namespace BinarySerializer
@@ -17,7 +16,8 @@ namespace BinarySerializer
 
         public string GetString() => StringBuilder.ToString();
         public void Clear() => StringBuilder.Clear();
-        public void Log(object? obj) => StringBuilder.AppendLine(obj != null ? obj.ToString() : String.Empty);
+        public void Write(object? obj) => StringBuilder.Append(obj);
+        public void WriteLine(object? obj) => StringBuilder.AppendLine(obj?.ToString());
         public void Dispose() => _stringBuilder = null;
     }
 }

@@ -8,7 +8,10 @@ namespace BinarySerializer
     {
         public bool IsEnabled => false;
 
-        public void Log(object? obj) { }
+        public void Write(object? obj) { }
+
+        public void WriteLine(object? obj) { }
+
         public void Dispose() { }
     }
 }
