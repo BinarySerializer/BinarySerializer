@@ -200,7 +200,7 @@ namespace BinarySerializer
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
 
-            Pointer currentOffset = CurrentPointer;
+            Pointer? currentOffset = HasCurrentPointer ? CurrentPointer : null;
             Goto(offset);
 
             try
