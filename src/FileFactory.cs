@@ -79,7 +79,7 @@ namespace BinarySerializer
                         obj: mainObj,
                         onPreSerialize: onPreSerialize == null
                             ? (Action<T>?)null
-                            : x => onPreSerialize(s, x),
+                            : x => onPreSerialize!(s, x),
                         name: name);
                 });
 
@@ -182,7 +182,7 @@ namespace BinarySerializer
                         obj: obj,
                         onPreSerialize: onPreSerialize == null
                             ? (Action<T>?)null
-                            : x => onPreSerialize(s, x),
+                            : x => onPreSerialize!(s, x),
                         name: name);
                 });
 
