@@ -1,6 +1,6 @@
 ﻿namespace BinarySerializer
 {
-    public class FixedPointInt32 : BinarySerializable
+    public class FixedPointInt32 : BinarySerializable, ISerializerShortLog
     {
         // Set in onPreSerialize
         public int Pre_PointPosition { get; set; } = 16; // By default, the point will be at 16 bits
@@ -33,7 +33,6 @@
             Value = s.Serialize<int>(Value, name: nameof(Value));
         }
 
-        public override bool UseShortLog => true;
-        public override string ShortLog => AsFloat.ToString();
+        public string ShortLog => AsFloat.ToString();
     }
 }

@@ -35,21 +35,9 @@ namespace BinarySerializer
         [IgnoreDataMember]
         public virtual long Size { get; protected set; }
 
-        /// <summary>
-        /// Indicates whether this object should be logged on one line
-        /// </summary>
-        [IgnoreDataMember]
-        public virtual bool UseShortLog => false;
-
         [IgnoreDataMember]
         [MemberNotNullWhen(true, nameof(Context), nameof(Offset))]
         public bool IsInitialized => Context != null && Offset != null;
-
-        /// <summary>
-        /// The string for displaying this object on one line
-        /// </summary>
-        [IgnoreDataMember]
-        public virtual string ShortLog => ToString();
 
         /// <summary>
         /// Initializes the struct from an offset

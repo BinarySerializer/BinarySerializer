@@ -2,7 +2,7 @@
 
 namespace BinarySerializer
 {
-    public abstract class BaseColor : BinarySerializable, IEquatable<BaseColor> 
+    public abstract class BaseColor : BinarySerializable, IEquatable<BaseColor>, ISerializerShortLog
     {
         #region Constructors
 
@@ -77,7 +77,7 @@ namespace BinarySerializer
 
         #region Serializable
 
-        public override bool UseShortLog => true;
+        public string ShortLog => ToString();
 
         #endregion
 

@@ -313,7 +313,7 @@ namespace BinarySerializer
             string? logString = LogPrefix;
             bool isLogTemporarilyDisabled = false;
 
-            if (!DisableSerializerLogForObject && obj.UseShortLog)
+            if (!DisableSerializerLogForObject && obj is ISerializerShortLog)
             {
                 DisableSerializerLogForObject = true;
                 isLogTemporarilyDisabled = true;
@@ -336,7 +336,10 @@ namespace BinarySerializer
                 {
                     DisableSerializerLogForObject = false;
                     if (IsSerializerLoggerEnabled)
-                        Context.SerializerLogger.Log($"{logString}({typeof(T)}) {name ?? DefaultName}: {obj.ShortLog}");
+                    {
+                        string shortLog = (obj as ISerializerShortLog)?.ShortLog ?? "null";
+                        Context.SerializerLogger.Log($"{logString}({typeof(T)}) {name ?? DefaultName}: {shortLog}");
+                    }
                 }
             }
 
