@@ -17,12 +17,6 @@ namespace BinarySerializer
     public abstract class BinarySerializable 
     {
         /// <summary>
-        /// Indicates if it's the first time the struct is loaded
-        /// </summary>
-        [IgnoreDataMember]
-        protected bool IsFirstLoad { get; set; } = true;
-
-        /// <summary>
         /// The context
         /// </summary>
         [IgnoreDataMember]
@@ -80,7 +74,6 @@ namespace BinarySerializer
             SerializeImpl(s);
             Size = s.CurrentAbsoluteOffset - Offset.AbsoluteOffset;
             OnPostSerialize(s);
-            IsFirstLoad = false;
         }
 
         protected virtual void OnPreSerialize(SerializerObject s) { }
