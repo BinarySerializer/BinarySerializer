@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
 namespace BinarySerializer
@@ -40,6 +41,10 @@ namespace BinarySerializer
         [IgnoreDataMember]
         public virtual bool UseShortLog => false;
 
+        [IgnoreDataMember]
+        [MemberNotNullWhen(true, nameof(Context), nameof(Offset))]
+        public bool IsInitialized => Context != null && Offset != null;
+
         /// <summary>
         /// The string for displaying this object on one line
         /// </summary>
@@ -68,8 +73,11 @@ namespace BinarySerializer
         /// Serializes the data struct
         /// </summary>
         /// <param name="s">The serializer</param>
-        public void Serialize(SerializerObject s) 
+        public void Serialize(SerializerObject s)
         {
+            if (!IsInitialized)
+                throw new ContextException("Can't serialize an object before it has been initialized");
+
             OnPreSerialize(s);
             SerializeImpl(s);
             Size = s.CurrentAbsoluteOffset - Offset.AbsoluteOffset;
