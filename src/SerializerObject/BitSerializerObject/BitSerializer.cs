@@ -17,8 +17,8 @@ namespace BinarySerializer
             long valueToWrite = ObjectToLong(value);
             Value = BitHelpers.SetBits64(Value, valueToWrite, length, Position, sign: sign);
 
-            if (SerializerObject.IsSerializerLogEnabled && !DisableSerializerLogForObject)
-                Context.SerializerLog.Log($"{LogPrefix}  {Position}_{length} ({typeof(T).Name}) {name ?? DefaultName}: {valueToWrite}");
+            if (SerializerObject.IsSerializerLoggerEnabled && !DisableSerializerLogForObject)
+                Context.SerializerLogger.Log($"{LogPrefix}  {Position}_{length} ({typeof(T).Name}) {name ?? DefaultName}: {valueToWrite}");
 
             Position += length;
 
@@ -44,8 +44,8 @@ namespace BinarySerializer
                 isLogTemporarilyDisabled = true;
             }
 
-            if (SerializerObject.IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{logString}{pos} (Object: {typeof(T)}) {name ?? DefaultName}");
+            if (SerializerObject.IsSerializerLoggerEnabled)
+                Context.SerializerLogger.Log($"{logString}{pos} (Object: {typeof(T)}) {name ?? DefaultName}");
 
             try 
             {
@@ -61,8 +61,8 @@ namespace BinarySerializer
                 {
                     DisableSerializerLogForObject = false;
                 
-                    if (SerializerObject.IsSerializerLogEnabled)
-                        Context.SerializerLog.Log($"{logString}{pos}_{obj.Size} ({typeof(T)}) {name ?? DefaultName}: {obj.ShortLog}");
+                    if (SerializerObject.IsSerializerLoggerEnabled)
+                        Context.SerializerLogger.Log($"{logString}{pos}_{obj.Size} ({typeof(T)}) {name ?? DefaultName}: {obj.ShortLog}");
                 }
             }
 

@@ -28,7 +28,7 @@ namespace BinarySerializer
 
         protected string? BaseLogPrefix { get; }
 
-        protected string? LogPrefix => SerializerObject.IsSerializerLogEnabled 
+        protected string? LogPrefix => SerializerObject.IsSerializerLoggerEnabled 
             ? $"{BaseLogPrefix}{new string(' ', (Depth + 1) * 2)}" 
             : null;
 

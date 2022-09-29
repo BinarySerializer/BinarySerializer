@@ -14,7 +14,7 @@ namespace BinarySerializer
         public Context(
             string basePath, 
             ISerializerSettings? settings = null, 
-            ISerializerLog? serializerLog = null, 
+            ISerializerLogger? serializerLogger = null, 
             IFileManager? fileManager = null, 
             ISystemLog? systemLog = null)
         {
@@ -23,7 +23,7 @@ namespace BinarySerializer
             SystemLog = systemLog;
             BasePath = NormalizePath(basePath, true);
             Settings = settings ?? new SerializerSettings();
-            SerializerLog = serializerLog ?? new EmptySerializerLog();
+            SerializerLogger = serializerLogger ?? new EmptySerializerLogger();
 
             // Initialize properties
             MemoryMap = new MemoryMap();
@@ -52,7 +52,7 @@ namespace BinarySerializer
         public string BasePath { get; }
         public MemoryMap MemoryMap { get; }
         public SerializableCache Cache { get; }
-        public ISerializerLog SerializerLog { get; }
+        public ISerializerLogger SerializerLogger { get; }
 
         #endregion
 
@@ -455,7 +455,7 @@ namespace BinarySerializer
             foreach (var file in MemoryMap.Files)
                 file?.Dispose();
 
-            SerializerLog.Dispose();
+            SerializerLogger.Dispose();
         }
         public void Dispose()
         {

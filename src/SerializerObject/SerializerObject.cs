@@ -105,7 +105,7 @@ namespace BinarySerializer
         /// <summary>
         /// Indicates if logging is enabled for the serialization
         /// </summary>
-        public bool IsSerializerLogEnabled => Context.SerializerLog.IsEnabled && !DisableSerializerLogForObject;
+        public bool IsSerializerLoggerEnabled => Context.SerializerLogger.IsEnabled && !DisableSerializerLogForObject;
 
         /// <summary>
         /// Writes a line to the serializer log, if enabled

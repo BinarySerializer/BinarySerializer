@@ -4,7 +4,7 @@ namespace BinarySerializer
     /// <summary>
     /// An empty serializer log which is always disabled
     /// </summary>
-    public class EmptySerializerLog : ISerializerLog
+    public class EmptySerializerLogger : ISerializerLogger
     {
         public bool IsEnabled => false;
 

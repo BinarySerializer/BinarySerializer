@@ -17,8 +17,8 @@ namespace BinarySerializer
             long bitValue = BitHelpers.ExtractBits64(Value, length, Position, sign: sign);
             T t = (T)LongToObject(bitValue, typeof(T), name: name);
 
-            if (SerializerObject.IsSerializerLogEnabled && !DisableSerializerLogForObject)
-                Context.SerializerLog.Log($"{LogPrefix}{Position}_{length} ({typeof(T).Name}) {name ?? DefaultName}: {t}");
+            if (SerializerObject.IsSerializerLoggerEnabled && !DisableSerializerLogForObject)
+                Context.SerializerLogger.Log($"{LogPrefix}{Position}_{length} ({typeof(T).Name}) {name ?? DefaultName}: {t}");
 
             Position += length;
 
@@ -45,8 +45,8 @@ namespace BinarySerializer
                 isLogTemporarilyDisabled = true;
             }
 
-            if (SerializerObject.IsSerializerLogEnabled)
-                Context.SerializerLog.Log($"{logString}{pos} (Object: {typeof(T)}) {name ?? DefaultName}");
+            if (SerializerObject.IsSerializerLoggerEnabled)
+                Context.SerializerLogger.Log($"{logString}{pos} (Object: {typeof(T)}) {name ?? DefaultName}");
 
             try 
             {
@@ -62,8 +62,8 @@ namespace BinarySerializer
                 {
                     DisableSerializerLogForObject = false;
 
-                    if (SerializerObject.IsSerializerLogEnabled)
-                        Context.SerializerLog.Log($"{logString}{pos}_{instance.Size} ({typeof(T)}) {name ?? DefaultName}: {instance.ShortLog ?? "null"}");
+                    if (SerializerObject.IsSerializerLoggerEnabled)
+                        Context.SerializerLogger.Log($"{logString}{pos}_{instance.Size} ({typeof(T)}) {name ?? DefaultName}: {instance.ShortLog ?? "null"}");
                 }
             }
             return instance;
@@ -80,8 +80,8 @@ namespace BinarySerializer
                     {
                         Context.SystemLog?.LogWarning("Binary boolean '{0}' ({1}) was not correctly formatted", name, input);
 
-                        if (SerializerObject.IsSerializerLogEnabled)
-                            Context.SerializerLog.Log($"{LogPrefix} ({type}): Binary boolean was not correctly formatted ({input})");
+                        if (SerializerObject.IsSerializerLoggerEnabled)
+                            Context.SerializerLogger.Log($"{LogPrefix} ({type}): Binary boolean was not correctly formatted ({input})");
                     }
 
                     return input != 0;
