@@ -78,7 +78,7 @@ namespace BinarySerializer
                 case TypeCode.Boolean:
                     if (input != 0 && input != 1) 
                     {
-                        Context.SystemLog?.LogWarning("Binary boolean '{0}' ({1}) was not correctly formatted", name, input);
+                        Context.SystemLogger?.LogWarning("Binary boolean '{0}' ({1}) was not correctly formatted", name, input);
 
                         if (SerializerObject.IsSerializerLoggerEnabled)
                             Context.SerializerLogger.Log($"{LogPrefix} ({type}): Binary boolean was not correctly formatted ({input})");

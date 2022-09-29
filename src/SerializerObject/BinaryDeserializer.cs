@@ -144,7 +144,7 @@ namespace BinarySerializer
                     action();
 
                     if (CurrentPointer != sf.StartPointer + sf.Length)
-                        SystemLog?.LogWarning("Encoded block {0} was not fully deserialized: Serialized size: {1} != Total size: {2}", 
+                        SystemLogger?.LogWarning("Encoded block {0} was not fully deserialized: Serialized size: {1} != Total size: {2}", 
                             key, CurrentPointer - sf.StartPointer, sf.Length);
                 });
             }
@@ -208,7 +208,7 @@ namespace BinarySerializer
             string key = sf.FilePath;
             
             if (endPointer != sf.StartPointer + sf.Length)
-                SystemLog?.LogWarning("Encoded block {0} was not fully deserialized: Serialized size: {1} != Total size: {2}", 
+                SystemLogger?.LogWarning("Encoded block {0} was not fully deserialized: Serialized size: {1} != Total size: {2}", 
                     key, endPointer - sf.StartPointer, sf.Length);
 
             Context.RemoveFile(sf);
@@ -286,7 +286,7 @@ namespace BinarySerializer
                         Context.SerializerLogger.Log(log);
                     }
 
-                    SystemLog?.LogWarning("Align bytes at {0} contains data! Data: {1}", 
+                    SystemLogger?.LogWarning("Align bytes at {0} contains data! Data: {1}", 
                         CurrentPointer - count, bytes.ToHexString(align: 16, maxLines: 1));
                 }
             }
@@ -316,7 +316,7 @@ namespace BinarySerializer
             bool match = checksum.Equals(calculatedChecksum);
 
             if (!match)
-                SystemLog?.LogWarning("Checksum {0} did not match!", name);
+                SystemLogger?.LogWarning("Checksum {0} did not match!", name);
 
             if (IsSerializerLoggerEnabled)
                 Context.SerializerLogger.Log($"{logString}({typeof(T)}) {name ?? DefaultName}: {checksum} - Checksum to match: {calculatedChecksum} - Matched? {match}");
@@ -1077,7 +1077,7 @@ namespace BinarySerializer
 
                     if (b != 0 && b != 1)
                     {
-                        SystemLog?.LogWarning("Binary boolean '{0}' ({1}) was not correctly formatted", name, b);
+                        SystemLogger?.LogWarning("Binary boolean '{0}' ({1}) was not correctly formatted", name, b);
 
                         if (IsSerializerLoggerEnabled)
                             Context.SerializerLogger.Log($"{LogPrefix} ({type}): Binary boolean was not correctly formatted ({b})");
@@ -1177,7 +1177,7 @@ namespace BinarySerializer
             if (CurrentFile == file)
                 CurrentFile = null;
 
-            SystemLog?.LogTrace("Disposed file from deserializer {0}", file.FilePath);
+            SystemLogger?.LogTrace("Disposed file from deserializer {0}", file.FilePath);
         }
 
         #endregion

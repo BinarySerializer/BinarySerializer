@@ -911,7 +911,7 @@ namespace BinarySerializer
             if (CurrentFile == file)
                 CurrentFile = null;
 
-            SystemLog?.LogTrace("Disposed file from serializer {0}", file.FilePath);
+            SystemLogger?.LogTrace("Disposed file from serializer {0}", file.FilePath);
         }
 
         #endregion

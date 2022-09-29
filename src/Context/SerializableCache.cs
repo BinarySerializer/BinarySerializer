@@ -6,13 +6,13 @@ namespace BinarySerializer
 {
     public class SerializableCache 
     {
-        public SerializableCache(ISystemLog? systemLog)
+        public SerializableCache(ISystemLogger? systemLogger)
         {
-            SystemLog = systemLog;
+            SystemLogger = systemLogger;
             Structs = new Dictionary<Type, Dictionary<Pointer, BinarySerializable>>();
         }
 
-        protected ISystemLog? SystemLog { get; }
+        protected ISystemLogger? SystemLogger { get; }
 
         // TODO: Optimize this by using single dictionary with some key being hash of type and pointer?
         public Dictionary<Type, Dictionary<Pointer, BinarySerializable>> Structs { get; }
@@ -47,7 +47,7 @@ namespace BinarySerializer
             if (!Structs[type].ContainsKey(pointer)) 
                 Structs[type][pointer] = serializable;
             else 
-                SystemLog?.LogWarning("Duplicate pointer {0} for type {1}", pointer, type);
+                SystemLogger?.LogWarning("Duplicate pointer {0} for type {1}", pointer, type);
         }
 
         public void Clear() => Structs.Clear();

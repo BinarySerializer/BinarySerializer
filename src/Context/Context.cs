@@ -16,18 +16,18 @@ namespace BinarySerializer
             ISerializerSettings? settings = null, 
             ISerializerLogger? serializerLogger = null, 
             IFileManager? fileManager = null, 
-            ISystemLog? systemLog = null)
+            ISystemLogger? systemLogger = null)
         {
             // Set properties from parameters
             FileManager = fileManager ?? new DefaultFileManager();
-            SystemLog = systemLog;
+            SystemLogger = systemLogger;
             BasePath = NormalizePath(basePath, true);
             Settings = settings ?? new SerializerSettings();
             SerializerLogger = serializerLogger ?? new EmptySerializerLogger();
 
             // Initialize properties
             MemoryMap = new MemoryMap();
-            Cache = new SerializableCache(SystemLog);
+            Cache = new SerializableCache(SystemLogger);
             ObjectStorage = new Dictionary<string, object>();
             AdditionalSettings = new Dictionary<Type, object>();
         }
@@ -37,7 +37,7 @@ namespace BinarySerializer
         #region Abstraction
 
         public IFileManager FileManager { get; }
-        public ISystemLog? SystemLog { get; }
+        public ISystemLogger? SystemLogger { get; }
 
         #endregion
 
@@ -323,7 +323,7 @@ namespace BinarySerializer
 
             MemoryMap.Files.Add(file);
 
-            SystemLog?.LogTrace("Added file {0}", file.FilePath);
+            SystemLogger?.LogTrace("Added file {0}", file.FilePath);
 
             return file;
         }
@@ -344,7 +344,7 @@ namespace BinarySerializer
             serializer?.DisposeFile(file);
             file.Dispose();
 
-            SystemLog?.LogTrace("Removed file {0}", file.FilePath);
+            SystemLogger?.LogTrace("Removed file {0}", file.FilePath);
         }
 
         public Pointer<T> FilePointer<T>(string relativePath) 

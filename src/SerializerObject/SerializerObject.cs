@@ -47,7 +47,7 @@ namespace BinarySerializer
         /// </summary>
         public Context Context { get; }
 
-        public ISystemLog? SystemLog => Context.SystemLog;
+        public ISystemLogger? SystemLogger => Context.SystemLogger;
 
         /// <summary>
         /// The current depth when serializing objects
@@ -550,14 +550,14 @@ namespace BinarySerializer
                 byte a = Serialize<byte>(default, name: name);
 
                 if (logIfNotNull && a != 0)
-                    SystemLog?.LogWarning("Padding at {0} contains data! Data: 0x{1:X2}", CurrentPointer - length, a);
+                    SystemLogger?.LogWarning("Padding at {0} contains data! Data: 0x{1:X2}", CurrentPointer - length, a);
             }
             else
             {
                 byte[] a = SerializeArray<byte>(new byte[length], length, name: name);
 
                 if (logIfNotNull && a.Any(x => x != 0))
-                    SystemLog?.LogWarning("Padding at {0} contains data! Data: {1}", CurrentPointer - length, a.ToHexString(align: 16, maxLines: 1));
+                    SystemLogger?.LogWarning("Padding at {0} contains data! Data: {1}", CurrentPointer - length, a.ToHexString(align: 16, maxLines: 1));
             }
         }
 
@@ -571,7 +571,7 @@ namespace BinarySerializer
                 if (throwIfNoMatch)
                     throw new Exception($"Magic '{value}' does not match expected magic of '{magic}'");
                 else
-                    SystemLog?.LogWarning("Magic '{0}' does not match expected magic of '{1}'", value, magic);
+                    SystemLogger?.LogWarning("Magic '{0}' does not match expected magic of '{1}'", value, magic);
             }
         }
 
@@ -589,7 +589,7 @@ namespace BinarySerializer
                 if (throwIfNoMatch)
                     throw new Exception($"Magic '{value}' does not match expected magic of '{magic}'");
                 else
-                    SystemLog?.LogWarning("Magic '{0}' does not match expected magic of '{1}'", value, magic);
+                    SystemLogger?.LogWarning("Magic '{0}' does not match expected magic of '{1}'", value, magic);
             }
         }
 
