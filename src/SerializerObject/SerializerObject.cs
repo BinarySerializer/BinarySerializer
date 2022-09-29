@@ -603,7 +603,7 @@ namespace BinarySerializer
 
         #region Settings
 
-        public T GetSettings<T>() where T : class => Context.GetRequiredSettings<T>();
+        public T GetRequiredSettings<T>() where T : class => Context.GetRequiredSettings<T>();
 
         #endregion
 
