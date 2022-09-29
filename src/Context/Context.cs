@@ -122,6 +122,13 @@ namespace BinarySerializer
 
             return (T)obj;
         }
+
+        public T GetRequiredStoredObject<T>()
+            where T : class
+        {
+            return GetRequiredStoredObject<T>(typeof(T).FullName);
+        }
+
         public T? GetStoredObject<T>(string id)
             where T : class
         {
@@ -134,12 +141,23 @@ namespace BinarySerializer
             return (T)obj;
         }
 
+        public T? GetStoredObject<T>()
+            where T : class
+        {
+            return GetStoredObject<T>(typeof(T).FullName);
+        }
+
         public void RemoveStoredObject(string id)
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
 
             ObjectStorage.Remove(id);
+        }
+
+        public void RemoveStoredObject<T>()
+        {
+            ObjectStorage.Remove(typeof(T).FullName);
         }
 
         public T StoreObject<T>(string id, T obj)
@@ -150,6 +168,12 @@ namespace BinarySerializer
             
             ObjectStorage[id] = obj ?? throw new ArgumentNullException(nameof(obj));
             return obj;
+        }
+
+        public T StoreObject<T>(T obj)
+            where T : class
+        {
+            return StoreObject(typeof(T).FullName, obj);
         }
 
         #endregion
