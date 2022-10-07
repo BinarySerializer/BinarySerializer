@@ -327,8 +327,8 @@ namespace BinarySerializer
             where T : default
         {
             obj ??= Array.Empty<T?>();
-            U Size = (U)Convert.ChangeType(obj, typeof(U));
-            Serialize<U>(Size);
+            U size = (U)Convert.ChangeType(obj.Length, typeof(U));
+            Serialize<U>(size);
             return obj;
         }
 
