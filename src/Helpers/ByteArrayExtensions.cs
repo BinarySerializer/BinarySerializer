@@ -11,7 +11,7 @@ namespace BinarySerializer
             if (bytes == null) 
                 throw new ArgumentNullException(nameof(bytes));
             
-            StringBuilder result = new(bytes.Length * 2);
+            StringBuilder result = new();
             const string hexAlphabet = "0123456789ABCDEF";
             
             int curLine = 0;
