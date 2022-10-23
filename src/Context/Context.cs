@@ -351,14 +351,14 @@ namespace BinarySerializer
 
             return file;
         }
-        public void RemoveFile(string? filePath)
+        public void RemoveFile(string? filePath, bool clearCache = false)
         {
             if (filePath == null) 
                 return;
 
-            RemoveFile(GetFile(filePath));
+            RemoveFile(GetFile(filePath), clearCache);
         }
-        public void RemoveFile(BinaryFile? file)
+        public void RemoveFile(BinaryFile? file, bool clearCache = false)
         {
             if (file is null)
                 return;
@@ -367,6 +367,15 @@ namespace BinarySerializer
             deserializer?.DisposeFile(file);
             serializer?.DisposeFile(file);
             file.Dispose();
+
+            if (clearCache)
+            {
+                // Remove saved pointers
+                MemoryMap.Pointers.RemoveAll(x => x.File == file);
+
+                // Remove structs
+                Cache.ClearForFile(file);
+            }
 
             SystemLogger?.LogTrace("Removed file {0}", file.FilePath);
         }

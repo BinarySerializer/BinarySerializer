@@ -50,6 +50,18 @@ namespace BinarySerializer
                 SystemLogger?.LogWarning("Duplicate pointer {0} for type {1}", pointer, type);
         }
 
+        public void ClearForFile(BinaryFile file)
+        {
+            foreach (Dictionary<Pointer, BinarySerializable> structs in Structs.Values)
+            {
+                foreach (Pointer p in structs.Keys)
+                {
+                    if (p.File == file)
+                        structs.Remove(p);
+                }
+            }
+        }
+
         public void Clear() => Structs.Clear();
     }
 }
