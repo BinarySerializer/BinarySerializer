@@ -221,19 +221,24 @@ namespace BinarySerializer
 
         #region Override Pointers
 
-        protected Dictionary<long, Pointer>? OverridePointers { get; set; }
+        protected Dictionary<long, Pointer?>? OverridePointers { get; set; }
 
-        public virtual void AddOverridePointer(long offset, Pointer pointer)
+        public virtual void AddOverridePointer(long offset, Pointer? pointer)
         {
-            if (pointer == null) 
-                throw new ArgumentNullException(nameof(pointer));
-            
-            OverridePointers ??= new Dictionary<long, Pointer>();
+            OverridePointers ??= new Dictionary<long, Pointer?>();
             OverridePointers.Add(offset, pointer);
         }
 
-        public virtual Pointer? GetOverridePointer(long offset) =>
-            OverridePointers != null && OverridePointers.TryGetValue(offset, out Pointer value) ? value : null;
+        public virtual bool TryGetOverridePointer(long offset, out Pointer? value)
+        {
+            if (OverridePointers == null)
+            {
+                value = null;
+                return false;
+            }
+
+            return OverridePointers.TryGetValue(offset, out value);
+        }
 
         #endregion
 

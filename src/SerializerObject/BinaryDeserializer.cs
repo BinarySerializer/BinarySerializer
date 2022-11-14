@@ -492,7 +492,8 @@ namespace BinarySerializer
                 nullValue ??= Defaults.PointerNullValue;
             }
 
-            Pointer? ptr = CurrentFile.GetOverridePointer(CurrentAbsoluteOffset);
+            // Attempt to get an override pointer from the current file
+            bool isOverride = CurrentFile.TryGetOverridePointer(CurrentAbsoluteOffset, out Pointer? ptr);
 
             // Read the pointer value
             long value = size switch
@@ -503,12 +504,11 @@ namespace BinarySerializer
                 _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
             };
 
+            // Process the value if it's not null
             if (!nullValue.HasValue || value != nullValue)
             {
-                if (ptr != null && anchor != null)
-                    ptr = new Pointer(ptr.AbsoluteOffset, ptr.File, anchor, ptr.Size, Pointer.OffsetType.Absolute);
-
-                if (ptr == null)
+                // Process the value if there was no override
+                if (!isOverride)
                 {
                     if (!currentFile.TryGetPointer(value, out ptr, anchor: anchor, allowInvalid: allowInvalid, size: size)) 
                     {
@@ -518,6 +518,11 @@ namespace BinarySerializer
 
                         throw new PointerException($"Not a valid pointer at {CurrentPointer - ((int)size)}: {value:X16}", nameof(SerializePointer));
                     }
+                }
+                // If we have an override, check if there's an anchor and use that
+                else if (ptr != null && anchor != null)
+                {
+                    ptr = new Pointer(ptr.AbsoluteOffset, ptr.File, anchor, ptr.Size, Pointer.OffsetType.Absolute);
                 }
             }
 
