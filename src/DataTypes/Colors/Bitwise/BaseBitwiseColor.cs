@@ -37,7 +37,11 @@ namespace BinarySerializer
 
             SetValue(ColorFormatting[channel], value);
         }
-        protected void SetValue(ColorChannelFormat format, float value) => ColorValue = (uint)BitHelpers.SetBits((int)ColorValue, (int)(value * GetFactor(format.Count)), format.Count, format.Offset);
+        protected void SetValue(ColorChannelFormat format, float value)
+        {
+            int intValue = (int)Math.Round(value * GetFactor(format.Count));
+            ColorValue = (uint)BitHelpers.SetBits((int)ColorValue, intValue, format.Count, format.Offset);
+        }
 
         #endregion
 

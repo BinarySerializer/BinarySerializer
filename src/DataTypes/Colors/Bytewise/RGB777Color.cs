@@ -1,4 +1,6 @@
-﻿namespace BinarySerializer
+﻿using System;
+
+namespace BinarySerializer
 {
     /// <summary>
     /// A standard ARGB color wrapper with serializing support for the encoding RGB-777
@@ -11,22 +13,22 @@
         public override float Red
         {
             get => (R & 0x7F) / 127f;
-            set => R = (byte)(value * 127);
+            set => R = (byte)Math.Round(value * 127);
         }
         public override float Green
         {
             get => (G & 0x7F) / 127f;
-            set => G = (byte)(value * 127);
+            set => G = (byte)Math.Round(value * 127);
         }
         public override float Blue
         {
             get => (B & 0x7F) / 127f;
-            set => B = (byte)(value * 127);
+            set => B = (byte)Math.Round(value * 127);
         }
         public override float Alpha
         {
             get => 1f;
-            set => _ = value;
+            set { }
         }
 
         public override void SerializeImpl(SerializerObject s)
