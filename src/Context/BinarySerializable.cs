@@ -33,7 +33,7 @@ namespace BinarySerializer
         /// The struct size
         /// </summary>
         [IgnoreDataMember]
-        public virtual long Size { get; protected set; }
+        public virtual long SerializedSize { get; protected set; }
 
         [IgnoreDataMember]
         [MemberNotNullWhen(true, nameof(Context), nameof(Offset))]
@@ -68,7 +68,7 @@ namespace BinarySerializer
 
             OnPreSerialize(s);
             SerializeImpl(s);
-            Size = s.CurrentAbsoluteOffset - Offset.AbsoluteOffset;
+            SerializedSize = s.CurrentAbsoluteOffset - Offset.AbsoluteOffset;
             OnPostSerialize(s);
         }
 
@@ -76,7 +76,7 @@ namespace BinarySerializer
         protected virtual void OnPostSerialize(SerializerObject s) { }
 
         /// <summary>
-        /// Recalculates the <see cref="Size"/> value of the object
+        /// Recalculates the <see cref="SerializedSize"/> value of the object
         /// </summary>
         public virtual void RecalculateSize()
         {

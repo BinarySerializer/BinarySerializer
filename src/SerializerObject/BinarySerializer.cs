@@ -301,7 +301,7 @@ namespace BinarySerializer
             }
             else if (WrittenObjects.Contains(obj))
             {
-                Goto(CurrentPointer + obj.Size);
+                Goto(CurrentPointer + obj.SerializedSize);
                 return obj;
             }
             else

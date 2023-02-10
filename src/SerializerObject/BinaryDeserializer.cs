@@ -462,7 +462,7 @@ namespace BinarySerializer
             }
             else
             {
-                Goto(current + instance.Size);
+                Goto(current + instance.SerializedSize);
             }
             return instance;
         }
