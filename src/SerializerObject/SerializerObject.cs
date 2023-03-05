@@ -549,14 +549,14 @@ namespace BinarySerializer
             {
                 byte a = Serialize<byte>(default, name: name);
 
-                if (logIfNotNull && a != 0)
+                if (logIfNotNull && Defaults?.DisableFormattingWarnings != true && a != 0)
                     SystemLogger?.LogWarning("Padding at {0} contains data! Data: 0x{1:X2}", CurrentPointer - length, a);
             }
             else
             {
                 byte[] a = SerializeArray<byte>(new byte[length], length, name: name);
 
-                if (logIfNotNull && a.Any(x => x != 0))
+                if (logIfNotNull && Defaults?.DisableFormattingWarnings != true && a.Any(x => x != 0))
                     SystemLogger?.LogWarning("Padding at {0} contains data! Data: {1}", CurrentPointer - length, a.ToHexString(align: 16, maxLines: 1));
             }
         }

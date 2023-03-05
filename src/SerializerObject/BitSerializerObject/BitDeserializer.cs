@@ -76,7 +76,7 @@ namespace BinarySerializer
             switch (typeCode) 
             {
                 case TypeCode.Boolean:
-                    if (input != 0 && input != 1) 
+                    if (SerializerObject.Defaults?.DisableFormattingWarnings != true && input != 0 && input != 1) 
                     {
                         Context.SystemLogger?.LogWarning("Binary boolean '{0}' ({1}) was not correctly formatted", name, input);
 

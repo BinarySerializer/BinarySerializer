@@ -1083,9 +1083,9 @@ namespace BinarySerializer
                 case TypeCode.Boolean:
                     var b = Reader.ReadByte();
 
-                    if (b != 0 && b != 1)
+                    if (b != 0 && b != 1 && Defaults?.DisableFormattingWarnings != true)
                     {
-                        SystemLogger?.LogWarning("Binary boolean '{0}' ({1}) was not correctly formatted", name, b);
+                        SystemLogger?.LogWarning("Binary boolean '{0}' ({1}) at {2} was not correctly formatted", name, b, CurrentPointer - 1);
 
                         if (IsSerializerLoggerEnabled)
                             Context.SerializerLogger.Log($"{LogPrefix} ({type}): Binary boolean was not correctly formatted ({b})");
