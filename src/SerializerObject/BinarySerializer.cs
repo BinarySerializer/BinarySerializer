@@ -291,6 +291,27 @@ namespace BinarySerializer
             return obj;
         }
 
+        public override bool SerializeBoolean<T>(bool obj, string? name = null)
+        {
+            if (IsSerializerLoggerEnabled)
+                Context.SerializerLogger.Log($"{LogPrefix}({typeof(T).Name}) {name ?? DefaultName}: {obj}");
+
+            VerifyHasCurrentPointer();
+
+            if (typeof(T) == typeof(byte) || typeof(T) == typeof(sbyte))
+                Writer.Write((byte)(obj ? 1 : 0));
+            else if (typeof(T) == typeof(short) || typeof(T) == typeof(ushort))
+                Writer.Write((short)(obj ? 1 : 0));
+            else if (typeof(T) == typeof(int) || typeof(T) == typeof(uint))
+                Writer.Write((int)(obj ? 1 : 0));
+            else if (typeof(T) == typeof(long) || typeof(T) == typeof(ulong))
+                Writer.Write((long)(obj ? 1 : 0));
+            else
+                throw new UnsupportedDataTypeException($"Can't serialize {typeof(T)} as a boolean");
+
+            return obj;
+        }
+
         public override T SerializeObject<T>(T? obj, Action<T>? onPreSerialize = null, string? name = null)
             where T : class
         {

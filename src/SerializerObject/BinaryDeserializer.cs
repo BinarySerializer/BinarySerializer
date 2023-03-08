@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -400,6 +401,49 @@ namespace BinarySerializer
                 Context.SerializerLogger.Log($"{logString}({type.Name}?) {name ?? DefaultName}: {t?.ToString() ?? "null"}");
 
             return t;
+        }
+
+        public override bool SerializeBoolean<T>(bool obj, string? name = null)
+        {
+            VerifyHasCurrentPointer();
+
+            string? logString = LogPrefix;
+
+            long start = Reader.BaseStream.Position;
+
+            Type type = typeof(T);
+
+            long value;
+
+            if (typeof(T) == typeof(byte) || typeof(T) == typeof(sbyte))
+                value = Reader.ReadByte();
+            else if (typeof(T) == typeof(short) || typeof(T) == typeof(ushort))
+                value = Reader.ReadInt16();
+            else if (typeof(T) == typeof(int) || typeof(T) == typeof(uint))
+                value = Reader.ReadInt32();
+            else if (typeof(T) == typeof(long) || typeof(T) == typeof(ulong))
+                value = Reader.ReadInt64();
+            else
+                throw new UnsupportedDataTypeException($"Can't deserialize {typeof(T)} as a boolean");
+
+            if (value != 0 && value != 1 && Defaults?.DisableFormattingWarnings != true)
+            {
+                SystemLogger?.LogWarning("Binary boolean '{0}' ({1}) at {2} was not correctly formatted", 
+                    name, value, CurrentPointer - Marshal.SizeOf<T>());
+
+                if (IsSerializerLoggerEnabled)
+                    Context.SerializerLogger.Log($"{LogPrefix} ({type}): Binary boolean was not correctly formatted ({value})");
+            }
+
+            obj = value != 0;
+
+            if (CurrentFile.ShouldUpdateReadMap)
+                CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
+
+            if (IsSerializerLoggerEnabled)
+                Context.SerializerLogger.Log($"{logString}({type.Name}) {name ?? DefaultName}: {obj}");
+
+            return obj;
         }
 
         public override T SerializeObject<T>(T? obj, Action<T>? onPreSerialize = null, string? name = null)

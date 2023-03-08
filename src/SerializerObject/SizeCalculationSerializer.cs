@@ -239,6 +239,12 @@ namespace BinarySerializer
             return obj;
         }
 
+        public override bool SerializeBoolean<T>(bool obj, string? name = null)
+        {
+            ReadType(typeof(T));
+            return obj;
+        }
+
         public override T SerializeObject<T>(T? obj, Action<T>? onPreSerialize = null, string? name = null)
             where T : class
         {

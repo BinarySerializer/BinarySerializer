@@ -320,6 +320,9 @@ namespace BinarySerializer
         public abstract T? SerializeNullable<T>(T? obj, string? name = null)
             where T : struct;
 
+        public abstract bool SerializeBoolean<T>(bool obj, string? name = null)
+            where T : struct;
+
         /// <summary>
         /// Serializes a <see cref="BinarySerializable"/> object
         /// </summary>
