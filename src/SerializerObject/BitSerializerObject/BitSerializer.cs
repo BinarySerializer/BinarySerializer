@@ -25,6 +25,25 @@ namespace BinarySerializer
             return value;
         }
 
+        public override T? SerializeNullableBits<T>(T? value, int length, string? name = null)
+        {
+            long valueToWrite;
+
+            if (value == null)
+                valueToWrite = (long)(Math.Pow(2, length) - 1);
+            else
+                valueToWrite = ObjectToLong(value);
+
+            Value = BitHelpers.SetBits64(Value, valueToWrite, length, Position);
+
+            if (SerializerObject.IsSerializerLoggerEnabled && !DisableSerializerLogForObject)
+                Context.SerializerLogger.Log($"{LogPrefix}  {Position}_{length} ({typeof(T).Name}?) {name ?? DefaultName}: {value?.ToString() ?? "null"}");
+
+            Position += length;
+
+            return value;
+        }
+
         public override T SerializeObject<T>(T? obj, Action<T>? onPreSerialize = null, string? name = null)
             where T : class
         {

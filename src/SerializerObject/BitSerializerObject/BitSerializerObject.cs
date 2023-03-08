@@ -60,6 +60,12 @@ namespace BinarySerializer
             string? name = null)
             where T : struct;
 
+        public abstract T? SerializeNullableBits<T>(
+            T? value, 
+            int length, 
+            string? name = null)
+            where T : struct;
+
         public void SerializePadding(int length, bool logIfNotNull = false, string? name = "Padding")
         {
             int pos = Position;
