@@ -40,7 +40,7 @@ namespace BinarySerializer
         #region Public Properties
 
         public Context Context { get; }
-        public Pointer? Anchor { get; private set; }
+        public Pointer? Anchor { get; }
         public BinaryFile File { get; }
         public PointerSize Size { get; }
 
@@ -151,14 +151,14 @@ namespace BinarySerializer
             if (x == null) 
                 throw new ArgumentNullException(nameof(x));
 
-            return new Pointer(x.AbsoluteOffset + y, x.File, size: x.Size) { Anchor = x.Anchor };
+            return new Pointer(x.AbsoluteOffset + y, x.File, anchor: x.Anchor, size: x.Size, offsetType: OffsetType.Absolute);
         }
         public static Pointer operator -(Pointer x, long y)
         {
             if (x == null) 
                 throw new ArgumentNullException(nameof(x));
             
-            return new Pointer(x.AbsoluteOffset - y, x.File, size: x.Size) { Anchor = x.Anchor };
+            return new Pointer(x.AbsoluteOffset - y, x.File, anchor: x.Anchor, size: x.Size, offsetType: OffsetType.Absolute);
         }
 
         public static long operator +(Pointer x, Pointer y)

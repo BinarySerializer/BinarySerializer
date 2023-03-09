@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -309,7 +310,7 @@ namespace BinarySerializer
 
             long start = Reader.BaseStream.Position;
 
-            T checksum = (T)ReadAsObject(typeof(T), name);
+            T checksum = ReadValue<T>(name);
 
             if (CurrentFile.ShouldUpdateReadMap)
                 CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
@@ -369,15 +370,13 @@ namespace BinarySerializer
 
             long start = Reader.BaseStream.Position;
 
-            Type type = typeof(T);
-
-            T t = (T)ReadAsObject(type, name);
+            T t = ReadValue<T>(name);
 
             if (CurrentFile.ShouldUpdateReadMap)
                 CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             if (IsSerializerLoggerEnabled)
-                Context.SerializerLogger.Log($"{logString}({type.Name}) {name ?? DefaultName}: {t}");
+                Context.SerializerLogger.Log($"{logString}({typeof(T).Name}) {name ?? DefaultName}: {t}");
 
             return t;
         }
@@ -390,15 +389,13 @@ namespace BinarySerializer
 
             long start = Reader.BaseStream.Position;
 
-            Type type = typeof(T);
-
-            T? t = (T?)ReadAsNullableObject(type, name);
+            T? t = ReadNullableValue<T>(name);
 
             if (CurrentFile.ShouldUpdateReadMap)
                 CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             if (IsSerializerLoggerEnabled)
-                Context.SerializerLogger.Log($"{logString}({type.Name}?) {name ?? DefaultName}: {t?.ToString() ?? "null"}");
+                Context.SerializerLogger.Log($"{logString}({typeof(T).Name}?) {name ?? DefaultName}: {t?.ToString() ?? "null"}");
 
             return t;
         }
@@ -411,20 +408,7 @@ namespace BinarySerializer
 
             long start = Reader.BaseStream.Position;
 
-            Type type = typeof(T);
-
-            long value;
-
-            if (typeof(T) == typeof(byte) || typeof(T) == typeof(sbyte))
-                value = Reader.ReadByte();
-            else if (typeof(T) == typeof(short) || typeof(T) == typeof(ushort))
-                value = Reader.ReadInt16();
-            else if (typeof(T) == typeof(int) || typeof(T) == typeof(uint))
-                value = Reader.ReadInt32();
-            else if (typeof(T) == typeof(long) || typeof(T) == typeof(ulong))
-                value = Reader.ReadInt64();
-            else
-                throw new UnsupportedDataTypeException($"Can't deserialize {typeof(T)} as a boolean");
+            long value = ReadInteger<T>(name);
 
             if (value != 0 && value != 1 && Defaults?.DisableFormattingWarnings != true)
             {
@@ -432,7 +416,7 @@ namespace BinarySerializer
                     name, value, CurrentPointer - Marshal.SizeOf<T>());
 
                 if (IsSerializerLoggerEnabled)
-                    Context.SerializerLogger.Log($"{LogPrefix} ({type}): Binary boolean was not correctly formatted ({value})");
+                    Context.SerializerLogger.Log($"{LogPrefix} ({typeof(T)}): Binary boolean was not correctly formatted ({value})");
             }
 
             obj = value != 0;
@@ -441,7 +425,7 @@ namespace BinarySerializer
                 CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             if (IsSerializerLoggerEnabled)
-                Context.SerializerLogger.Log($"{logString}({type.Name}) {name ?? DefaultName}: {obj}");
+                Context.SerializerLogger.Log($"{logString}({typeof(T).Name}) {name ?? DefaultName}: {obj}");
 
             return obj;
         }
@@ -622,15 +606,25 @@ namespace BinarySerializer
         public override T?[] SerializeArraySize<T, U>(T?[]? obj, string? name = null)
             where T : default
         {
-            U size = Serialize<U>(default, name: $"{name ?? DefaultName}.Length");
+            VerifyHasCurrentPointer();
 
-            // Convert size to int, slow
-            int intSize = (int)Convert.ChangeType(size, typeof(int));
+            string? logString = LogPrefix;
+            name = $"{name ?? DefaultName}.Length";
+
+            long start = Reader.BaseStream.Position;
+
+            long size = ReadInteger<U>(name);
+
+            if (CurrentFile.ShouldUpdateReadMap)
+                CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
+
+            if (IsSerializerLoggerEnabled)
+                Context.SerializerLogger.Log($"{logString}({typeof(U).Name}) {name}: {size}");
 
             if (obj == null)
-                obj = new T[intSize];
-            else if (obj.Length != intSize)
-                Array.Resize(ref obj, intSize);
+                obj = new T[size];
+            else if (obj.Length != size)
+                Array.Resize(ref obj, (int)size);
 
             return obj;
         }
@@ -1071,11 +1065,23 @@ namespace BinarySerializer
         {
             if (serializeFunc == null) 
                 throw new ArgumentNullException(nameof(serializeFunc));
-            
-            string? logPrefix = LogPrefix;
+
+            VerifyHasCurrentPointer();
+
+            string? logString = LogPrefix;
+
+            long start = Reader.BaseStream.Position;
             Pointer p = CurrentPointer;
-            long value = Convert.ToInt64(Serialize<T>(default, name: "Value"));
-            serializeFunc(new BitDeserializer(this, p, logPrefix, value));
+
+            long value = ReadInteger<T>("Value");
+
+            if (CurrentFile.ShouldUpdateReadMap)
+                CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
+
+            if (IsSerializerLoggerEnabled)
+                Context.SerializerLogger.Log($"{logString}({typeof(T).Name}) Value: {value}");
+
+            serializeFunc(new BitDeserializer(this, p, logString, value));
         }
 
         #endregion
@@ -1093,6 +1099,7 @@ namespace BinarySerializer
         #region Protected Helpers
 
         [MemberNotNull(nameof(CurrentFile), nameof(Reader))]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void VerifyHasCurrentPointer()
         {
             if (!HasCurrentPointer)
@@ -1115,93 +1122,224 @@ namespace BinarySerializer
             CurrentFile = newFile;
         }
 
-        // Helper method which returns an object so we can cast it
-        protected object ReadAsObject(Type type, string? name = null)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected T ReadValue<T>(string? name = null)
+            where T : struct
         {
             VerifyHasCurrentPointer();
 
-            TypeCode typeCode = Type.GetTypeCode(type);
-
-            switch (typeCode)
+            if (typeof(T) == typeof(bool))
             {
-                case TypeCode.Boolean:
-                    var b = Reader.ReadByte();
+                // By default we read a boolean as a byte
+                byte b = Reader.ReadByte();
 
-                    if (b != 0 && b != 1 && Defaults?.DisableFormattingWarnings != true)
-                    {
-                        SystemLogger?.LogWarning("Binary boolean '{0}' ({1}) at {2} was not correctly formatted", name, b, CurrentPointer - 1);
+                if (b != 0 && b != 1 && Defaults?.DisableFormattingWarnings != true)
+                {
+                    SystemLogger?.LogWarning("Binary boolean '{0}' ({1}) at {2} was not correctly formatted", name, b, CurrentPointer - 1);
 
-                        if (IsSerializerLoggerEnabled)
-                            Context.SerializerLogger.Log($"{LogPrefix} ({type}): Binary boolean was not correctly formatted ({b})");
-                    }
+                    if (IsSerializerLoggerEnabled)
+                        Context.SerializerLogger.Log($"{LogPrefix} ({typeof(T)}): Binary boolean was not correctly formatted ({b})");
+                }
 
-                    return b != 0;
-
-                case TypeCode.SByte:
-                    return Reader.ReadSByte();
-
-                case TypeCode.Byte:
-                    return Reader.ReadByte();
-
-                case TypeCode.Int16:
-                    return Reader.ReadInt16();
-
-                case TypeCode.UInt16:
-                    return Reader.ReadUInt16();
-
-                case TypeCode.Int32:
-                    return Reader.ReadInt32();
-
-                case TypeCode.UInt32:
-                    return Reader.ReadUInt32();
-
-                case TypeCode.Int64:
-                    return Reader.ReadInt64();
-
-                case TypeCode.UInt64:
-                    return Reader.ReadUInt64();
-
-                case TypeCode.Single:
-                    return Reader.ReadSingle();
-
-                case TypeCode.Double:
-                    return Reader.ReadDouble();
-
-                case TypeCode.Object when type == typeof(UInt24):
-                    return Reader.ReadUInt24();
-
-                case TypeCode.String:
-                case TypeCode.Decimal:
-                case TypeCode.Char:
-                case TypeCode.DateTime:
-                case TypeCode.Empty:
-                case TypeCode.DBNull:
-                default:
-                    throw new NotSupportedException($"The specified generic type ('{name}') can not be read from the reader");
+                return CastTo<T>.From(b != 0);
             }
+            else if (typeof(T) == typeof(sbyte))
+            {
+                return CastTo<T>.From(Reader.ReadSByte());
+            }
+            else if (typeof(T) == typeof(byte))
+            {
+                return CastTo<T>.From(Reader.ReadByte());
+            }
+            else if (typeof(T) == typeof(short))
+            {
+                return CastTo<T>.From(Reader.ReadInt16());
+            }
+            else if (typeof(T) == typeof(ushort))
+            {
+                return CastTo<T>.From(Reader.ReadUInt16());
+            }
+            else if (typeof(T) == typeof(int))
+            {
+                return CastTo<T>.From(Reader.ReadInt32());
+            }
+            else if (typeof(T) == typeof(uint))
+            {
+                return CastTo<T>.From(Reader.ReadUInt32());
+            }
+            else if (typeof(T) == typeof(long))
+            {
+                return CastTo<T>.From(Reader.ReadInt64());
+            }
+            else if (typeof(T) == typeof(ulong))
+            {
+                return CastTo<T>.From(Reader.ReadUInt64());
+            }
+            else if (typeof(T) == typeof(float))
+            {
+                return CastTo<T>.From(Reader.ReadSingle());
+            }
+            else if (typeof(T) == typeof(double))
+            {
+                return CastTo<T>.From(Reader.ReadDouble());
+            }
+            else if (typeof(T) == typeof(UInt24))
+            {
+                return CastTo<T>.From(Reader.ReadUInt24());
+            }
+            else if (typeof(T).IsEnum)
+            {
+                Type type = Enum.GetUnderlyingType(typeof(T));
+
+                if (type == typeof(sbyte))
+                    return CastTo<T>.From(Reader.ReadSByte());
+                else if (type == typeof(byte))
+                    return CastTo<T>.From(Reader.ReadByte());
+                else if (type == typeof(short))
+                    return CastTo<T>.From(Reader.ReadInt16());
+                else if (type == typeof(ushort))
+                    return CastTo<T>.From(Reader.ReadUInt16());
+                else if (type == typeof(int))
+                    return CastTo<T>.From(Reader.ReadInt32());
+                else if (type == typeof(uint))
+                    return CastTo<T>.From(Reader.ReadUInt32());
+                else if (type == typeof(long))
+                    return CastTo<T>.From(Reader.ReadInt64());
+                else if (type == typeof(ulong))
+                    return CastTo<T>.From(Reader.ReadUInt64());
+            }
+
+            throw new NotSupportedException($"The specified value type {typeof(T)} for {name} can not be read from the reader");
         }
 
-        protected object? ReadAsNullableObject(Type underlyingType, string? name = null)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected long ReadInteger<T>(string? name = null)
+            where T : struct
         {
             VerifyHasCurrentPointer();
 
-            TypeCode typeCode = Type.GetTypeCode(underlyingType);
-
-            return typeCode switch
+            if (typeof(T) == typeof(sbyte))
             {
-                TypeCode.SByte => toNullable(Reader.ReadSByte(), -1),
-                TypeCode.Byte => toNullable(Reader.ReadByte(), Byte.MaxValue),
-                TypeCode.Int16 => toNullable(Reader.ReadInt16(), -1),
-                TypeCode.UInt16 => toNullable(Reader.ReadUInt16(), UInt16.MaxValue),
-                TypeCode.Int32 => toNullable(Reader.ReadInt32(), -1),
-                TypeCode.UInt32 => toNullable(Reader.ReadUInt32(), UInt32.MaxValue),
-                TypeCode.Int64 => toNullable(Reader.ReadInt64(), -1),
-                TypeCode.UInt64 => toNullable(Reader.ReadUInt64(), UInt64.MaxValue),
-                TypeCode.Object when underlyingType == typeof(UInt24) => toNullable(Reader.ReadUInt24(), UInt24.MaxValue),
-                _ => throw new NotSupportedException($"The specified nullable generic type ('{name}') can not be read from the reader")
-            };
+                return Reader.ReadSByte();
+            }
+            else if (typeof(T) == typeof(byte))
+            {
+                return Reader.ReadByte();
+            }
+            else if (typeof(T) == typeof(short))
+            {
+                return Reader.ReadInt16();
+            }
+            else if (typeof(T) == typeof(ushort))
+            {
+                return Reader.ReadUInt16();
+            }
+            else if (typeof(T) == typeof(int))
+            {
+                return Reader.ReadInt32();
+            }
+            else if (typeof(T) == typeof(uint))
+            {
+                return Reader.ReadUInt32();
+            }
+            else if (typeof(T) == typeof(long))
+            {
+                return Reader.ReadInt64();
+            }
+            else if (typeof(T) == typeof(ulong))
+            {
+                return (long)Reader.ReadUInt64();
+            }
+            else if (typeof(T) == typeof(float))
+            {
+                return (long)Reader.ReadSingle();
+            }
+            else if (typeof(T) == typeof(double))
+            {
+                return (long)Reader.ReadDouble();
+            }
+            else if (typeof(T) == typeof(UInt24))
+            {
+                return Reader.ReadUInt24();
+            }
+            else if (typeof(T).IsEnum)
+            {
+                Type type = Enum.GetUnderlyingType(typeof(T));
 
-            T? toNullable<T>(T value, T nullValue) where T : struct => value.Equals(nullValue) ? null : value;
+                if (type == typeof(sbyte))
+                    return Reader.ReadSByte();
+                else if (type == typeof(byte))
+                    return Reader.ReadByte();
+                else if (type == typeof(short))
+                    return Reader.ReadInt16();
+                else if (type == typeof(ushort))
+                    return Reader.ReadUInt16();
+                else if (type == typeof(int))
+                    return Reader.ReadInt32();
+                else if (type == typeof(uint))
+                    return Reader.ReadUInt32();
+                else if (type == typeof(long))
+                    return Reader.ReadInt64();
+                else if (type == typeof(ulong))
+                    return (long)Reader.ReadUInt64();
+            }
+
+            throw new NotSupportedException($"The specified integer type {typeof(T)} for {name} can not be read from the reader");
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected T? ReadNullableValue<T>(string? name = null)
+            where T : struct
+        {
+            VerifyHasCurrentPointer();
+
+            if (typeof(T) == typeof(sbyte))
+            {
+                var value = Reader.ReadSByte();
+                return value == -1 ? null : CastTo<T>.From(value);
+            }
+            else if (typeof(T) == typeof(byte))
+            {
+                var value = Reader.ReadByte();
+                return value == Byte.MaxValue ? null : CastTo<T>.From(value);
+            }
+            else if (typeof(T) == typeof(short))
+            {
+                var value = Reader.ReadInt16();
+                return value == -1 ? null : CastTo<T>.From(value);
+            }
+            else if (typeof(T) == typeof(ushort))
+            {
+                var value = Reader.ReadUInt16();
+                return value == UInt16.MaxValue ? null : CastTo<T>.From(value);
+            }
+            else if (typeof(T) == typeof(int))
+            {
+                var value = Reader.ReadInt32();
+                return value == -1 ? null : CastTo<T>.From(value);
+            }
+            else if (typeof(T) == typeof(uint))
+            {
+                var value = Reader.ReadUInt32();
+                return value == UInt32.MaxValue ? null : CastTo<T>.From(value);
+            }
+            else if (typeof(T) == typeof(long))
+            {
+                var value = Reader.ReadInt64();
+                return value == -1 ? null : CastTo<T>.From(value);
+            }
+            else if (typeof(T) == typeof(ulong))
+            {
+                var value = Reader.ReadUInt64();
+                return value == UInt64.MaxValue ? null : CastTo<T>.From(value);
+            }
+            else if (typeof(T) == typeof(UInt24))
+            {
+                var value = Reader.ReadUInt24();
+                return value == UInt24.MaxValue ? null : CastTo<T>.From(value);
+            }
+
+            throw new NotSupportedException($"The specified nullable value type {typeof(T)} for {name} can not be read from the reader");
         }
 
         #endregion

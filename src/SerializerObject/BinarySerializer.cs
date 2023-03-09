@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace BinarySerializer
@@ -233,7 +234,7 @@ namespace BinarySerializer
             if (IsSerializerLoggerEnabled)
                 Context.SerializerLogger.Log($"{LogPrefix}({typeof(T)}) {name ?? DefaultName}: {calculatedChecksum}");
 
-            Write(calculatedChecksum);
+            WriteValue(calculatedChecksum, name);
             return calculatedChecksum;
         }
 
@@ -274,19 +275,17 @@ namespace BinarySerializer
             if (IsSerializerLoggerEnabled)
                 Context.SerializerLogger.Log($"{LogPrefix}({typeof(T).Name}) {name ?? DefaultName}: {obj}");
 
-            Write(obj);
+            WriteValue(obj, name);
 
             return obj;
         }
 
         public override T? SerializeNullable<T>(T? obj, string? name = null)
         {
-            Type type = typeof(T);
-
             if (IsSerializerLoggerEnabled)
-                Context.SerializerLogger.Log($"{LogPrefix}({type.Name}?) {name ?? DefaultName}: {obj}");
+                Context.SerializerLogger.Log($"{LogPrefix}({typeof(T).Name}?) {name ?? DefaultName}: {obj}");
 
-            WriteNullable(type, obj);
+            WriteNullableValue(obj, name);
 
             return obj;
         }
@@ -496,8 +495,14 @@ namespace BinarySerializer
             where T : default
         {
             obj ??= Array.Empty<T?>();
-            U size = (U)Convert.ChangeType(obj.Length, typeof(U));
-            Serialize<U>(size, name: $"{name ?? DefaultName}.Length");
+
+            name = $"{name ?? DefaultName}.Length";
+
+            if (IsSerializerLoggerEnabled)
+                Context.SerializerLogger.Log($"{LogPrefix}({typeof(U).Name}) {name}: {obj}");
+
+            WriteInteger<U>(obj.Length, name);
+
             return obj;
         }
 
@@ -782,8 +787,10 @@ namespace BinarySerializer
             // Set bits
             serializeFunc(serializer);
 
-            // Serialize value
-            Serialize<T>((T)Convert.ChangeType(serializer.Value, typeof(T)), name: "Value");
+            if (IsSerializerLoggerEnabled)
+                Context.SerializerLogger.Log($"{LogPrefix}({typeof(T).Name}) Value: {serializer.Value}");
+
+            WriteInteger<T>(serializer.Value, "Value");
         }
 
         #endregion
@@ -807,94 +814,241 @@ namespace BinarySerializer
         /// Writes a supported value to the stream
         /// </summary>
         /// <param name="value">The value</param>
-        protected void Write(object value)
+        /// <param name="name">The value name</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void WriteValue<T>(T value, string? name)
+            where T : struct
         {
-            if (value == null) 
-                throw new ArgumentNullException(nameof(value));
-            
             VerifyHasCurrentPointer();
 
-            Type type = value.GetType();
-
-            if (type.IsEnum)
-                Write(Convert.ChangeType(value, Enum.GetUnderlyingType(type)));
-
-            else if (value is bool bo)
+            if (value is bool bo)
+            {
                 Writer.Write((byte)(bo ? 1 : 0));
-
+            }
             else if (value is sbyte sb)
+            {
                 Writer.Write((byte)sb);
-
+            }
             else if (value is byte by)
+            {
                 Writer.Write(by);
-
+            }
             else if (value is short sh)
+            {
                 Writer.Write(sh);
-
+            }
             else if (value is ushort ush)
+            {
                 Writer.Write(ush);
-
+            }
             else if (value is int i32)
+            {
                 Writer.Write(i32);
-
+            }
             else if (value is uint ui32)
+            {
                 Writer.Write(ui32);
-
+            }
             else if (value is long lo)
+            {
                 Writer.Write(lo);
-
+            }
             else if (value is ulong ulo)
+            {
                 Writer.Write(ulo);
-
+            }
             else if (value is float fl)
+            {
                 Writer.Write(fl);
-
+            }
             else if (value is double dou)
+            {
                 Writer.Write(dou);
-
+            }
             else if (value is UInt24 u24)
+            {
                 Writer.Write(u24);
+            }
+            else if (typeof(T).IsEnum)
+            {
+                Type type = Enum.GetUnderlyingType(typeof(T));
 
+                if (type == typeof(sbyte))
+                    Writer.Write(CastTo<sbyte>.From(value));
+                else if (type == typeof(byte))
+                    Writer.Write(CastTo<byte>.From(value));
+                else if (type == typeof(short))
+                    Writer.Write(CastTo<short>.From(value));
+                else if (type == typeof(ushort))
+                    Writer.Write(CastTo<ushort>.From(value));
+                else if (type == typeof(int))
+                    Writer.Write(CastTo<int>.From(value));
+                else if (type == typeof(uint))
+                    Writer.Write(CastTo<uint>.From(value));
+                else if (type == typeof(long))
+                    Writer.Write(CastTo<long>.From(value));
+                else if (type == typeof(ulong))
+                    Writer.Write(CastTo<ulong>.From(value));
+                else
+                    throw new NotSupportedException($"The specified enum type {typeof(T)} for {name} can not be written");
+            }
             else
-                throw new NotSupportedException($"The specified type {type.Name} is not supported.");
+            {
+                throw new NotSupportedException($"The specified value type {typeof(T)} for {name} can not be written");
+            }
         }
 
-        protected void WriteNullable(Type type, object? value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void WriteInteger<T>(long value, string? name)
         {
             VerifyHasCurrentPointer();
 
-            if (type.IsEnum)
-                Write(Convert.ChangeType(value, Enum.GetUnderlyingType(type)));
+            if (typeof(T) == typeof(sbyte))
+            {
+                Writer.Write((sbyte)value);
+            }
+            else if (typeof(T) == typeof(byte))
+            {
+                Writer.Write((byte)value);
+            }
+            else if (typeof(T) == typeof(short))
+            {
+                Writer.Write((short)value);
+            }
+            else if (typeof(T) == typeof(ushort))
+            {
+                Writer.Write((ushort)value);
+            }
+            else if (typeof(T) == typeof(int))
+            {
+                Writer.Write((int)value);
+            }
+            else if (typeof(T) == typeof(uint))
+            {
+                Writer.Write((uint)value);
+            }
+            else if (typeof(T) == typeof(long))
+            {
+                Writer.Write((long)value);
+            }
+            else if (typeof(T) == typeof(ulong))
+            {
+                Writer.Write((ulong)value);
+            }
+            else if (typeof(T) == typeof(float))
+            {
+                Writer.Write((float)value);
+            }
+            else if (typeof(T) == typeof(double))
+            {
+                Writer.Write((double)value);
+            }
+            else if (typeof(T) == typeof(UInt24))
+            {
+                Writer.Write((UInt24)value);
+            }
+            else if (typeof(T).IsEnum)
+            {
+                Type type = Enum.GetUnderlyingType(typeof(T));
 
-            else if (type == typeof(sbyte))
-                Writer.Write((byte)((sbyte?)value ?? -1));
-
-            else if (type == typeof(byte))
-                Writer.Write((byte?)value ?? Byte.MaxValue);
-
-            else if (type == typeof(short))
-                Writer.Write((short?)value ?? -1);
-
-            else if (type == typeof(ushort))
-                Writer.Write((ushort?)value ?? UInt16.MaxValue);
-
-            else if (type == typeof(int))
-                Writer.Write((int?)value ?? -1);
-
-            else if (type == typeof(uint))
-                Writer.Write((uint?)value ?? UInt32.MaxValue);
-
-            else if (type == typeof(long))
-                Writer.Write((long?)value ?? -1);
-
-            else if (type == typeof(ulong))
-                Writer.Write((ulong?)value ?? UInt64.MaxValue);
-
-            else if (type == typeof(UInt24))
-                Writer.Write((UInt24?)value ?? UInt24.MaxValue);
-
+                if (type == typeof(sbyte))
+                    Writer.Write(CastTo<sbyte>.From(value));
+                else if (type == typeof(byte))
+                    Writer.Write(CastTo<byte>.From(value));
+                else if (type == typeof(short))
+                    Writer.Write(CastTo<short>.From(value));
+                else if (type == typeof(ushort))
+                    Writer.Write(CastTo<ushort>.From(value));
+                else if (type == typeof(int))
+                    Writer.Write(CastTo<int>.From(value));
+                else if (type == typeof(uint))
+                    Writer.Write(CastTo<uint>.From(value));
+                else if (type == typeof(long))
+                    Writer.Write(CastTo<long>.From(value));
+                else if (type == typeof(ulong))
+                    Writer.Write(CastTo<ulong>.From(value));
+                else
+                    throw new NotSupportedException($"The specified enum type {typeof(T)} for {name} can not be written");
+            }
             else
-                throw new NotSupportedException($"The specified nullable type {type.Name} is not supported.");
+            {
+                throw new NotSupportedException($"The specified value type {typeof(T)} for {name} can not be written");
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void WriteNullableValue<T>(T? value, string? name)
+            where T : struct
+        {
+            VerifyHasCurrentPointer();
+
+            if (typeof(T) == typeof(sbyte))
+            {
+                if (value == null)
+                    Writer.Write((sbyte)-1);
+                else
+                    Writer.Write(CastTo<sbyte>.From(value));
+            }
+            else if (typeof(T) == typeof(byte))
+            {
+                if (value == null)
+                    Writer.Write(Byte.MaxValue);
+                else
+                    Writer.Write(CastTo<byte>.From(value));
+            }
+            else if (typeof(T) == typeof(short))
+            {
+                if (value == null)
+                    Writer.Write((short)-1);
+                else
+                    Writer.Write(CastTo<short>.From(value));
+            }
+            else if (typeof(T) == typeof(ushort))
+            {
+                if (value == null)
+                    Writer.Write(UInt16.MaxValue);
+                else
+                    Writer.Write(CastTo<ushort>.From(value));
+            }
+            else if (typeof(T) == typeof(int))
+            {
+                if (value == null)
+                    Writer.Write((int)-1);
+                else
+                    Writer.Write(CastTo<int>.From(value));
+            }
+            else if (typeof(T) == typeof(uint))
+            {
+                if (value == null)
+                    Writer.Write(UInt32.MaxValue);
+                else
+                    Writer.Write(CastTo<uint>.From(value));
+            }
+            else if (typeof(T) == typeof(long))
+            {
+                if (value == null)
+                    Writer.Write((long)-1);
+                else
+                    Writer.Write(CastTo<long>.From(value));
+            }
+            else if (typeof(T) == typeof(ulong))
+            {
+                if (value == null)
+                    Writer.Write(UInt64.MaxValue);
+                else
+                    Writer.Write(CastTo<ulong>.From(value));
+            }
+            else if (typeof(T) == typeof(UInt24))
+            {
+                if (value == null)
+                    Writer.Write(UInt24.MaxValue);
+                else
+                    Writer.Write(CastTo<UInt24>.From(value));
+            }
+            else
+            {
+                throw new NotSupportedException($"The specified nullable value type {typeof(T)} for {name} can not be read from the reader");
+            }
         }
 
         [MemberNotNull(nameof(CurrentFile), nameof(Writer))]
@@ -946,7 +1100,7 @@ namespace BinarySerializer
             where T : class
         {
             public bool Equals(T x, T y) => ReferenceEquals(x, y);
-            public int GetHashCode(T obj) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
+            public int GetHashCode(T obj) => RuntimeHelpers.GetHashCode(obj);
         }
 
         #endregion
