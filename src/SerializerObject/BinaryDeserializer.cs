@@ -523,6 +523,8 @@ namespace BinarySerializer
             // Attempt to get an override pointer from the current file
             bool isOverride = CurrentFile.TryGetOverridePointer(CurrentAbsoluteOffset, out Pointer? ptr);
 
+            long start = Reader.BaseStream.Position;
+
             // Read the pointer value
             long value = size switch
             {
@@ -553,6 +555,9 @@ namespace BinarySerializer
                     ptr = new Pointer(ptr.AbsoluteOffset, ptr.File, anchor, ptr.Size, Pointer.OffsetType.Absolute);
                 }
             }
+
+            if (CurrentFile.ShouldUpdateReadMap)
+                CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
 
             if (IsSerializerLoggerEnabled)
                 Context.SerializerLogger.Log($"{logString}({size}) {name ?? DefaultName}: {ptr}");
