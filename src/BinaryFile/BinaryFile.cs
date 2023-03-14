@@ -37,6 +37,9 @@ namespace BinarySerializer
             StartPointer = startPointer ?? new Pointer(baseAddress, this);
             MemoryMappedPriority = memoryMappedPriority == -1 ? baseAddress : memoryMappedPriority;
             FileRedirectBehavior = RedirectBehavior.None;
+
+            if (context.Settings.AutoInitReadMap)
+                InitFileReadMap();
         }
 
         #endregion
@@ -215,7 +218,20 @@ namespace BinarySerializer
             writer?.Dispose();
         }
 
-        public virtual void Dispose() { }
+        public virtual void Dispose()
+        {
+            if (Context.Settings.AutoExportReadMap && FileReadMap != null)
+            {
+                try
+                {
+                    ExportFileReadMap(Context.GetAbsoluteFilePath($"{FilePath}.map"));
+                }
+                catch (Exception ex)
+                {
+                    Context.SystemLogger?.Log(LogLevel.Error, "Failed to auto export read map: {0}", ex.Message);
+                }
+            }
+        }
 
         #endregion
 

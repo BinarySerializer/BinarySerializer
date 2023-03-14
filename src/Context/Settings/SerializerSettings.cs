@@ -42,5 +42,15 @@ namespace BinarySerializer
         /// The pointer size to use when logging a <see cref="Pointer"/>. Set to <see langword="null"/> to dynamically determine the appropriate size.
         /// </summary>
         public PointerSize? LoggingPointerSize { get; set; } = PointerSize.Pointer32;
+
+        /// <summary>
+        /// Indicates if files should have their read map automatically be initialized
+        /// </summary>
+        public bool AutoInitReadMap { get; set; }
+
+        /// <summary>
+        /// Indicates if files should have their read map automatically be exported on dispose
+        /// </summary>
+        public bool AutoExportReadMap { get; set; }
     }
 }
