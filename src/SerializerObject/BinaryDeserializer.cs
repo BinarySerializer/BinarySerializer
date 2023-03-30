@@ -604,6 +604,48 @@ namespace BinarySerializer
             return t;
         }
 
+        public override T SerializeInto<T>(T? obj, SerializeInto<T> serializeFunc, string? name = null) 
+            where T : default
+        {
+            VerifyHasCurrentPointer();
+
+            // Create a new instance
+            obj = new T();
+
+            string? logString = IsSerializerLoggerEnabled ? LogPrefix : null;
+            bool isLogTemporarilyDisabled = false;
+            if (!DisableSerializerLogForObject && obj is ISerializerShortLog)
+            {
+                DisableSerializerLogForObject = true;
+                isLogTemporarilyDisabled = true;
+            }
+
+            if (IsSerializerLoggerEnabled)
+                Context.SerializerLogger.Log($"{logString}(Into object: {typeof(T)}) {name ?? DefaultName}");
+
+            try
+            {
+                Depth++;
+                obj = serializeFunc(this, obj);
+            }
+            finally
+            {
+                Depth--;
+
+                if (isLogTemporarilyDisabled)
+                {
+                    DisableSerializerLogForObject = false;
+                    if (IsSerializerLoggerEnabled)
+                    {
+                        string shortLog = (obj as ISerializerShortLog)?.ShortLog ?? "null";
+                        Context.SerializerLogger.Log($"{logString}({typeof(T)}) {name ?? DefaultName}: {shortLog}");
+                    }
+                }
+            }
+
+            return obj;
+        }
+
         #endregion
 
         #region Array Serialization
@@ -851,6 +893,38 @@ namespace BinarySerializer
             for (int i = 0; i < count; i++)
                 // Read the value
                 buffer[i] = SerializeString(buffer[i], length, encoding, name: IsSerializerLoggerEnabled ? $"{name ?? DefaultName}[{i}]" : name);
+
+            return buffer!;
+        }
+
+        public override T[] SerializeIntoArray<T>(T?[]? obj, long count, SerializeInto<T> serializeFunc, string? name = null) 
+            where T : default
+        {
+            if (IsSerializerLoggerEnabled)
+            {
+                string? logString = LogPrefix;
+                Context.SerializerLogger.Log($"{logString}(Into object[]: {typeof(T)}[{count}]) {name ?? DefaultName}");
+            }
+
+            T?[] buffer;
+            if (obj != null)
+            {
+                buffer = obj;
+
+                if (buffer.Length != count)
+                    Array.Resize(ref buffer, (int)count);
+            }
+            else
+            {
+                buffer = new T?[(int)count];
+            }
+
+            for (int i = 0; i < count; i++)
+                // Read the value
+                buffer[i] = SerializeInto<T>(
+                    obj: buffer[i],
+                    serializeFunc: serializeFunc,
+                    name: IsSerializerLoggerEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer!;
         }

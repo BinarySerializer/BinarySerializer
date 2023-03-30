@@ -352,6 +352,18 @@ namespace BinarySerializer
         
         public abstract string SerializeString(string? obj, long? length = null, Encoding? encoding = null, string? name = null);
 
+        /// <summary>
+        /// Serializes into an data type which is not serializable. This is useful for data types
+        /// declared in libraries or to use with structs.
+        /// </summary>
+        /// <typeparam name="T">The type to serialize into</typeparam>
+        /// <param name="obj">The object</param>
+        /// <param name="serializeFunc">The serialize func</param>
+        /// <param name="name">The object name</param>
+        /// <returns>The serialized object</returns>
+        public abstract T SerializeInto<T>(T? obj, SerializeInto<T> serializeFunc, string? name = null)
+            where T : new();
+
         #endregion
 
         #region Array Serialization
@@ -395,6 +407,9 @@ namespace BinarySerializer
             long? length = null,
             Encoding? encoding = null,
             string? name = null);
+
+        public abstract T[] SerializeIntoArray<T>(T?[]? obj, long count, SerializeInto<T> serializeFunc, string? name = null)
+            where T : new();
 
         /// <summary>
         /// Serializes an array of undefined size until a specified condition is met

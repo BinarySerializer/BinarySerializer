@@ -325,6 +325,23 @@ namespace BinarySerializer
             return obj;
         }
 
+        public override T SerializeInto<T>(T? obj, SerializeInto<T> serializeFunc, string? name = null) where T : default
+        {
+            obj ??= new T();
+
+            try
+            {
+                Depth++;
+
+                obj = serializeFunc(this, obj);
+            }
+            finally
+            {
+                Depth--;
+            }
+            return obj;
+        }
+
         #endregion
 
         #region Array Serialization
@@ -425,6 +442,16 @@ namespace BinarySerializer
 
             for (int i = 0; i < count; i++)
                 buffer[i] = SerializeString(buffer[i], length, encoding);
+
+            return buffer!;
+        }
+
+        public override T[] SerializeIntoArray<T>(T?[]? obj, long count, SerializeInto<T> serializeFunc, string? name = null) where T : default
+        {
+            T?[] buffer = obj ?? new T?[count];
+
+            for (int i = 0; i < count; i++)
+                buffer[i] = SerializeInto<T>(buffer[i], serializeFunc);
 
             return buffer!;
         }
