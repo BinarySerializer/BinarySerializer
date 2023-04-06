@@ -561,7 +561,7 @@ namespace BinarySerializer
 
         public delegate long SerializeBits64(long value, int length, string? name = null);
 
-        public void SerializePadding(int length, bool logIfNotNull = false, string? name = "Padding")
+        public void SerializePadding(long length, bool logIfNotNull = false, string? name = "Padding")
         {
             if (length == 1)
             {
