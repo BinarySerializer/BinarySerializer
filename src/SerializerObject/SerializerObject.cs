@@ -303,6 +303,43 @@ namespace BinarySerializer
             return value;
         }
 
+        public void DoChecksum<T>(
+            IChecksumCalculator<T>? c,
+            ChecksumPlacement placement,
+            string? name,
+            Action action)
+            where T : struct
+        {
+            // Get the current pointer
+            Pointer p = CurrentPointer;
+
+            // If the calculator is null we can't calculate a checksum
+            bool calculateChecksum = c != null;
+
+            // Skip the length of the checksum value if it's before the data
+            if (calculateChecksum && placement == ChecksumPlacement.Before)
+                Goto(p + Marshal.SizeOf<T>());
+
+            // Begin calculating the checksum
+            if (calculateChecksum)
+                BeginCalculateChecksum(c);
+
+            // Serialize the block data
+            action();
+
+            if (!calculateChecksum)
+                return;
+
+            // End calculating the checksum
+            T v = EndCalculateChecksum<T>(default);
+
+            // Serialize the checksum
+            if (placement == ChecksumPlacement.Before)
+                DoAt(p, () => SerializeChecksum(v, name));
+            else
+                SerializeChecksum(v, name);
+        }
+
         #endregion
 
         #region Serialization
