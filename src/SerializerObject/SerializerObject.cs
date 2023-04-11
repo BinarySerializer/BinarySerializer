@@ -340,6 +340,15 @@ namespace BinarySerializer
                 SerializeChecksum(v, name);
         }
 
+        public void DoChecksum<T>(
+            IChecksumCalculator<T>? c,
+            ChecksumPlacement placement,
+            Action action)
+            where T : struct
+        {
+            DoChecksum<T>(c, placement, "Checksum", action);
+        }
+
         #endregion
 
         #region Serialization
