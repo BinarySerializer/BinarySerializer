@@ -181,7 +181,7 @@ s.DoEncoded(new BytePairEncoder(), () =>
 
 ### XOR
 ```cs
-s.DoXOR(xorKey, () =>
+s.DoProcessed(new Xor8Processor(xorKey), () =>
 {
     // Any code here will have the data xored using the specified key
 });
@@ -189,10 +189,13 @@ s.DoXOR(xorKey, () =>
 
 ### Checksum
 ```cs
-DataChecksum = s.DoChecksum<byte>(new Checksum8Calculator(false), () =>
+s.DoProcessed(new Checksum8Processor(), p =>
 {
+    // This defines where the checksum value is serialized (usually before or after the data)
+    p.Serialize<byte>(s, "Checksum");
+
     // Any code here will have its data included as part of the checksum
-}, ChecksumPlacement.Before, name: nameof(DataChecksum));
+});
 ```
 
 ### Bit Fields
