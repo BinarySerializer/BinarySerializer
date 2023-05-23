@@ -1,21 +1,13 @@
-﻿#nullable enable
-using System;
-
-namespace BinarySerializer
+﻿namespace BinarySerializer
 {
-    public class ChecksumCRC32Calculator : IChecksumCalculator<uint>
+    public class ChecksumCRC32Processor : ChecksumProcessor
     {
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="calculateForDecryptedData">Indicates if the checksum should be calculated for the decrypted data. This is ignored if the data is not encrypted.</param>
-        public ChecksumCRC32Calculator(bool calculateForDecryptedData = true)
+        public ChecksumCRC32Processor()
         {
-            CalculateForDecryptedData = calculateForDecryptedData;
             _checksumValue ^= ~0U;
         }
 
-        private static readonly uint[] Table = 
+        private static readonly uint[] Table =
         {
             0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
             0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
@@ -64,38 +56,17 @@ namespace BinarySerializer
 
         private uint _checksumValue;
 
-        /// <summary>
-        /// Indicates if the checksum should be calculated for the decrypted data. This is ignored if the data is not encrypted.
-        /// </summary>
-        public bool CalculateForDecryptedData { get; }
-
-        /// <summary>
-        /// Adds a byte to the checksum
-        /// </summary>
-        /// <param name="b">The byte to add</param>
-        public void AddByte(byte b)
+        public override long CalculatedValue
         {
-            _checksumValue = Table[(_checksumValue ^ b) & 0xFF] ^ (_checksumValue >> 8);
+            get => _checksumValue ^ ~0U;
+            set => _checksumValue = (uint)value ^ ~0U;
         }
 
-        /// <summary>
-        /// Adds an array of bytes to the checksum
-        /// </summary>
-        /// <param name="bytes">The bytes to add</param>
-        /// <param name="offset">The offset in the array to start reading from</param>
-        /// <param name="count">The amount of bytes to read from the array</param>
-        public void AddBytes(byte[] bytes, int offset, int count)
+        public override void ProcessBytes(byte[] buffer, int offset, int count)
         {
-            if (bytes == null) 
-                throw new ArgumentNullException(nameof(bytes));
-            
-            for (int i = 0; i < count; i++)
-                AddByte(bytes[offset + i]);
+            int end = offset + count;
+            for (int i = offset; i < end; i++)
+                _checksumValue = Table[(_checksumValue ^ buffer[i]) & 0xFF] ^ (_checksumValue >> 8);
         }
-
-        /// <summary>
-        /// The current checksum value
-        /// </summary>
-        public uint ChecksumValue => _checksumValue ^ ~0U;
     }
 }

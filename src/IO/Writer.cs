@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace BinarySerializer 
@@ -23,21 +24,6 @@ namespace BinarySerializer
 
         public bool IsLittleEndian { get; set; }
         public new StreamWrapper BaseStream => (StreamWrapper)base.BaseStream;
-
-        #endregion
-
-        #region Protected Properties
-
-        protected IXORCalculator? XORCalculator
-        {
-            get => BaseStream.XORCalculator;
-            set => BaseStream.XORCalculator = value;
-        }
-        protected IChecksumCalculator? ChecksumCalculator
-        {
-            get => BaseStream.ChecksumCalculator;
-            set => BaseStream.ChecksumCalculator = value;
-        }
 
         #endregion
 
@@ -167,30 +153,16 @@ namespace BinarySerializer
 
         #endregion
 
-        #region XOR & Checksum
+        #region Processors
 
-        public void BeginXOR(IXORCalculator? xorCalculator) => XORCalculator = xorCalculator;
-        public void EndXOR() => XORCalculator = null;
-        public IXORCalculator? GetXORCalculator() => XORCalculator;
-        
-        public void BeginCalculateChecksum(IChecksumCalculator? checksumCalculator) => ChecksumCalculator = checksumCalculator;
-        public IChecksumCalculator? PauseCalculateChecksum()
-        {
-            IChecksumCalculator? c = ChecksumCalculator;
-            ChecksumCalculator = null;
-            return c;
+        public void AddBinaryProcessor(BinaryProcessor binaryProcessor) =>
+            BaseStream.BinaryProcessors.Add(binaryProcessor);
+        public void RemoveBinaryProcessor(BinaryProcessor binaryProcessor) =>
+            BaseStream.BinaryProcessors.Remove(binaryProcessor);
+        public T? GetBinaryProcessor<T>()
+            where T : BinaryProcessor =>
+            BaseStream.BinaryProcessors.OfType<T>().FirstOrDefault();
 
-        }
-        public T EndCalculateChecksum<T>() 
-        {
-            if (ChecksumCalculator == null)
-                throw new InvalidOperationException("Can't end calculating checksum before beginning");
-
-            IChecksumCalculator c = ChecksumCalculator;
-            ChecksumCalculator = null;
-            return ((IChecksumCalculator<T>)c).ChecksumValue;
-        }
-        
         #endregion
     }
 }

@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,16 +17,21 @@ namespace BinarySerializer
         public StreamWrapper(Stream innerStream)
         {
             InnerStream = innerStream ?? throw new ArgumentNullException(nameof(innerStream));
+            BinaryProcessors = new List<BinaryProcessor>();
         }
+
+        #endregion
+
+        #region Private Fields
+
+        private readonly byte[] _tempArray = new byte[1];
 
         #endregion
 
         #region Public Properties
 
         public Stream InnerStream { get; }
-
-        public IXORCalculator? XORCalculator { get; set; }
-        public IChecksumCalculator? ChecksumCalculator { get; set; }
+        public List<BinaryProcessor> BinaryProcessors { get; }
 
         #endregion
 
@@ -33,69 +39,55 @@ namespace BinarySerializer
 
         protected virtual void ProcessReadBytes(byte[] buffer, int offset, int count)
         {
-            if (ChecksumCalculator?.CalculateForDecryptedData == false)
-                ChecksumCalculator?.AddBytes(buffer, offset, count);
-
-            if (XORCalculator != null)
-                for (int i = 0; i < count; i++)
-                    buffer[offset + i] = XORCalculator.XORByte(buffer[offset + i]);
-
-            if (ChecksumCalculator?.CalculateForDecryptedData == true)
-                ChecksumCalculator?.AddBytes(buffer, offset, count);
+            for (int i = 0; i < BinaryProcessors.Count; i++)
+            {
+                BinaryProcessor binaryProcessor = BinaryProcessors[i];
+                if (binaryProcessor.IsActive && (binaryProcessor.Flags & BinaryProcessorFlags.ProcessBytes) != 0)
+                    binaryProcessor.ProcessBytes(buffer, offset, count);
+            }
         }
         protected virtual byte ProcessReadByte(byte b)
         {
-            if (ChecksumCalculator?.CalculateForDecryptedData == false)
-                ChecksumCalculator?.AddByte(b);
-
-            if (XORCalculator != null)
-                b = XORCalculator.XORByte(b);
-
-            if (ChecksumCalculator?.CalculateForDecryptedData == true)
-                ChecksumCalculator?.AddByte(b);
-
-            return b;
+            _tempArray[0] = b;
+            ProcessReadBytes(_tempArray, 0, 1);
+            return _tempArray[0];
         }
 
         protected virtual (byte[], int) ProcessWriteBytes(byte[] buffer, int offset, int count)
         {
-            var data = buffer;
+            byte[] data = buffer;
+            int newOffset = offset;
+            bool copiedBuffer = false;
 
-            if (ChecksumCalculator?.CalculateForDecryptedData == true)
-                ChecksumCalculator?.AddBytes(data, offset, count);
-
-            var newOffset = offset;
-
-            if (XORCalculator != null)
+            // When writing we need to process the data in reverse order
+            for (int i = BinaryProcessors.Count - 1; i >= 0; i--)
             {
-                // Avoid changing data in array, so create a copy
-                data = new byte[count];
+                BinaryProcessor binaryProcessor = BinaryProcessors[i];
+                if (binaryProcessor.IsActive && (binaryProcessor.Flags & BinaryProcessorFlags.ProcessBytes) != 0)
+                {
+                    if ((binaryProcessor.Flags & BinaryProcessorFlags.ModifyBytes) !=
+                        BinaryProcessorFlags.ModifyBytes &&
+                        !copiedBuffer)
+                    {
+                        // Avoid changing the data in the source array, so create a copy
+                        data = new byte[count];
+                        Array.Copy(buffer, offset, data, 0, count);
+                        newOffset = 0;
 
-                Array.Copy(buffer, offset, data, 0, count);
+                        copiedBuffer = true;
+                    }
 
-                newOffset = 0;
-
-                for (int i = 0; i < count; i++)
-                    data[i] = XORCalculator.XORByte(data[i]);
+                    binaryProcessor.ProcessBytes(data, newOffset, count);
+                }
             }
-
-            if (ChecksumCalculator?.CalculateForDecryptedData == false)
-                ChecksumCalculator?.AddBytes(data, newOffset, count);
 
             return (data, newOffset);
         }
         protected virtual byte ProcessWriteByte(byte b)
         {
-            if (ChecksumCalculator?.CalculateForDecryptedData == true)
-                ChecksumCalculator?.AddByte(b);
-
-            if (XORCalculator != null)
-                b = XORCalculator.XORByte(b);
-
-            if (ChecksumCalculator?.CalculateForDecryptedData == false)
-                ChecksumCalculator?.AddByte(b);
-
-            return b;
+            _tempArray[0] = b;
+            (byte[] newArray, int newOffset) = ProcessWriteBytes(_tempArray, 0, 1);
+            return newArray[newOffset];
         }
 
         #endregion

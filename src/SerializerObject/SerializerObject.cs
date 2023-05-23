@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -151,38 +150,62 @@ namespace BinarySerializer
 
         #endregion
 
-        #region XOR
+        #region Processing
 
-        public virtual void BeginXOR(IXORCalculator? xorCalculator) { }
-        public virtual void EndXOR() { }
-        public virtual IXORCalculator? GetXOR() => null;
+        public abstract void BeginProcessed(BinaryProcessor processor);
+        public abstract void EndProcessed(BinaryProcessor processor);
 
-        public virtual void DoXOR(byte xorKey, Action action)
+        public T? DoProcessed<T>(T? processor, Action action)
+            where T : BinaryProcessor
         {
             if (action == null) 
                 throw new ArgumentNullException(nameof(action));
             
-            DoXOR(new XOR8Calculator(xorKey), action);
+            if (processor == null)
+            {
+                action();
+                return null;
+            }
+
+            try
+            {
+                BeginProcessed(processor);
+                action();
+            }
+            finally
+            {
+                EndProcessed(processor);
+            }
+
+            return processor;
         }
-        public void DoXOR(IXORCalculator? xorCalculator, Action action)
+        public T? DoProcessed<T>(T? processor, Action<T?> action)
+            where T : BinaryProcessor
         {
             if (action == null) 
                 throw new ArgumentNullException(nameof(action));
             
-            IXORCalculator? prevCalculator = GetXOR();
+            if (processor == null)
+            {
+                action(null);
+                return null;
+            }
 
-            if (xorCalculator == null)
-                EndXOR();
-            else
-                BeginXOR(xorCalculator);
+            try
+            {
+                BeginProcessed(processor);
+                action(processor);
+            }
+            finally
+            {
+                EndProcessed(processor);
+            }
 
-            action();
-
-            if (prevCalculator == null)
-                EndXOR();
-            else
-                BeginXOR(prevCalculator);
+            return processor;
         }
+
+        public abstract T? GetProcessor<T>()
+            where T : BinaryProcessor;
 
         #endregion
 
@@ -234,119 +257,6 @@ namespace BinarySerializer
             {
                 Goto(current);
             }
-        }
-
-        #endregion
-
-        #region Checksum
-
-        public abstract T SerializeChecksum<T>(T calculatedChecksum, string? name = null)
-            where T : struct;
-
-        /// <summary>
-        /// Begins calculating byte checksum for all following serialize operations
-        /// </summary>
-        /// <param name="checksumCalculator">The checksum calculator to use</param>
-        public virtual void BeginCalculateChecksum(IChecksumCalculator? checksumCalculator) { }
-
-        /// <summary>
-        /// Pauses calculating the checksum and returns the current checksum calculator to be used when resuming
-        /// </summary>
-        /// <returns>The current checksum calculator or null if none is used</returns>
-        public virtual IChecksumCalculator? PauseCalculateChecksum() => null;
-
-        /// <summary>
-        /// Ends calculating the checksum and return the value
-        /// </summary>
-        /// <typeparam name="T">The type of checksum value</typeparam>
-        /// <param name="value">The default value to return if no value exists</param>
-        /// <returns>The checksum value</returns>
-        public virtual T EndCalculateChecksum<T>(T value) => value;
-
-        public T DoChecksum<T>(
-            IChecksumCalculator<T>? c,
-            T value, 
-            ChecksumPlacement placement, 
-            string? name,
-            Action action)
-            where T : struct
-        {
-            // Get the current pointer
-            Pointer p = CurrentPointer;
-
-            // If the calculator is null we can't calculate a checksum
-            bool calculateChecksum = c != null;
-
-            // Skip the length of the checksum value if it's before the data
-            if (calculateChecksum && placement == ChecksumPlacement.Before)
-                Goto(p + Marshal.SizeOf<T>());
-
-            // Begin calculating the checksum
-            if (calculateChecksum)
-                BeginCalculateChecksum(c);
-
-            // Serialize the block data
-            action();
-
-            if (!calculateChecksum)
-                return value;
-
-            // End calculating the checksum
-            T v = EndCalculateChecksum<T>(value);
-
-            // Serialize the checksum
-            if (placement == ChecksumPlacement.Before)
-                DoAt(p, () => value = SerializeChecksum(v, name));
-            else
-                value = SerializeChecksum(v, name);
-
-            return value;
-        }
-
-        public void DoChecksum<T>(
-            IChecksumCalculator<T>? c,
-            ChecksumPlacement placement,
-            string? name,
-            Action action)
-            where T : struct
-        {
-            // Get the current pointer
-            Pointer p = CurrentPointer;
-
-            // If the calculator is null we can't calculate a checksum
-            bool calculateChecksum = c != null;
-
-            // Skip the length of the checksum value if it's before the data
-            if (calculateChecksum && placement == ChecksumPlacement.Before)
-                Goto(p + Marshal.SizeOf<T>());
-
-            // Begin calculating the checksum
-            if (calculateChecksum)
-                BeginCalculateChecksum(c);
-
-            // Serialize the block data
-            action();
-
-            if (!calculateChecksum)
-                return;
-
-            // End calculating the checksum
-            T v = EndCalculateChecksum<T>(default);
-
-            // Serialize the checksum
-            if (placement == ChecksumPlacement.Before)
-                DoAt(p, () => SerializeChecksum(v, name));
-            else
-                SerializeChecksum(v, name);
-        }
-
-        public void DoChecksum<T>(
-            IChecksumCalculator<T>? c,
-            ChecksumPlacement placement,
-            Action action)
-            where T : struct
-        {
-            DoChecksum<T>(c, placement, "Checksum", action);
         }
 
         #endregion

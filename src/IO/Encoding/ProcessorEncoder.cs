@@ -5,21 +5,21 @@ using System.IO;
 namespace BinarySerializer
 {
     /// <summary>
-    /// An encoder wrapper for <see cref="IXORCalculator"/>. It recommended using
-    /// <see cref="SerializerObject.DoXOR(IXORCalculator,System.Action)"/> where possible rather than this.
+    /// An encoder wrapper for <see cref="BinaryProcessor"/>. It is recommended using
+    /// <see cref="SerializerObject.DoProcessed"/> where possible rather than this.
     /// </summary>
-    public class XOREncoder : IStreamEncoder
+    public class ProcessorEncoder : IStreamEncoder
     {
-        public XOREncoder(IXORCalculator xorCalculator, long length)
+        public ProcessorEncoder(BinaryProcessor binaryProcessor, long length)
         {
-            XORCalculator = xorCalculator ?? throw new ArgumentNullException(nameof(xorCalculator));
+            BinaryProcessor = binaryProcessor ?? throw new ArgumentNullException(nameof(binaryProcessor));
             Length = length;
+            Name = binaryProcessor.GetType().Name;
         }
 
-        public IXORCalculator XORCalculator { get; }
+        public BinaryProcessor BinaryProcessor { get; }
         public long Length { get; }
-
-        public string Name => "XOR";
+        public string Name { get; }
 
         public void DecodeStream(Stream input, Stream output)
         {
@@ -31,8 +31,8 @@ namespace BinarySerializer
             byte[] buffer = new byte[Length];
             input.Read(buffer, 0, buffer.Length);
 
-            for (int i = 0; i < buffer.Length; i++)
-                buffer[i] = XORCalculator.XORByte(buffer[i]);
+            if ((BinaryProcessor.Flags & BinaryProcessorFlags.ProcessBytes) != 0)
+                BinaryProcessor.ProcessBytes(buffer, 0, buffer.Length);
 
             output.Write(buffer, 0, buffer.Length);
         }

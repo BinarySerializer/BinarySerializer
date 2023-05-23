@@ -18,6 +18,7 @@ namespace BinarySerializer
         public SizeCalculationSerializer(Context context) : base(context)
         {
             FilePositions = new Dictionary<BinaryFile, long>();
+            BinaryProcessors = new List<BinaryProcessor>();
         }
 
         #endregion
@@ -39,6 +40,7 @@ namespace BinarySerializer
             }
         }
         protected BinaryFile? CurrentFile { get; set; }
+        protected List<BinaryProcessor> BinaryProcessors { get; }
 
         #endregion
 
@@ -182,6 +184,38 @@ namespace BinarySerializer
 
         #endregion
 
+        #region Processing
+
+        public override void BeginProcessed(BinaryProcessor processor)
+        {
+            if (processor == null)
+                throw new ArgumentNullException(nameof(processor));
+
+            if ((processor.Flags & BinaryProcessorFlags.Callbacks) != 0)
+                processor.BeginProcessing(this);
+
+            BinaryProcessors.Add(processor);
+        }
+
+        public override void EndProcessed(BinaryProcessor processor)
+        {
+            if (processor == null)
+                throw new ArgumentNullException(nameof(processor));
+
+            if ((processor.Flags & BinaryProcessorFlags.Callbacks) != 0)
+                processor.EndProcessing(this);
+
+            BinaryProcessors.Remove(processor);
+        }
+
+        public override T? GetProcessor<T>() 
+            where T : class
+        {
+            return BinaryProcessors.OfType<T>().FirstOrDefault();
+        }
+
+        #endregion
+
         #region Positioning
 
         public override void Goto(Pointer? offset)
@@ -212,16 +246,6 @@ namespace BinarySerializer
 
         // TODO: Resolve issues with this when not used
         public override T DoAt<T>(Pointer? offset, Func<T> action) => default;
-
-        #endregion
-
-        #region Checksum
-
-        public override T SerializeChecksum<T>(T calculatedChecksum, string? name = null)
-        {
-            ReadType(typeof(T));
-            return calculatedChecksum;
-        }
 
         #endregion
 

@@ -173,24 +173,43 @@ namespace BinarySerializer
 
         #endregion
 
-        #region XOR
+        #region Processing
 
-        public override void BeginXOR(IXORCalculator? xorCalculator)
+        public override void BeginProcessed(BinaryProcessor processor)
         {
+            if (processor == null)
+                throw new ArgumentNullException(nameof(processor));
+
             VerifyHasCurrentPointer();
-            Writer.BeginXOR(xorCalculator);
+
+            Log("{0}: Begin processing", processor.GetType().Name);
+
+            if ((processor.Flags & BinaryProcessorFlags.Callbacks) != 0)
+                processor.BeginProcessing(this);
+
+            Writer.AddBinaryProcessor(processor);
         }
 
-        public override void EndXOR()
+        public override void EndProcessed(BinaryProcessor processor)
         {
+            if (processor == null)
+                throw new ArgumentNullException(nameof(processor));
+
             VerifyHasCurrentPointer();
-            Writer.EndXOR();
+
+            Log("{0}: End processing", processor.GetType().Name);
+
+            if ((processor.Flags & BinaryProcessorFlags.Callbacks) != 0)
+                processor.EndProcessing(this);
+
+            Writer.RemoveBinaryProcessor(processor);
         }
 
-        public override IXORCalculator? GetXOR()
+        public override T? GetProcessor<T>()
+            where T : class
         {
             VerifyHasCurrentPointer();
-            return Writer.GetXORCalculator();
+            return Writer.GetBinaryProcessor<T>();
         }
 
         #endregion
@@ -223,47 +242,6 @@ namespace BinarySerializer
 
             // We can ignore logIfNotNull here since we're writing
             Goto(CurrentPointer + count);
-        }
-
-        #endregion
-
-        #region Checksum
-
-        public override T SerializeChecksum<T>(T calculatedChecksum, string? name = null)
-        {
-            if (IsSerializerLoggerEnabled)
-                Context.SerializerLogger.Log($"{LogPrefix}({typeof(T)}) {name ?? DefaultName}: {calculatedChecksum}");
-
-            WriteValue(calculatedChecksum, name);
-            return calculatedChecksum;
-        }
-
-        /// <summary>
-        /// Begins calculating byte checksum for all decrypted bytes read from the stream
-        /// </summary>
-        /// <param name="checksumCalculator">The checksum calculator to use</param>
-        public override void BeginCalculateChecksum(IChecksumCalculator? checksumCalculator)
-        {
-            VerifyHasCurrentPointer();
-            Writer.BeginCalculateChecksum(checksumCalculator);
-        }
-
-        public override IChecksumCalculator? PauseCalculateChecksum()
-        {
-            VerifyHasCurrentPointer();
-            return Writer.PauseCalculateChecksum();
-        }
-
-        /// <summary>
-        /// Ends calculating the checksum and return the value
-        /// </summary>
-        /// <typeparam name="T">The type of checksum value</typeparam>
-        /// <param name="value">The default value to return if no value exists</param>
-        /// <returns>The checksum value</returns>
-        public override T EndCalculateChecksum<T>(T value)
-        {
-            VerifyHasCurrentPointer();
-            return Writer.EndCalculateChecksum<T>();
         }
 
         #endregion

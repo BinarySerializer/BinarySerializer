@@ -219,24 +219,43 @@ namespace BinarySerializer
 
         #endregion
 
-        #region XOR
+        #region Processing
 
-        public override void BeginXOR(IXORCalculator? xorCalculator)
+        public override void BeginProcessed(BinaryProcessor processor)
         {
+            if (processor == null) 
+                throw new ArgumentNullException(nameof(processor));
+
             VerifyHasCurrentPointer();
-            Reader.BeginXOR(xorCalculator);
+
+            Log("{0}: Begin processing", processor.GetType().Name);
+
+            if ((processor.Flags & BinaryProcessorFlags.Callbacks) != 0)
+                processor.BeginProcessing(this);
+
+            Reader.AddBinaryProcessor(processor);
         }
 
-        public override void EndXOR()
+        public override void EndProcessed(BinaryProcessor processor)
         {
+            if (processor == null)
+                throw new ArgumentNullException(nameof(processor));
+
             VerifyHasCurrentPointer();
-            Reader.EndXOR();
+
+            Log("{0}: End processing", processor.GetType().Name);
+
+            if ((processor.Flags & BinaryProcessorFlags.Callbacks) != 0)
+                processor.EndProcessing(this);
+            
+            Reader.RemoveBinaryProcessor(processor);
         }
 
-        public override IXORCalculator? GetXOR()
+        public override T? GetProcessor<T>() 
+            where T : class
         {
             VerifyHasCurrentPointer();
-            return Reader.GetXORCalculator();
+            return Reader.GetBinaryProcessor<T>();
         }
 
         #endregion
@@ -296,66 +315,6 @@ namespace BinarySerializer
             {
                 Goto(CurrentPointer + count);
             }
-        }
-
-        #endregion
-
-        #region Checksum
-
-        public override T SerializeChecksum<T>(T calculatedChecksum, string? name = null)
-        {
-            VerifyHasCurrentPointer();
-
-            string? logString = LogPrefix;
-
-            long start = Reader.BaseStream.Position;
-
-            T checksum = ReadValue<T>(name);
-
-            if (CurrentFile.ShouldUpdateReadMap)
-                CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
-
-            bool match = checksum.Equals(calculatedChecksum);
-
-            if (!match)
-                SystemLogger?.LogWarning("Checksum {0} did not match!", name);
-
-            if (IsSerializerLoggerEnabled)
-                Context.SerializerLogger.Log($"{logString}({typeof(T)}) {name ?? DefaultName}: {checksum} - Checksum to match: {calculatedChecksum} - Matched? {match}");
-
-            return checksum;
-        }
-
-        /// <summary>
-        /// Begins calculating byte checksum for all decrypted bytes read from the stream
-        /// </summary>
-        /// <param name="checksumCalculator">The checksum calculator to use</param>
-        public override void BeginCalculateChecksum(IChecksumCalculator? checksumCalculator)
-        {
-            VerifyHasCurrentPointer();
-            Reader.BeginCalculateChecksum(checksumCalculator);
-        }
-
-        /// <summary>
-        /// Pauses calculating the checksum and returns the current checksum calculator to be used when resuming
-        /// </summary>
-        /// <returns>The current checksum calculator or null if none is used</returns>
-        public override IChecksumCalculator? PauseCalculateChecksum()
-        {
-            VerifyHasCurrentPointer();
-            return Reader.PauseCalculateChecksum();
-        }
-
-        /// <summary>
-        /// Ends calculating the checksum and return the value
-        /// </summary>
-        /// <typeparam name="T">The type of checksum value</typeparam>
-        /// <param name="value">The default value to return if no value exists</param>
-        /// <returns>The checksum value</returns>
-        public override T EndCalculateChecksum<T>(T value)
-        {
-            VerifyHasCurrentPointer();
-            return Reader.EndCalculateChecksum<T>();
         }
 
         #endregion
