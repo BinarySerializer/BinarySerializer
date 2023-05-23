@@ -4,21 +4,12 @@
     {
         public DataLengthProcessor()
         {
-            Flags |= BinaryProcessorFlags.Callbacks;
+            Flags |= BinaryProcessorFlags.ProcessBytes;
         }
 
-        private Pointer _startPointer;
-
-        public override void BeginProcessing(SerializerObject s)
+        public override void ProcessBytes(byte[] buffer, int offset, int count)
         {
-            _startPointer = s.CurrentPointer;
-            base.BeginProcessing(s);
-        }
-
-        public override void EndProcessing(SerializerObject s)
-        {
-            CalculatedValue = s.CurrentPointer - _startPointer;
-            base.EndProcessing(s);
+            CalculatedValue += count;
         }
     }
 }
