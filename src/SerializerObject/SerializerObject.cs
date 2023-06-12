@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -94,6 +95,11 @@ namespace BinarySerializer
         /// Default values for some serializer functions
         /// </summary>
         public virtual SerializerDefaults? Defaults { get; set; }
+
+        /// <summary>
+        /// Indicates if the serialization names are being used by this serializer object
+        /// </summary>
+        public abstract bool UsesSerializeNames { get; }
 
         public virtual bool FullSerialize => true;
 
@@ -322,6 +328,42 @@ namespace BinarySerializer
         /// <returns>The serialized object</returns>
         public abstract T SerializeInto<T>(T? obj, SerializeInto<T> serializeFunc, string? name = null)
             where T : new();
+
+        #endregion
+
+        #region Array Helpers
+
+        /// <summary>
+        /// Initializes an array with a specific size. This is similar to <see cref="SerializeArraySize{T,U}"/>, except
+        /// the size is now determines by the <see cref="length"/> parameter instead.
+        /// </summary>
+        /// <typeparam name="T">The item type</typeparam>
+        /// <param name="obj">The array</param>
+        /// <param name="length">The array length</param>
+        /// <returns>The initialized array</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T?[] InitializeArray<T>(T?[]? obj, long length)
+        {
+            return obj ?? new T?[length];
+        }
+
+        /// <summary>
+        /// Performs a serialization action on every item in the array
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="itemAction"></param>
+        /// <param name="name"></param>
+        public void DoArray<T>(T?[] obj, DoArrayAction<T> itemAction, string? name = null)
+        {
+            if (obj == null) 
+                throw new ArgumentNullException(nameof(obj));
+            if (itemAction == null) 
+                throw new ArgumentNullException(nameof(itemAction));
+
+            for (int i = 0; i < obj.Length; i++)
+                obj[i] = itemAction(obj[i], name: UsesSerializeNames ? $"{name}[{i}]" : null);
+        }
 
         #endregion
 

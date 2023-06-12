@@ -64,6 +64,8 @@ namespace BinarySerializer
         /// </summary>
         public override long CurrentFileOffset => CurrentFilePosition ?? 0;
 
+        public override bool UsesSerializeNames => false;
+
         #endregion
 
         #region Logging

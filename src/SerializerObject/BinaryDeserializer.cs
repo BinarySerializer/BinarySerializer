@@ -53,6 +53,8 @@ namespace BinarySerializer
         /// </summary>
         public override long CurrentFileOffset => Reader?.BaseStream.Position ?? throw new SerializerMissingCurrentPointerException();
 
+        public override bool UsesSerializeNames => IsSerializerLoggerEnabled;
+
         #endregion
 
         #region Logging
