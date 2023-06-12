@@ -563,6 +563,26 @@ namespace BinarySerializer
             return t;
         }
 
+        public override string SerializeLengthPrefixedString<T>(string? obj, Encoding? encoding = null, string? name = null)
+        {
+            VerifyHasCurrentPointer();
+
+            string? lengthLogString = LogPrefix;
+            string lengthName = $"{name ?? DefaultName}.Length";
+
+            long start = Reader.BaseStream.Position;
+
+            long length = ReadInteger<T>(lengthName);
+
+            if (CurrentFile.ShouldUpdateReadMap)
+                CurrentFile.UpdateReadMap(start, Reader.BaseStream.Position - start);
+
+            if (IsSerializerLoggerEnabled)
+                Context.SerializerLogger.Log($"{lengthLogString}({typeof(T).Name}) {lengthName}: {length}");
+
+            return SerializeString(obj, length: length, encoding: encoding, name: name);
+        }
+
         public override T SerializeInto<T>(T? obj, SerializeInto<T> serializeFunc, string? name = null) 
             where T : default
         {
@@ -852,6 +872,34 @@ namespace BinarySerializer
             for (int i = 0; i < count; i++)
                 // Read the value
                 buffer[i] = SerializeString(buffer[i], length, encoding, name: IsSerializerLoggerEnabled ? $"{name ?? DefaultName}[{i}]" : name);
+
+            return buffer!;
+        }
+
+        public override string[] SerializeLengthPrefixedStringArray<T>(string?[]? obj, long count, Encoding? encoding = null,
+            string? name = null)
+        {
+            if (IsSerializerLoggerEnabled)
+            {
+                string? logString = LogPrefix;
+                Context.SerializerLogger.Log($"{logString}(String[{count}]) {name ?? DefaultName}");
+            }
+            string?[] buffer;
+            if (obj != null)
+            {
+                buffer = obj;
+
+                if (buffer.Length != count)
+                    Array.Resize(ref buffer, (int)count);
+            }
+            else
+            {
+                buffer = new string?[(int)count];
+            }
+
+            for (int i = 0; i < count; i++)
+                // Read the value
+                buffer[i] = SerializeLengthPrefixedString<T>(buffer[i], encoding, name: IsSerializerLoggerEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer!;
         }

@@ -349,6 +349,12 @@ namespace BinarySerializer
             return obj;
         }
 
+        public override string SerializeLengthPrefixedString<T>(string? obj, Encoding? encoding = null, string? name = null)
+        {
+            ReadType(typeof(T));
+            return SerializeString(obj, encoding: encoding, name: name);
+        }
+
         public override T SerializeInto<T>(T? obj, SerializeInto<T> serializeFunc, string? name = null) where T : default
         {
             obj ??= new T();
@@ -466,6 +472,17 @@ namespace BinarySerializer
 
             for (int i = 0; i < count; i++)
                 buffer[i] = SerializeString(buffer[i], length, encoding);
+
+            return buffer!;
+        }
+
+        public override string[] SerializeLengthPrefixedStringArray<T>(string?[]? obj, long count, Encoding? encoding = null,
+            string? name = null)
+        {
+            string?[] buffer = obj ?? new string?[count];
+
+            for (int i = 0; i < count; i++)
+                buffer[i] = SerializeLengthPrefixedString<T>(buffer[i], encoding);
 
             return buffer!;
         }

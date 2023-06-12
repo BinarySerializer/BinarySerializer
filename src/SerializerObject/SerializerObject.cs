@@ -305,8 +305,11 @@ namespace BinarySerializer
             bool allowInvalid = false, 
             long? nullValue = null, 
             string? name = null);
-        
+
         public abstract string SerializeString(string? obj, long? length = null, Encoding? encoding = null, string? name = null);
+        
+        public abstract string SerializeLengthPrefixedString<T>(string? obj, Encoding? encoding = null, string? name = null)
+            where T : struct;
 
         /// <summary>
         /// Serializes into an data type which is not serializable. This is useful for data types
@@ -363,6 +366,13 @@ namespace BinarySerializer
             long? length = null,
             Encoding? encoding = null,
             string? name = null);
+
+        public abstract string[] SerializeLengthPrefixedStringArray<T>(
+            string?[]? obj, 
+            long count,
+            Encoding? encoding = null, 
+            string? name = null) 
+            where T : struct;
 
         public abstract T[] SerializeIntoArray<T>(T?[]? obj, long count, SerializeInto<T> serializeFunc, string? name = null)
             where T : new();

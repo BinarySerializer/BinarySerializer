@@ -465,6 +465,29 @@ namespace BinarySerializer
             return obj;
         }
 
+        public override string SerializeLengthPrefixedString<T>(string? obj, Encoding? encoding = null, string? name = null)
+        {
+            VerifyHasCurrentPointer();
+
+            obj ??= String.Empty;
+
+            encoding ??= Defaults?.StringEncoding ?? Context.DefaultEncoding;
+            int length = encoding.GetByteCount(obj);
+            string lengthName = $"{name ?? DefaultName}.Length";
+
+            if (IsSerializerLoggerEnabled)
+                Context.SerializerLogger.Log($"{LogPrefix}(String) {lengthName}: {length}");
+
+            WriteInteger<T>(length, lengthName);
+
+            if (IsSerializerLoggerEnabled)
+                Context.SerializerLogger.Log($"{LogPrefix}(String) {name ?? DefaultName}: {obj}");
+
+            Writer.WriteString(obj, length, encoding);
+
+            return obj;
+        }
+
         public override T SerializeInto<T>(T? obj, SerializeInto<T> serializeFunc, string? name = null) 
             where T : default
         {
@@ -668,6 +691,23 @@ namespace BinarySerializer
                 buffer[i] = SerializeString(
                     obj: buffer[i], 
                     length, encoding, 
+                    name: IsSerializerLoggerEnabled ? $"{name ?? DefaultName}[{i}]" : name);
+
+            return buffer!;
+        }
+
+        public override string[] SerializeLengthPrefixedStringArray<T>(string?[]? obj, long count, Encoding? encoding = null,
+            string? name = null)
+        {
+            string?[] buffer = obj ?? new string?[count];
+            count = buffer.Length;
+
+            if (IsSerializerLoggerEnabled)
+                Context.SerializerLogger.Log(LogPrefix + "(String[" + count + "]) " + (name ?? DefaultName));
+
+            for (int i = 0; i < count; i++)
+                buffer[i] = SerializeLengthPrefixedString<T>(
+                    obj: buffer[i],
                     name: IsSerializerLoggerEnabled ? $"{name ?? DefaultName}[{i}]" : name);
 
             return buffer!;
