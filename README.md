@@ -173,6 +173,11 @@ In some cases the length of the array is not known until a terminator value is f
 ```cs
 Values = s.SerializeArrayUntil<short>(Values, x => x == -1, () => -1, name: nameof(Values));
 ```
+If the array is nested into multiple arrays a combination of `InitializeArray` and `DoArray` can be used.
+```cs
+NestedArray = s.InitializeArray(NestedArray, 32);
+s.DoArray(NestedArray, (x, name) => s.SerializeObjectArray<DDS>(x, 5, name: name), name: nameof(NestedArray));
+```
 
 ### Pointers
 A `Pointer` is a special type of object which holds an address value along with the BinaryFile it points to. They are usually created through serialization but can also be manually created.
