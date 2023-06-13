@@ -228,6 +228,42 @@ namespace BinarySerializer
             return ptrs!;
         }
 
+        // Into
+        public static Pointer<T> ResolveInto<T>(this Pointer<T> ptr, SerializerObject s, SerializeInto<T> serializeFunc)
+            where T : new()
+        {
+            if (ptr == null)
+                throw new ArgumentNullException(nameof(ptr));
+            if (s == null)
+                throw new ArgumentNullException(nameof(s));
+            if (serializeFunc == null) 
+                throw new ArgumentNullException(nameof(serializeFunc));
+
+            return ptr.ResolveValue(s, PointerFunctions.SerializeInto<T>(serializeFunc));
+        }
+        public static Pointer<T>[] ResolveInto<T>(this Pointer<T>?[] ptrs, SerializerObject s, SerializeInto<T> serializeFunc)
+            where T : new()
+        {
+            if (ptrs == null)
+                throw new ArgumentNullException(nameof(ptrs));
+            if (s == null)
+                throw new ArgumentNullException(nameof(s));
+            if (serializeFunc == null)
+                throw new ArgumentNullException(nameof(serializeFunc));
+
+            for (int i = 0; i < ptrs.Length; i++)
+            {
+                Pointer<T>? ptr = ptrs[i];
+
+                if (ptr == null)
+                    ptrs[i] = new Pointer<T>();
+                else
+                    ptr.ResolveInto(s, serializeFunc);
+            }
+
+            return ptrs!;
+        }
+
         #endregion
 
         #region Array Serialization
@@ -370,6 +406,41 @@ namespace BinarySerializer
                 conditionCheckFunc: conditionCheckFunc,
                 getLastObjFunc: getLastObjFunc,
                 onPreSerialize: onPreSerialize));
+        }
+
+        public static Pointer<T[]> ResolveIntoArray<T>(this Pointer<T[]> ptr, SerializerObject s, long count, SerializeInto<T> serializeFunc)
+            where T : new()
+        {
+            if (ptr == null)
+                throw new ArgumentNullException(nameof(ptr));
+            if (s == null)
+                throw new ArgumentNullException(nameof(s));
+            if (serializeFunc == null)
+                throw new ArgumentNullException(nameof(serializeFunc));
+
+            return ptr.ResolveValue(s, PointerFunctions.SerializeIntoArray<T>(count, serializeFunc));
+        }
+        public static Pointer<T[]>[] ResolveIntoArray<T>(this Pointer<T[]>?[] ptrs, SerializerObject s, long count, SerializeInto<T> serializeFunc)
+            where T : new()
+        {
+            if (ptrs == null)
+                throw new ArgumentNullException(nameof(ptrs));
+            if (s == null)
+                throw new ArgumentNullException(nameof(s));
+            if (serializeFunc == null)
+                throw new ArgumentNullException(nameof(serializeFunc));
+
+            for (int i = 0; i < ptrs.Length; i++)
+            {
+                Pointer<T[]>? ptr = ptrs[i];
+
+                if (ptr == null)
+                    ptrs[i] = new Pointer<T[]>();
+                else
+                    ptr.ResolveIntoArray(s, count, serializeFunc);
+            }
+
+            return ptrs!;
         }
 
         #endregion

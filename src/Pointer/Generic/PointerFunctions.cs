@@ -61,6 +61,12 @@ namespace BinarySerializer
         public static SerializeFunction<string> SerializeString(long? length = null, Encoding? encoding = null) =>
             (s, value, name) => s.SerializeString(value, length: length, encoding: encoding, name: name);
 
+        public static SerializeFunction<T> SerializeInto<T>(SerializeInto<T> serializeFunc)
+            where T : new()
+        {
+            return (s, value, name) => s.SerializeInto<T>(value, serializeFunc, name: name);
+        }
+
         #endregion
 
         #region Array Serialization
@@ -140,6 +146,12 @@ namespace BinarySerializer
                 getLastObjFunc: getLastObjFunc,
                 onPreSerialize: onPreSerialize,
                 name: name);
+        }
+
+        public static SerializeFunction<T[]> SerializeIntoArray<T>(long count, SerializeInto<T> serializeFunc)
+            where T : new()
+        {
+            return (s, value, name) => s.SerializeIntoArray<T>(value, count, serializeFunc, name: name);
         }
 
         #endregion
