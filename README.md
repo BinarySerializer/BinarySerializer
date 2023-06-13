@@ -133,6 +133,30 @@ When serializing an object there might be properties you want to set before seri
 DDSData = s.SerializeObject<DDS>(DDSData, onPreSerialize: x => x.Pre_SkipHeader = true, name: nameof(DDSData));
 ```
 
+### Structs and non-serializable classes
+In some cases it is more convenient to serialize data as C# structs instead. For this `SerializeInto` can be used.
+```cs
+Tile = s.SerializeInto<MapTile>(Tile, MapTile.SerializeInto_Regular, name: nameof(Tile));
+```
+A func is then passed in which handles the serialization. In the example above it has been implemented like this:
+```cs
+public static SerializeInto<MapTile> SerializeInto_Regular = (s, x) =>
+{
+    s.DoBits<ushort>(b =>
+    {
+        int tileIndex = b.SerializeBits<int>(x.TileIndex, 10, name: nameof(TileIndex));
+        bool flipX = b.SerializeBits<bool>(x.FlipX, 1, name: nameof(FlipX));
+        bool flipY = b.SerializeBits<bool>(x.FlipY, 1, name: nameof(FlipY));
+        byte paletteIndex = b.SerializeBits<byte>(x.PaletteIndex, 4, name: nameof(PaletteIndex));
+
+        x = new MapTile(tileIndex, flipX, flipY, paletteIndex);
+    });
+
+    return x;
+};
+```
+`SerializeInto` can also be used on normal classes which do not inherit from `BinarySerializable`, such as if they're from a referenced library.
+
 ### Strings
 Strings are special cases as their lengths can vary. Usually a string either has a pre-defined length or is null terminated. If a string is serialized as a value using `Serialize<string>` then it will be treated as null-terminated. In order to parse a string with a pre-defined length, and also be able to specify an encoding, then `SerializeString` should be used.
 ```cs
