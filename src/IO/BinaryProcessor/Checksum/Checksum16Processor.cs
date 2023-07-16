@@ -16,7 +16,7 @@
 
         public override long CalculatedValue
         {
-            get => InvertBits ? ~_checksumValue : _checksumValue;
+            get => (ushort)(InvertBits ? ~_checksumValue : _checksumValue);
             set => _checksumValue = (ushort)(InvertBits ? ~value : value);
         }
 
