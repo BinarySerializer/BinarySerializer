@@ -33,6 +33,7 @@
             Value = s.Serialize<short>(Value, name: nameof(Value));
         }
 
-        public string ShortLog => AsFloat.ToString();
+        public string ShortLog => ToString();
+        public override string ToString() => AsFloat.ToString();
     }
 }
