@@ -11,7 +11,8 @@ namespace BinarySerializer
         public static Pointer<T>[] ResolveValue<T>(
             this Pointer<T>?[] ptrs,
             SerializerObject s,
-            SerializeFunction<T> func)
+            SerializeFunction<T> func, 
+            IStreamEncoder? encoder = null)
         {
             if (ptrs == null)
                 throw new ArgumentNullException(nameof(ptrs));
@@ -23,7 +24,7 @@ namespace BinarySerializer
                 if (ptr == null)
                     ptrs[i] = new Pointer<T>();
                 else
-                    ptr.ResolveValue(s, func);
+                    ptr.ResolveValue(s, func, encoder);
             }
 
             return ptrs!;
@@ -31,7 +32,8 @@ namespace BinarySerializer
         public static Pointer<T>[] ResolveValue<T>(
             this Pointer<T>?[] ptrs,
             SerializerObject s,
-            Func<int, SerializeFunction<T>> func)
+            Func<int, SerializeFunction<T>> func,
+            IStreamEncoder? encoder = null)
         {
             if (ptrs == null)
                 throw new ArgumentNullException(nameof(ptrs));
@@ -43,7 +45,7 @@ namespace BinarySerializer
                 if (ptr == null)
                     ptrs[i] = new Pointer<T>();
                 else
-                    ptr.ResolveValue(s, func(i));
+                    ptr.ResolveValue(s, func(i), encoder);
             }
 
             return ptrs!;
@@ -54,7 +56,7 @@ namespace BinarySerializer
         #region Serialization
 
         // Value
-        public static Pointer<T> Resolve<T>(this Pointer<T> ptr, SerializerObject s)
+        public static Pointer<T> Resolve<T>(this Pointer<T> ptr, SerializerObject s, IStreamEncoder? encoder = null)
             where T : struct
         {
             if (ptr == null)
@@ -62,9 +64,9 @@ namespace BinarySerializer
             if (s == null)
                 throw new ArgumentNullException(nameof(s));
 
-            return ptr.ResolveValue(s, PointerFunctions.Serialize<T>());
+            return ptr.ResolveValue(s, PointerFunctions.Serialize<T>(), encoder);
         }
-        public static Pointer<T>[] Resolve<T>(this Pointer<T>?[] ptrs, SerializerObject s)
+        public static Pointer<T>[] Resolve<T>(this Pointer<T>?[] ptrs, SerializerObject s, IStreamEncoder? encoder = null)
             where T : struct
         {
             if (ptrs == null)
@@ -79,14 +81,14 @@ namespace BinarySerializer
                 if (ptr == null)
                     ptrs[i] = new Pointer<T>();
                 else
-                    ptr.Resolve(s);
+                    ptr.Resolve(s, encoder);
             }
 
             return ptrs!;
         }
 
         // Nullable value
-        public static Pointer<T?> ResolveNullable<T>(this Pointer<T?> ptr, SerializerObject s)
+        public static Pointer<T?> ResolveNullable<T>(this Pointer<T?> ptr, SerializerObject s, IStreamEncoder? encoder = null)
             where T : struct
         {
             if (ptr == null)
@@ -94,9 +96,9 @@ namespace BinarySerializer
             if (s == null)
                 throw new ArgumentNullException(nameof(s));
 
-            return ptr.ResolveValue(s, PointerFunctions.SerializeNullable<T>());
+            return ptr.ResolveValue(s, PointerFunctions.SerializeNullable<T>(), encoder);
         }
-        public static Pointer<T?>[] ResolveNullable<T>(this Pointer<T?>?[] ptrs, SerializerObject s)
+        public static Pointer<T?>[] ResolveNullable<T>(this Pointer<T?>?[] ptrs, SerializerObject s, IStreamEncoder? encoder = null)
             where T : struct
         {
             if (ptrs == null)
@@ -111,14 +113,14 @@ namespace BinarySerializer
                 if (ptr == null)
                     ptrs[i] = new Pointer<T?>();
                 else
-                    ptr.ResolveNullable(s);
+                    ptr.ResolveNullable(s, encoder);
             }
 
             return ptrs!;
         }
 
         // Object
-        public static Pointer<T> ResolveObject<T>(this Pointer<T> ptr, SerializerObject s, Action<T>? onPreSerialize = null)
+        public static Pointer<T> ResolveObject<T>(this Pointer<T> ptr, SerializerObject s, Action<T>? onPreSerialize = null, IStreamEncoder? encoder = null)
             where T : BinarySerializable, new()
         {
             if (ptr == null)
@@ -126,9 +128,9 @@ namespace BinarySerializer
             if (s == null)
                 throw new ArgumentNullException(nameof(s));
 
-            return ptr.ResolveValue(s, PointerFunctions.SerializeObject<T>(onPreSerialize: onPreSerialize));
+            return ptr.ResolveValue(s, PointerFunctions.SerializeObject<T>(onPreSerialize: onPreSerialize), encoder);
         }
-        public static Pointer<T>[] ResolveObject<T>(this Pointer<T>?[] ptrs, SerializerObject s, Action<T, int>? onPreSerialize = null)
+        public static Pointer<T>[] ResolveObject<T>(this Pointer<T>?[] ptrs, SerializerObject s, Action<T, int>? onPreSerialize = null, IStreamEncoder? encoder = null)
             where T : BinarySerializable, new()
         {
             if (ptrs == null)
@@ -144,7 +146,7 @@ namespace BinarySerializer
                     ptrs[i] = new Pointer<T>();
                 else
                     // ReSharper disable once AccessToModifiedClosure
-                    ptr.ResolveObject(s, onPreSerialize: onPreSerialize != null ? x => onPreSerialize(x, i) : null);
+                    ptr.ResolveObject(s, onPreSerialize: onPreSerialize != null ? x => onPreSerialize(x, i) : null, encoder);
             }
 
             return ptrs!;
@@ -157,7 +159,8 @@ namespace BinarySerializer
             PointerSize size = PointerSize.Pointer32,
             Pointer? anchor = null,
             bool allowInvalid = false,
-            long? nullValue = null)
+            long? nullValue = null, 
+            IStreamEncoder? encoder = null)
         {
             if (ptr == null)
                 throw new ArgumentNullException(nameof(ptr));
@@ -168,7 +171,7 @@ namespace BinarySerializer
                 size: size,
                 anchor: anchor,
                 allowInvalid: allowInvalid,
-                nullValue: nullValue));
+                nullValue: nullValue), encoder);
         }
         public static Pointer<Pointer<T>> ResolvePointer<T>(
             this Pointer<Pointer<T>> ptr,
@@ -176,7 +179,8 @@ namespace BinarySerializer
             PointerSize size = PointerSize.Pointer32,
             Pointer? anchor = null,
             bool allowInvalid = false,
-            long? nullValue = null)
+            long? nullValue = null, 
+            IStreamEncoder? encoder = null)
         {
             if (ptr == null)
                 throw new ArgumentNullException(nameof(ptr));
@@ -187,7 +191,7 @@ namespace BinarySerializer
                 size: size,
                 anchor: anchor,
                 allowInvalid: allowInvalid,
-                nullValue: nullValue));
+                nullValue: nullValue), encoder);
         }
 
         // String
@@ -195,20 +199,22 @@ namespace BinarySerializer
             this Pointer<string> ptr,
             SerializerObject s,
             long? length = null,
-            Encoding? encoding = null)
+            Encoding? encoding = null, 
+            IStreamEncoder? encoder = null)
         {
             if (ptr == null)
                 throw new ArgumentNullException(nameof(ptr));
             if (s == null)
                 throw new ArgumentNullException(nameof(s));
 
-            return ptr.ResolveValue(s, PointerFunctions.SerializeString(length: length, encoding: encoding));
+            return ptr.ResolveValue(s, PointerFunctions.SerializeString(length: length, encoding: encoding), encoder);
         }
         public static Pointer<string>[] ResolveString(
             this Pointer<string>?[] ptrs,
             SerializerObject s,
             long? length = null,
-            Encoding? encoding = null)
+            Encoding? encoding = null, 
+            IStreamEncoder? encoder = null)
         {
             if (ptrs == null)
                 throw new ArgumentNullException(nameof(ptrs));
@@ -222,14 +228,14 @@ namespace BinarySerializer
                 if (ptr == null)
                     ptrs[i] = new Pointer<string>();
                 else
-                    ptr.ResolveString(s, length: length, encoding: encoding);
+                    ptr.ResolveString(s, length: length, encoding: encoding, encoder);
             }
 
             return ptrs!;
         }
 
         // Into
-        public static Pointer<T> ResolveInto<T>(this Pointer<T> ptr, SerializerObject s, SerializeInto<T> serializeFunc)
+        public static Pointer<T> ResolveInto<T>(this Pointer<T> ptr, SerializerObject s, SerializeInto<T> serializeFunc, IStreamEncoder? encoder = null)
             where T : new()
         {
             if (ptr == null)
@@ -239,9 +245,9 @@ namespace BinarySerializer
             if (serializeFunc == null) 
                 throw new ArgumentNullException(nameof(serializeFunc));
 
-            return ptr.ResolveValue(s, PointerFunctions.SerializeInto<T>(serializeFunc));
+            return ptr.ResolveValue(s, PointerFunctions.SerializeInto<T>(serializeFunc), encoder);
         }
-        public static Pointer<T>[] ResolveInto<T>(this Pointer<T>?[] ptrs, SerializerObject s, SerializeInto<T> serializeFunc)
+        public static Pointer<T>[] ResolveInto<T>(this Pointer<T>?[] ptrs, SerializerObject s, SerializeInto<T> serializeFunc, IStreamEncoder? encoder = null)
             where T : new()
         {
             if (ptrs == null)
@@ -258,7 +264,7 @@ namespace BinarySerializer
                 if (ptr == null)
                     ptrs[i] = new Pointer<T>();
                 else
-                    ptr.ResolveInto(s, serializeFunc);
+                    ptr.ResolveInto(s, serializeFunc, encoder);
             }
 
             return ptrs!;
@@ -268,7 +274,7 @@ namespace BinarySerializer
 
         #region Array Serialization
 
-        public static Pointer<T[]> ResolveArray<T>(this Pointer<T[]> ptr, SerializerObject s, long count)
+        public static Pointer<T[]> ResolveArray<T>(this Pointer<T[]> ptr, SerializerObject s, long count, IStreamEncoder? encoder = null)
             where T : struct
         {
             if (ptr == null)
@@ -276,9 +282,9 @@ namespace BinarySerializer
             if (s == null)
                 throw new ArgumentNullException(nameof(s));
 
-            return ptr.ResolveValue(s, PointerFunctions.SerializeArray<T>(count));
+            return ptr.ResolveValue(s, PointerFunctions.SerializeArray<T>(count), encoder);
         }
-        public static Pointer<T[]>[] ResolveArray<T>(this Pointer<T[]>?[] ptrs, SerializerObject s, long count)
+        public static Pointer<T[]>[] ResolveArray<T>(this Pointer<T[]>?[] ptrs, SerializerObject s, long count, IStreamEncoder? encoder = null)
             where T : struct
         {
             if (ptrs == null)
@@ -293,13 +299,13 @@ namespace BinarySerializer
                 if (ptr == null)
                     ptrs[i] = new Pointer<T[]>();
                 else
-                    ptr.ResolveArray(s, count);
+                    ptr.ResolveArray(s, count, encoder);
             }
 
             return ptrs!;
         }
 
-        public static Pointer<T?[]> ResolveNullableArray<T>(this Pointer<T?[]> ptr, SerializerObject s, long count)
+        public static Pointer<T?[]> ResolveNullableArray<T>(this Pointer<T?[]> ptr, SerializerObject s, long count, IStreamEncoder? encoder = null)
             where T : struct
         {
             if (ptr == null)
@@ -307,9 +313,9 @@ namespace BinarySerializer
             if (s == null)
                 throw new ArgumentNullException(nameof(s));
 
-            return ptr.ResolveValue(s, PointerFunctions.SerializeNullableArray<T>(count));
+            return ptr.ResolveValue(s, PointerFunctions.SerializeNullableArray<T>(count), encoder);
         }
-        public static Pointer<T?[]>[] ResolveNullableArray<T>(this Pointer<T?[]>?[] ptrs, SerializerObject s, long count)
+        public static Pointer<T?[]>[] ResolveNullableArray<T>(this Pointer<T?[]>?[] ptrs, SerializerObject s, long count, IStreamEncoder? encoder = null)
             where T : struct
         {
             if (ptrs == null)
@@ -324,7 +330,7 @@ namespace BinarySerializer
                 if (ptr == null)
                     ptrs[i] = new Pointer<T?[]>();
                 else
-                    ptr.ResolveNullableArray(s, count);
+                    ptr.ResolveNullableArray(s, count, encoder);
             }
 
             return ptrs!;
@@ -334,7 +340,8 @@ namespace BinarySerializer
             this Pointer<T[]> ptr,
             SerializerObject s,
             long count,
-            Action<T, int>? onPreSerialize = null)
+            Action<T, int>? onPreSerialize = null, 
+            IStreamEncoder? encoder = null)
             where T : BinarySerializable, new()
         {
             if (ptr == null)
@@ -342,7 +349,7 @@ namespace BinarySerializer
             if (s == null)
                 throw new ArgumentNullException(nameof(s));
 
-            return ptr.ResolveValue(s, PointerFunctions.SerializeObjectArray<T>(count, onPreSerialize: onPreSerialize));
+            return ptr.ResolveValue(s, PointerFunctions.SerializeObjectArray<T>(count, onPreSerialize: onPreSerialize), encoder);
         }
 
         public static Pointer<Pointer?[]> ResolvePointerArray(
@@ -352,7 +359,8 @@ namespace BinarySerializer
             PointerSize size = PointerSize.Pointer32,
             Pointer? anchor = null,
             bool allowInvalid = false,
-            long? nullValue = null)
+            long? nullValue = null, 
+            IStreamEncoder? encoder = null)
         {
             if (ptr == null)
                 throw new ArgumentNullException(nameof(ptr));
@@ -364,7 +372,7 @@ namespace BinarySerializer
                 size: size,
                 anchor: anchor,
                 allowInvalid: allowInvalid,
-                nullValue: nullValue));
+                nullValue: nullValue), encoder);
         }
 
         public static Pointer<Pointer<T>[]> ResolvePointerArray<T>(
@@ -374,7 +382,8 @@ namespace BinarySerializer
             PointerSize size = PointerSize.Pointer32,
             Pointer? anchor = null,
             bool allowInvalid = false,
-            long? nullValue = null)
+            long? nullValue = null, 
+            IStreamEncoder? encoder = null)
         {
             if (ptr == null)
                 throw new ArgumentNullException(nameof(ptr));
@@ -386,7 +395,7 @@ namespace BinarySerializer
                 size: size,
                 anchor: anchor,
                 allowInvalid: allowInvalid,
-                nullValue: nullValue));
+                nullValue: nullValue), encoder);
         }
 
         public static Pointer<T[]> ResolveObjectArrayUntil<T>(
@@ -394,7 +403,8 @@ namespace BinarySerializer
             SerializerObject s,
             Func<T, bool> conditionCheckFunc,
             Func<T>? getLastObjFunc = null,
-            Action<T, int>? onPreSerialize = null)
+            Action<T, int>? onPreSerialize = null, 
+            IStreamEncoder? encoder = null)
             where T : BinarySerializable, new()
         {
             if (ptr == null)
@@ -405,10 +415,10 @@ namespace BinarySerializer
             return ptr.ResolveValue(s, PointerFunctions.SerializeObjectArrayUntil<T>(
                 conditionCheckFunc: conditionCheckFunc,
                 getLastObjFunc: getLastObjFunc,
-                onPreSerialize: onPreSerialize));
+                onPreSerialize: onPreSerialize), encoder);
         }
 
-        public static Pointer<T[]> ResolveIntoArray<T>(this Pointer<T[]> ptr, SerializerObject s, long count, SerializeInto<T> serializeFunc)
+        public static Pointer<T[]> ResolveIntoArray<T>(this Pointer<T[]> ptr, SerializerObject s, long count, SerializeInto<T> serializeFunc, IStreamEncoder? encoder = null)
             where T : new()
         {
             if (ptr == null)
@@ -418,9 +428,9 @@ namespace BinarySerializer
             if (serializeFunc == null)
                 throw new ArgumentNullException(nameof(serializeFunc));
 
-            return ptr.ResolveValue(s, PointerFunctions.SerializeIntoArray<T>(count, serializeFunc));
+            return ptr.ResolveValue(s, PointerFunctions.SerializeIntoArray<T>(count, serializeFunc), encoder);
         }
-        public static Pointer<T[]>[] ResolveIntoArray<T>(this Pointer<T[]>?[] ptrs, SerializerObject s, long count, SerializeInto<T> serializeFunc)
+        public static Pointer<T[]>[] ResolveIntoArray<T>(this Pointer<T[]>?[] ptrs, SerializerObject s, long count, SerializeInto<T> serializeFunc, IStreamEncoder? encoder = null)
             where T : new()
         {
             if (ptrs == null)
@@ -437,7 +447,7 @@ namespace BinarySerializer
                 if (ptr == null)
                     ptrs[i] = new Pointer<T[]>();
                 else
-                    ptr.ResolveIntoArray(s, count, serializeFunc);
+                    ptr.ResolveIntoArray(s, count, serializeFunc, encoder);
             }
 
             return ptrs!;

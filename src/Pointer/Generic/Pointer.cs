@@ -23,7 +23,7 @@ namespace BinarySerializer
         public T? Value { get; set; }
 
         [MemberNotNull(nameof(Context))]
-        public Pointer<T> ResolveValue(SerializerObject s, SerializeFunction<T> func) 
+        public Pointer<T> ResolveValue(SerializerObject s, SerializeFunction<T> func, IStreamEncoder? encoder = null) 
         {
             if (s == null) 
                 throw new ArgumentNullException(nameof(s));
@@ -35,7 +35,10 @@ namespace BinarySerializer
             if (PointerValue == null) 
                 return this;
 
-            s.DoAt(PointerValue, () => Value = func(s, Value, name: nameof(Value)));
+            if (encoder == null)
+                s.DoAt(PointerValue, () => Value = func(s, Value, name: nameof(Value)));
+            else
+                s.DoAt(PointerValue, () => s.DoEncoded(encoder, () => Value = func(s, Value, name: nameof(Value))));
 
             return this;
         }
