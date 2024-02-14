@@ -110,7 +110,7 @@ namespace BinarySerializer
         /// <summary>
         /// Indicates if objects read from this file should not be cached
         /// </summary>
-        public virtual bool IgnoreCacheOnRead => false;
+        public bool IgnoreCacheOnRead { get; set; }
 
         private PointerSize? _pointerSize;
         public virtual PointerSize PointerSize
