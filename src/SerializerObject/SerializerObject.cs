@@ -101,6 +101,7 @@ namespace BinarySerializer
         /// </summary>
         public abstract bool UsesSerializeNames { get; }
 
+        // TODO: Remove this and replace with a better system for determining if data referenced from pointers should be serialized
         public virtual bool FullSerialize => true;
 
         #endregion
