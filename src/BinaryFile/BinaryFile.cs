@@ -160,7 +160,7 @@ namespace BinarySerializer
                 return GetLocalPointerFile(serializedValue, anchor);
         }
 
-        protected virtual BinaryFile? GetLocalPointerFile(long serializedValue, Pointer? anchor = null)
+        public virtual BinaryFile? GetLocalPointerFile(long serializedValue, Pointer? anchor = null)
         {
             long anchorOffset = anchor?.AbsoluteOffset ?? 0;
 
@@ -194,16 +194,9 @@ namespace BinarySerializer
         public virtual long GetPointerValueToSerialize(Pointer? obj, Pointer? anchor = null, long? nullValue = null) => 
             obj?.SerializedOffset ?? nullValue ?? 0;
 
-        protected virtual BinaryFile? GetMemoryMappedPointerFile(long serializedValue, Pointer? anchor = null)
+        public virtual BinaryFile? GetMemoryMappedPointerFile(long serializedValue, Pointer? anchor = null)
         {
-            // Get all memory mapped files
-            IEnumerable<BinaryFile> files = Context.MemoryMap.Files.Where(x => x.IsMemoryMapped);
-
-            // Sort based on the base address
-            files = files.OrderByDescending(file => file.MemoryMappedPriority);
-
-            // Return the first pointer within the range
-            return files.Select(f => f.GetLocalPointerFile(serializedValue, anchor)).FirstOrDefault(p => p != null);
+            return Context.GetMemoryMappedFileForAddress(serializedValue, anchor);
         }
 
         public virtual bool AllowInvalidPointer(long serializedValue, Pointer? anchor = null) => false;

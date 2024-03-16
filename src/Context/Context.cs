@@ -304,6 +304,19 @@ namespace BinarySerializer
             string path = NormalizePath(relativePath, false);
             return MemoryMap.Files.FirstOrDefault(f => f.FilePath?.ToLower() == path.ToLower() || f.Alias?.ToLower() == relativePath.ToLower());
         }
+        public BinaryFile? GetMemoryMappedFileForAddress(long address, Pointer? anchor = null)
+        {
+            // Get all memory mapped files
+            IEnumerable<BinaryFile> files = MemoryMap.Files.Where(x => x.IsMemoryMapped);
+
+            // Sort based on the priority
+            files = files.OrderByDescending(file => file.MemoryMappedPriority);
+
+            // Return the first successful file
+            return files.
+                Select(f => f.GetLocalPointerFile(address, anchor)).
+                FirstOrDefault(p => p != null);
+        }
 
         public virtual string GetAbsoluteFilePath(string relativePath)
         {
