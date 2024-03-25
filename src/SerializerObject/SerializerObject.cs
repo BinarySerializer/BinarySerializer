@@ -363,7 +363,7 @@ namespace BinarySerializer
                 throw new ArgumentNullException(nameof(itemAction));
 
             for (int i = 0; i < obj.Length; i++)
-                obj[i] = itemAction(obj[i], name: UsesSerializeNames ? $"{name}[{i}]" : null);
+                obj[i] = itemAction(obj[i], i, name: UsesSerializeNames ? $"{name}[{i}]" : null);
         }
 
         #endregion
