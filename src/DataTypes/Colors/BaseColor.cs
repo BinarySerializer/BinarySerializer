@@ -29,14 +29,6 @@ namespace BinarySerializer
 
         #endregion
 
-        #region Public Static Properties
-
-        public static BaseColor Clear => new CustomColor(0, 0, 0, 0);
-        public static BaseColor Black => new CustomColor(0, 0, 0, 1);
-        public static BaseColor White => new CustomColor(1, 1, 1, 1);
-
-        #endregion
-
         #region Equality
 
         public bool Equals(BaseColor other)
