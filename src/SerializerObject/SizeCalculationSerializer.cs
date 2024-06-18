@@ -54,20 +54,20 @@ namespace BinarySerializer
         /// <summary>
         /// The current length of the data being serialized
         /// </summary>
-        public override long CurrentLength => 0;
+        public override long CurrentLength => IsEncoding ? EncodingSerializer.CurrentLength : 0;
 
         [MemberNotNullWhen(true, nameof(CurrentFile))]
-        public override bool HasCurrentPointer => CurrentFile != null;
+        public override bool HasCurrentPointer => IsEncoding ? EncodingSerializer.HasCurrentPointer : CurrentFile != null;
 
         /// <summary>
         /// The current binary file being used by the serializer
         /// </summary>
-        public override BinaryFile CurrentBinaryFile => CurrentFile ?? throw new SerializerMissingCurrentPointerException();
+        public override BinaryFile CurrentBinaryFile => IsEncoding ? EncodingSerializer.CurrentBinaryFile : CurrentFile ?? throw new SerializerMissingCurrentPointerException();
 
         /// <summary>
         /// The current file offset
         /// </summary>
-        public override long CurrentFileOffset => CurrentFilePosition ?? 0;
+        public override long CurrentFileOffset => IsEncoding ? EncodingSerializer.CurrentFileOffset : CurrentFilePosition ?? 0;
 
         public override bool UsesSerializeNames => false;
 
