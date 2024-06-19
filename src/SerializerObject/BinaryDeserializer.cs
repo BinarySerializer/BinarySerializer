@@ -267,12 +267,29 @@ namespace BinarySerializer
         public override void Goto(Pointer? offset)
         {
             if (offset == null)
-                return;
+            {
+                Reader = null;
+                CurrentFile = null;
+            }
+            else
+            {
+                BinaryFile newFile = offset.File;
 
-            if (offset.File != CurrentFile || !HasCurrentPointer)
-                SwitchToFile(offset.File);
+                if (newFile != CurrentFile || !HasCurrentPointer)
+                {
+                    if (!Readers.TryGetValue(newFile, out Reader reader))
+                    {
+                        reader = newFile.CreateReader();
+                        Readers.Add(newFile, reader);
+                        newFile.InitFileReadMap(Readers[newFile].BaseStream.Length);
+                    }
 
-            Reader.BaseStream.Position = offset.FileOffset;
+                    Reader = reader;
+                    CurrentFile = newFile;
+                }
+
+                Reader.BaseStream.Position = offset.FileOffset;
+            }
         }
 
         public override void Align(int alignBytes = 4, Pointer? baseOffset = null, bool? logIfNotNull = null)
@@ -1192,22 +1209,6 @@ namespace BinarySerializer
         {
             if (!HasCurrentPointer)
                 throw new SerializerMissingCurrentPointerException();
-        }
-
-        [MemberNotNull(nameof(CurrentFile), nameof(Reader))]
-        protected void SwitchToFile(BinaryFile newFile)
-        {
-            if (newFile == null) 
-                throw new ArgumentNullException(nameof(newFile));
-
-            if (!Readers.ContainsKey(newFile))
-            {
-                Readers.Add(newFile, newFile.CreateReader());
-                newFile.InitFileReadMap(Readers[newFile].BaseStream.Length);
-            }
-
-            Reader = Readers[newFile];
-            CurrentFile = newFile;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

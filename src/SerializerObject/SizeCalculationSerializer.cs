@@ -270,12 +270,24 @@ namespace BinarySerializer
             }
 
             if (offset == null)
-                return;
+            {
+                CurrentFilePosition = null;
+                CurrentFile = null;
+            }
+            else
+            {
+                BinaryFile newFile = offset.File;
 
-            if (offset.File != CurrentFile || !HasCurrentPointer)
-                SwitchToFile(offset.File);
+                if (newFile != CurrentFile || !HasCurrentPointer)
+                {
+                    if (!FilePositions.ContainsKey(newFile))
+                        FilePositions.Add(newFile, 0);
 
-            CurrentFilePosition = offset.FileOffset;
+                    CurrentFile = newFile;
+                }
+
+                CurrentFilePosition = offset.FileOffset;
+            }
         }
 
         public override void Align(int alignBytes = 4, Pointer? baseOffset = null, bool? logIfNotNull = null)
@@ -782,18 +794,6 @@ namespace BinarySerializer
         {
             if (!HasCurrentPointer)
                 throw new SerializerMissingCurrentPointerException();
-        }
-
-        [MemberNotNull(nameof(CurrentFile))]
-        protected void SwitchToFile(BinaryFile newFile)
-        {
-            if (newFile == null)
-                throw new ArgumentNullException(nameof(newFile));
-
-            if (!FilePositions.ContainsKey(newFile))
-                FilePositions.Add(newFile, 0);
-
-            CurrentFile = newFile;
         }
 
         protected void ReadType(Type type)

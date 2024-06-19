@@ -220,13 +220,29 @@ namespace BinarySerializer
 
         public override void Goto(Pointer? offset)
         {
-            if (offset == null) 
-                return;
+            if (offset == null)
+            {
+                Writer = null;
+                CurrentFile = null;
+            }
+            else
+            {
+                BinaryFile newFile = offset.File;
 
-            if (offset.File != CurrentFile || !HasCurrentPointer)
-                SwitchToFile(offset.File);
+                if (newFile != CurrentFile || !HasCurrentPointer)
+                {
+                    if (!Writers.TryGetValue(newFile, out Writer writer))
+                    {
+                        writer = newFile.CreateWriter();
+                        Writers.Add(newFile, writer);
+                    }
 
-            Writer.BaseStream.Position = offset.FileOffset;
+                    Writer = writer;
+                    CurrentFile = newFile;
+                }
+
+                Writer.BaseStream.Position = offset.FileOffset;
+            }
         }
 
         public override void Align(int alignBytes = 4, Pointer? baseOffset = null, bool? logIfNotNull = null)
@@ -1127,19 +1143,6 @@ namespace BinarySerializer
             {
                 throw new NotSupportedException($"The specified nullable value type {typeof(T)} for {name} can not be read from the reader");
             }
-        }
-
-        [MemberNotNull(nameof(CurrentFile), nameof(Writer))]
-        protected void SwitchToFile(BinaryFile newFile)
-        {
-            if (newFile == null)
-                throw new ArgumentNullException(nameof(newFile));
-
-            if (!Writers.ContainsKey(newFile))
-                Writers.Add(newFile, newFile.CreateWriter());
-
-            Writer = Writers[newFile];
-            CurrentFile = newFile;
         }
 
         #endregion
