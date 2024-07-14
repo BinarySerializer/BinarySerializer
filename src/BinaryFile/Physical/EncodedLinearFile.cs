@@ -15,17 +15,15 @@ namespace BinarySerializer
             : base(context, filePath, endianness, fileLength: fileLength)
         {
             Encoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
-            length = fileLength;
         }
 
         public IStreamEncoder Encoder { get; }
 
-        private long? length;
         public override long Length
         {
             get
             {
-                if (length == null)
+                if (FileLength == null)
                 {
                     // Open the file
                     using Stream s = FileManager.GetFileReadStream(SourcePath);
@@ -36,10 +34,10 @@ namespace BinarySerializer
                     Encoder.DecodeStream(s, decoded);
 
                     // Set the length
-                    length = decoded.Length;
+                    FileLength = decoded.Length;
                 }
 
-                return length.Value;
+                return FileLength.Value;
             }
         }
 
@@ -58,7 +56,7 @@ namespace BinarySerializer
             decoded.Position = 0;
 
             // Set the length
-            length = decoded.Length;
+            FileLength = decoded.Length;
 
             // Return a reader
             return new Reader(decoded, isLittleEndian: Endianness == Endian.Little);

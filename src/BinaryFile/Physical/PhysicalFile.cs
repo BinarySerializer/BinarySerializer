@@ -19,9 +19,11 @@ namespace BinarySerializer
             : base(context, filePath, endianness, baseAddress, startPointer, memoryMappedPriority)
         {
             DestinationPath = context.GetAbsoluteFilePath(filePath);
-            length = fileLength;
+            FileLength = fileLength;
             RecreateOnWrite = true;
         }
+
+        protected long? FileLength { get; set; }
 
         /// <summary>
         /// Indicates if the file should be recreated when writing to it
@@ -43,24 +45,23 @@ namespace BinarySerializer
         /// </summary>
         public bool SourceFileExists => FileManager.FileExists(SourcePath);
 
-        private long? length;
         public override long Length
         {
             get
             {
-                if (length == null)
+                if (FileLength == null)
                 {
                     using Stream s = FileManager.GetFileReadStream(AbsolutePath);
-                    length = s.Length;
+                    FileLength = s.Length;
                 }
 
-                return length.Value;
+                return FileLength.Value;
             }
         }
 
         protected void CreateBackupFile()
         {
-            var backupPath = AbsolutePath + ".BAK";
+            string backupPath = AbsolutePath + ".BAK";
 
             if (Context.CreateBackupOnWrite && !FileManager.FileExists(backupPath) && FileManager.FileExists(AbsolutePath))
             {
@@ -73,7 +74,7 @@ namespace BinarySerializer
         public override Reader CreateReader()
         {
             Stream s = FileManager.GetFileReadStream(SourcePath);
-            length = s.Length;
+            FileLength = s.Length;
             Reader reader = new(s, isLittleEndian: Endianness == Endian.Little);
             Context.SystemLogger?.LogTrace("Created reader for file {0}", FilePath);
             return reader;
@@ -83,7 +84,7 @@ namespace BinarySerializer
         {
             CreateBackupFile();
             Stream s = FileManager.GetFileWriteStream(DestinationPath, RecreateOnWrite);
-            length = s.Length;
+            FileLength = s.Length;
             Writer writer = new(s, isLittleEndian: Endianness == Endian.Little);
             Context.SystemLogger?.LogTrace("Created writer for file {0}", FilePath);
             return writer;
