@@ -514,7 +514,7 @@ namespace BinarySerializer
                 if (!Context.FileExists(key))
                 {
                     var typeStream = new MemoryStream(bytes);
-                    Context.AddFile(new StreamFile(Context, key, typeStream, parentPointer: CurrentPointer));
+                    Context.AddFile(new StreamFile(Context, key, typeStream, parentPointer: HasCurrentPointer ? CurrentPointer : null));
                 }
 
                 Pointer? current = HasCurrentPointer ? CurrentPointer : null;
