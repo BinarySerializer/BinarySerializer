@@ -82,7 +82,7 @@ namespace BinarySerializer
         {
             lock (Context._threadLock)
             {
-                // Create a serialize for calculating the size
+                // Create a serializer for calculating the size
                 using var s = new SizeCalculationSerializer(Context);
 
                 // Go to the offset of the object
