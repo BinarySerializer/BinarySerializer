@@ -345,7 +345,7 @@ namespace BinarySerializer
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T?[] InitializeArray<T>(T?[]? obj, long length)
         {
-            return obj ?? new T?[length];
+            return obj ?? (length == 0 ? Array.Empty<T>() : new T?[length]);
         }
 
         /// <summary>

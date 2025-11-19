@@ -498,7 +498,7 @@ namespace BinarySerializer
             if (IsEncoding)
                 return EncodingSerializer.SerializeArray<T>(obj, count, name);
 
-            T[] buffer = obj ?? new T[count];
+            T[] buffer = InitializeArray(obj, count);
 
             if (typeof(T) == typeof(byte))
             {
@@ -517,7 +517,7 @@ namespace BinarySerializer
             if (IsEncoding)
                 return EncodingSerializer.SerializeNullableArray<T>(obj, count, name);
 
-            T?[] buffer = obj ?? new T?[count];
+            T?[] buffer = InitializeArray(obj, count);
 
             for (int i = 0; i < count; i++)
                 buffer[i] = SerializeNullable<T>(buffer[i]);
@@ -531,7 +531,7 @@ namespace BinarySerializer
             if (IsEncoding)
                 return EncodingSerializer.SerializeObjectArray<T>(obj, count, onPreSerialize, name);
 
-            T?[] buffer = obj ?? new T?[count];
+            T?[] buffer = InitializeArray(obj, count);
 
             for (int i = 0; i < count; i++)
                 // ReSharper disable once AccessToModifiedClosure
@@ -621,7 +621,7 @@ namespace BinarySerializer
             if (IsEncoding)
                 return EncodingSerializer.SerializeIntoArray<T>(obj, count, serializeFunc, name);
 
-            T?[] buffer = obj ?? new T?[count];
+            T?[] buffer = InitializeArray(obj, count);
 
             for (int i = 0; i < count; i++)
                 buffer[i] = SerializeInto<T>(buffer[i], serializeFunc);

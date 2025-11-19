@@ -569,7 +569,7 @@ namespace BinarySerializer
         {
             VerifyHasCurrentPointer();
 
-            T[] buffer = obj ?? new T[count];
+            T[] buffer = InitializeArray(obj, count);
             count = buffer.Length;
 
             if (IsSerializerLoggerEnabled)
@@ -606,7 +606,7 @@ namespace BinarySerializer
         {
             VerifyHasCurrentPointer();
 
-            T?[] buffer = obj ?? new T?[count];
+            T?[] buffer = InitializeArray(obj, count);
             count = buffer.Length;
 
             if (IsSerializerLoggerEnabled)
@@ -621,7 +621,7 @@ namespace BinarySerializer
         public override T[] SerializeObjectArray<T>(T?[]? obj, long count, Action<T, int>? onPreSerialize = null, string? name = null)
             where T : class
         {
-            T?[] buffer = obj ?? new T?[count];
+            T?[] buffer = InitializeArray(obj, count);
             count = buffer.Length;
 
             if (IsSerializerLoggerEnabled)
@@ -734,7 +734,7 @@ namespace BinarySerializer
         public override T[] SerializeIntoArray<T>(T?[]? obj, long count, SerializeInto<T> serializeFunc, string? name = null) 
             where T : default
         {
-            T?[] buffer = obj ?? new T?[count];
+            T?[] buffer = InitializeArray(obj, count);
             count = buffer.Length;
 
             if (IsSerializerLoggerEnabled)

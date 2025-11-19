@@ -667,7 +667,7 @@ namespace BinarySerializer
                 Context.SerializerLogger.Log($"{logString}({typeof(U).Name}) {name}: {size}");
 
             if (obj == null)
-                obj = new T[size];
+                obj = InitializeArray(obj, size);
             else if (obj.Length != size)
                 Array.Resize(ref obj, (int)size);
 
@@ -712,7 +712,7 @@ namespace BinarySerializer
             }
             else
             {
-                buffer = new T[(int)count];
+                buffer = InitializeArray(obj, count);
             }
 
             for (int i = 0; i < count; i++)
@@ -743,7 +743,7 @@ namespace BinarySerializer
             }
             else
             {
-                buffer = new T?[(int)count];
+                buffer = InitializeArray(obj, count);
             }
 
             for (int i = 0; i < count; i++)
@@ -771,7 +771,7 @@ namespace BinarySerializer
             }
             else
             {
-                buffer = new T?[(int)count];
+                buffer = InitializeArray(obj, count);
             }
 
             for (int i = 0; i < count; i++)
@@ -942,7 +942,7 @@ namespace BinarySerializer
             }
             else
             {
-                buffer = new T?[(int)count];
+                buffer = InitializeArray(obj, count);
             }
 
             for (int i = 0; i < count; i++)
