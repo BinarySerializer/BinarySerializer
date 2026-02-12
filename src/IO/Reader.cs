@@ -162,14 +162,19 @@ namespace BinarySerializer
 
         public string ReadNullDelimitedString(Encoding encoding)
         {
+            bool isUnicode = encoding.CodePage == 1200;
+
             List<byte> bytes = new();
             byte b = ReadByte();
 
-            while (b != 0x0)
+            while (b != 0x0 || (isUnicode && bytes.Count % 2 != 0))
             {
                 bytes.Add(b);
                 b = ReadByte();
             }
+
+            if (isUnicode)
+                ReadByte();
 
             if (bytes.Count > 0)
             {
