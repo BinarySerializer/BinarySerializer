@@ -15,14 +15,14 @@ namespace BinarySerializer
             string? name = null) 
         {
             long bitValue = BitHelpers.ExtractBits64(Value, length, Position, sign: sign);
-            T t = (T)LongToObject(bitValue, typeof(T), name: name);
+            T t = LongToValue<T>(bitValue, typeof(T), name: name);
 
             if (SerializerObject.IsSerializerLoggerEnabled && !DisableSerializerLogForObject)
                 Context.SerializerLogger.Log($"{LogPrefix}{Position}_{length} ({typeof(T).Name}) {name ?? DefaultName}: {t}");
 
             Position += length;
 
-            return t;
+            return CastTo<T>.From(t);
         }
 
         public override T? SerializeNullableBits<T>(T? value, int length, string? name = null)
@@ -32,14 +32,14 @@ namespace BinarySerializer
             if (bitValue == (long)(Math.Pow(2, length) - 1))
                 value = null;
             else
-                value = (T)LongToObject(bitValue, typeof(T), name: name);
+                value = LongToValue<T>(bitValue, typeof(T), name: name);
 
             if (SerializerObject.IsSerializerLoggerEnabled && !DisableSerializerLogForObject)
                 Context.SerializerLogger.Log($"{LogPrefix}{Position}_{length} ({typeof(T).Name}?) {name ?? DefaultName}: {value?.ToString() ?? "null"}");
 
             Position += length;
 
-            return value;
+            return CastTo<T>.From(value);
 
         }
 
@@ -84,10 +84,10 @@ namespace BinarySerializer
                         Context.SerializerLogger.Log($"{logString}{pos}_{instance.Size} ({typeof(T)}) {name ?? DefaultName}: {instance.ShortLog ?? "null"}");
                 }
             }
-            return instance;
+            return CastTo<T>.From(instance);
         }
 
-        protected object LongToObject(long input, Type type, string? name = null) 
+        protected T LongToValue<T>(long input, Type type, string? name = null) 
         {
             TypeCode typeCode = Type.GetTypeCode(type);
 
@@ -102,40 +102,40 @@ namespace BinarySerializer
                             Context.SerializerLogger.Log($"{LogPrefix} ({type}): Binary boolean was not correctly formatted ({input})");
                     }
 
-                    return input != 0;
+                    return CastTo<T>.From(input != 0);
 
                 case TypeCode.SByte:
-                    return (sbyte)input;
+                    return CastTo<T>.From((sbyte)input);
 
                 case TypeCode.Byte:
-                    return (byte)input;
+                    return CastTo<T>.From((byte)input);
 
                 case TypeCode.Int16:
-                    return (short)input;
+                    return CastTo<T>.From((short)input);
 
                 case TypeCode.UInt16:
-                    return (ushort)input;
+                    return CastTo<T>.From((ushort)input);
 
                 case TypeCode.Int32:
-                    return (int)input;
+                    return CastTo<T>.From((int)input);
 
                 case TypeCode.UInt32:
-                    return (uint)input;
+                    return CastTo<T>.From((uint)input);
 
                 case TypeCode.Int64:
-                    return (long)input;
+                    return CastTo<T>.From((long)input);
 
                 case TypeCode.UInt64:
-                    return BitConverter.ToUInt64(BitConverter.GetBytes(input), 0);
+                    return CastTo<T>.From(BitConverter.ToUInt64(BitConverter.GetBytes(input), 0));
 
                 case TypeCode.Single:
-                    return BitConverter.ToSingle(BitConverter.GetBytes((int)input), 0);
+                    return CastTo<T>.From(BitConverter.ToSingle(BitConverter.GetBytes((int)input), 0));
 
                 case TypeCode.Double:
-                    return BitConverter.ToDouble(BitConverter.GetBytes(input), 0);
+                    return CastTo<T>.From(BitConverter.ToDouble(BitConverter.GetBytes(input), 0));
 
                 case TypeCode.Object when type == typeof(UInt24):
-                    return new UInt24((uint)input);
+                    return CastTo<T>.From(new UInt24((uint)input));
 
                 case TypeCode.Decimal:
                 case TypeCode.Char:
