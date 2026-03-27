@@ -4,7 +4,7 @@
     {
         public ChecksumCRC32Processor()
         {
-            _checksumValue ^= ~0U;
+            Reset();
         }
 
         private static readonly uint[] Table =
@@ -60,6 +60,11 @@
         {
             get => _checksumValue ^ ~0U;
             set => _checksumValue = (uint)value ^ ~0U;
+        }
+
+        public void Reset()
+        {
+            _checksumValue = 0xFFFFFFFF;
         }
 
         public override void ProcessBytes(byte[] buffer, int offset, int count)
