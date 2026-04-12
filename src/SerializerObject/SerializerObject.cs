@@ -588,6 +588,18 @@ namespace BinarySerializer
             }
         }
 
+        public void SerializeAlignmentPadding(int alignBytes = 4, Pointer? baseOffset = null, bool logIfNotNull = false, string? name = "AlignmentPadding")
+        {
+            long align = (CurrentAbsoluteOffset - (baseOffset?.AbsoluteOffset ?? 0)) % alignBytes;
+
+            // Make sure we need to align
+            if (align == 0)
+                return;
+
+            long count = alignBytes - align;
+            SerializePadding(count, logIfNotNull: logIfNotNull, name: name);
+        }
+
         public virtual void SerializeMagic<T>(T magic, bool throwIfNoMatch = true, string? name = null)
             where T : struct
         {
