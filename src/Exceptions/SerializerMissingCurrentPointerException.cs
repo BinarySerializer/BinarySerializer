@@ -1,6 +1,5 @@
 ﻿#nullable enable
 using System;
-using System.Runtime.Serialization;
 
 [Serializable]
 public class SerializerMissingCurrentPointerException : Exception
@@ -10,5 +9,4 @@ public class SerializerMissingCurrentPointerException : Exception
     { }
     public SerializerMissingCurrentPointerException(string message) : base(message) { }
     public SerializerMissingCurrentPointerException(string message, Exception inner) : base(message, inner) { }
-    protected SerializerMissingCurrentPointerException(SerializationInfo info, StreamingContext context) : base(info, context) { }
 }

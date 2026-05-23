@@ -29,7 +29,11 @@ namespace BinarySerializer
                 throw new ArgumentNullException(nameof(output));
             
             byte[] buffer = new byte[Length];
+#if NET7_0_OR_GREATER
+            input.ReadExactly(buffer, 0, buffer.Length);
+#else
             input.Read(buffer, 0, buffer.Length);
+#endif
 
             if ((BinaryProcessor.Flags & BinaryProcessorFlags.ProcessBytes) != 0)
                 BinaryProcessor.ProcessBytes(buffer, 0, buffer.Length);

@@ -277,7 +277,7 @@ namespace BinarySerializer
 
                 if (newFile != CurrentFile || !HasCurrentPointer)
                 {
-                    if (!Readers.TryGetValue(newFile, out Reader reader))
+                    if (!Readers.TryGetValue(newFile, out Reader? reader))
                     {
                         reader = newFile.CreateReader();
                         Readers.Add(newFile, reader);

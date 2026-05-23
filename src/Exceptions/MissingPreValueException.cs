@@ -1,6 +1,5 @@
 ﻿#nullable enable
 using System;
-using System.Runtime.Serialization;
 
 namespace BinarySerializer
 {
@@ -23,8 +22,6 @@ namespace BinarySerializer
         {
             PreValueName = preValueName;
         }
-        protected MissingPreValueException(SerializationInfo info, StreamingContext context) 
-            : base(info, context) { }
 
         public string? PreValueName { get; }
     }

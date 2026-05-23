@@ -358,7 +358,7 @@ namespace BinarySerializer
         }
 
         public string? GetLabel(long offset) =>
-            Labels != null && Labels.TryGetValue(offset, out string value) ? value : null;
+            Labels != null && Labels.TryGetValue(offset, out string? value) ? value : null;
 
         #endregion
 

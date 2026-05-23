@@ -174,13 +174,15 @@ namespace BinarySerializer
         }
 
         // Other
+#if !NET5_0_OR_GREATER
         public override object? InitializeLifetimeService() => InnerStream.InitializeLifetimeService();
+#endif
         public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => InnerStream.CopyToAsync(destination, bufferSize, cancellationToken);
 
         // Common override methods
         public override bool Equals(object? obj) => InnerStream.Equals(obj);
         public override int GetHashCode() => InnerStream.GetHashCode();
-        public override string ToString() => InnerStream.ToString();
+        public override string? ToString() => InnerStream.ToString();
 
         // Dispose and flush
         public override void Close() => InnerStream.Close();

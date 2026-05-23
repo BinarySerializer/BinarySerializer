@@ -64,7 +64,7 @@ namespace BinarySerializer
         public T GetRequiredSettings<T>()
             where T : class
         {
-            if (!AdditionalSettings.TryGetValue(typeof(T), out object settings))
+            if (!AdditionalSettings.TryGetValue(typeof(T), out object? settings))
                 throw new ContextException($"The requested serializer settings of type {typeof(T)} could not be found");
             
             return (T)settings;
@@ -72,7 +72,7 @@ namespace BinarySerializer
         public T? GetSettings<T>()
             where T : class
         {
-            if (!AdditionalSettings.TryGetValue(typeof(T), out object settings))
+            if (!AdditionalSettings.TryGetValue(typeof(T), out object? settings))
                 return default;
 
             return (T)settings;
@@ -117,7 +117,7 @@ namespace BinarySerializer
             if (id == null) 
                 throw new ArgumentNullException(nameof(id));
             
-            if (!ObjectStorage.TryGetValue(id, out object obj))
+            if (!ObjectStorage.TryGetValue(id, out object? obj))
                 throw new ContextException($"The requested object with ID {id} could not be found");
 
             return (T)obj;
@@ -126,7 +126,7 @@ namespace BinarySerializer
         public T GetRequiredStoredObject<T>()
             where T : class
         {
-            return GetRequiredStoredObject<T>(typeof(T).FullName);
+            return GetRequiredStoredObject<T>(typeof(T).FullName ?? throw new ArgumentException("Invalid type"));
         }
 
         public T? GetStoredObject<T>(string id)
@@ -135,7 +135,7 @@ namespace BinarySerializer
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
             
-            if (!ObjectStorage.TryGetValue(id, out object obj))
+            if (!ObjectStorage.TryGetValue(id, out object? obj))
                 return default;
 
             return (T)obj;
@@ -144,7 +144,7 @@ namespace BinarySerializer
         public T? GetStoredObject<T>()
             where T : class
         {
-            return GetStoredObject<T>(typeof(T).FullName);
+            return GetStoredObject<T>(typeof(T).FullName ?? throw new ArgumentException("Invalid type"));
         }
 
         public void RemoveStoredObject(string id)
@@ -157,7 +157,7 @@ namespace BinarySerializer
 
         public void RemoveStoredObject<T>()
         {
-            ObjectStorage.Remove(typeof(T).FullName);
+            ObjectStorage.Remove(typeof(T).FullName ?? throw new ArgumentException("Invalid type"));
         }
 
         public T StoreObject<T>(string id, T obj)
@@ -173,7 +173,7 @@ namespace BinarySerializer
         public T StoreObject<T>(T obj)
             where T : class
         {
-            return StoreObject(typeof(T).FullName, obj);
+            return StoreObject(typeof(T).FullName ?? throw new ArgumentException("Invalid type"), obj);
         }
 
         #endregion

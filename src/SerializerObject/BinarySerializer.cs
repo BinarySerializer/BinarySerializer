@@ -231,7 +231,7 @@ namespace BinarySerializer
 
                 if (newFile != CurrentFile || !HasCurrentPointer)
                 {
-                    if (!Writers.TryGetValue(newFile, out Writer writer))
+                    if (!Writers.TryGetValue(newFile, out Writer? writer))
                     {
                         writer = newFile.CreateWriter();
                         Writers.Add(newFile, writer);
@@ -1180,8 +1180,8 @@ namespace BinarySerializer
         private sealed class IdentityComparer<T> : IEqualityComparer<T>
             where T : class
         {
-            public bool Equals(T x, T y) => ReferenceEquals(x, y);
-            public int GetHashCode(T obj) => RuntimeHelpers.GetHashCode(obj);
+            public bool Equals(T? x, T? y) => ReferenceEquals(x, y);
+            public int GetHashCode(T? obj) => RuntimeHelpers.GetHashCode(obj);
         }
 
         #endregion

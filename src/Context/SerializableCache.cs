@@ -25,8 +25,8 @@ namespace BinarySerializer
 
             Type type = typeof(T);
 
-            if (Structs.TryGetValue(type, out Dictionary<Pointer, BinarySerializable> dict) &&
-                dict.TryGetValue(pointer, out BinarySerializable obj))
+            if (Structs.TryGetValue(type, out Dictionary<Pointer, BinarySerializable>? dict) &&
+                dict.TryGetValue(pointer, out BinarySerializable? obj))
                 return obj as T;
             else
                 return null;

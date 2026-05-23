@@ -1,6 +1,5 @@
 ﻿#nullable enable
 using System;
-using System.Runtime.Serialization;
 
 namespace BinarySerializer
 {
@@ -21,9 +20,6 @@ namespace BinarySerializer
 
         public BinarySerializableException(BinarySerializable? data, string? message, Exception inner) 
             : base(FormatMessage(data, message), inner) { }
-
-        protected BinarySerializableException(SerializationInfo info, StreamingContext context) 
-            : base(info, context) { }
 
         protected static string FormatMessage(SerializerObject? serializerObject, string? message) => 
             $"{serializerObject?.CurrentPointer}{(message == null || serializerObject == null ? message : $": {message}")}";

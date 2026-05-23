@@ -15,10 +15,13 @@ namespace BinarySerializer
         public override string Message { get; }
         private string ExcludeFromStackTrace { get; }
 
-        public override string StackTrace 
+        public override string? StackTrace 
         {
             get 
             {
+                if (base.StackTrace == null)
+                    return null;
+
                 List<string> stackTrace = new();
                 stackTrace.AddRange(base.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.None));
                 stackTrace.RemoveAll(x => x.Contains(ExcludeFromStackTrace));
