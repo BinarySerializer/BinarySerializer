@@ -52,12 +52,21 @@ namespace BinarySerializer
 
         public void ClearForFile(BinaryFile file)
         {
+            List<Pointer> pointersToRemove = new();
+
             foreach (Dictionary<Pointer, BinarySerializable> structs in Structs.Values)
             {
                 foreach (Pointer p in structs.Keys)
                 {
                     if (p.File == file)
+                        pointersToRemove.Add(p);
+                }
+
+                if (pointersToRemove.Count > 0)
+                {
+                    foreach (Pointer p in pointersToRemove)
                         structs.Remove(p);
+                    pointersToRemove.Clear();
                 }
             }
         }
