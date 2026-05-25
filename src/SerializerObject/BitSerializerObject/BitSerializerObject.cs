@@ -7,13 +7,9 @@ namespace BinarySerializer
     {
         #region Constructor
 
-        protected BitSerializerObject(SerializerObject serializerObject, Pointer valueOffset, string? logPrefix, long value)
+        protected BitSerializerObject(SerializerObject serializerObject)
         {
             SerializerObject = serializerObject ?? throw new ArgumentNullException(nameof(serializerObject));
-            ValueOffset = valueOffset ?? throw new ArgumentNullException(nameof(valueOffset));
-            BaseLogPrefix = logPrefix;
-            Value = value;
-            Position = 0;
         }
 
         #endregion
@@ -26,7 +22,7 @@ namespace BinarySerializer
 
         #region Protected Properties
 
-        protected string? BaseLogPrefix { get; }
+        protected string? BaseLogPrefix { get; set; }
 
         protected string? LogPrefix => SerializerObject.IsSerializerLoggerEnabled 
             ? $"{BaseLogPrefix}{new string(' ', (Depth + 1) * 2)}" 
@@ -40,7 +36,7 @@ namespace BinarySerializer
 
         public SerializerObject SerializerObject { get; }
         public Context Context => SerializerObject.Context;
-        public Pointer ValueOffset { get; }
+        public Pointer? ValueOffset { get; set; }
         public long Value { get; set; }
         public int Position { get; set; }
 
@@ -52,6 +48,14 @@ namespace BinarySerializer
         #endregion
 
         #region Serializer Methods
+
+        public virtual void Init(Pointer valueOffset, string? logPrefix, long value)
+        {
+            ValueOffset = valueOffset ?? throw new ArgumentNullException(nameof(valueOffset));
+            BaseLogPrefix = logPrefix;
+            Value = value;
+            Position = 0;
+        }
 
         public abstract T SerializeBits<T>(
             T value, 

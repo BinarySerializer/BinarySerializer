@@ -20,6 +20,7 @@ namespace BinarySerializer
 
         public BinaryDeserializer(Context context) : base(context)
         {
+            BitDeserializer = new BitDeserializer(this);
             Readers = new Dictionary<BinaryFile, Reader>();
         }
 
@@ -27,6 +28,7 @@ namespace BinarySerializer
 
         #region Protected Properties
 
+        protected BitDeserializer BitDeserializer { get; }
         protected Dictionary<BinaryFile, Reader> Readers { get; }
         protected Reader? Reader { get; set; }
         protected BinaryFile? CurrentFile { get; set; }
@@ -1186,7 +1188,8 @@ namespace BinarySerializer
             if (IsSerializerLoggerEnabled)
                 Context.SerializerLogger.Log($"{logString}({typeof(T).Name}) Value: {value}");
 
-            serializeFunc(new BitDeserializer(this, p, logString, value));
+            BitDeserializer.Init(p, logString, value);
+            serializeFunc(BitDeserializer);
         }
 
         #endregion

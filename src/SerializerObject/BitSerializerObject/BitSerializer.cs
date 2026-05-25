@@ -5,8 +5,7 @@ namespace BinarySerializer
 {
     public class BitSerializer : BitSerializerObject 
     {
-        public BitSerializer(SerializerObject serializerObject, Pointer valueOffset, string? logPrefix, long value) 
-            : base(serializerObject, valueOffset, logPrefix, value) { }
+        public BitSerializer(SerializerObject serializerObject) : base(serializerObject) { }
 
         public override T SerializeBits<T>(
             T value,

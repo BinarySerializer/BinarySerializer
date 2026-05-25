@@ -18,6 +18,7 @@ namespace BinarySerializer
 
         public BinarySerializer(Context context) : base(context)
         {
+            BitSerializer = new BitSerializer(this);
             Writers = new Dictionary<BinaryFile, Writer>();
             WrittenObjects = new HashSet<BinarySerializable>(new IdentityComparer<BinarySerializable>());
         }
@@ -26,6 +27,7 @@ namespace BinarySerializer
 
         #region Protected Properties
 
+        protected BitSerializer BitSerializer { get; }
         protected HashSet<BinarySerializable> WrittenObjects { get; }
         protected Dictionary<BinaryFile, Writer> Writers { get; }
         protected Writer? Writer { get; set; }
@@ -876,15 +878,15 @@ namespace BinarySerializer
             if (serializeFunc == null)
                 throw new ArgumentNullException(nameof(serializeFunc));
 
-            BitSerializer serializer = new(this, CurrentPointer, LogPrefix, 0);
+            BitSerializer.Init(CurrentPointer, LogPrefix, 0);
 
             // Set bits
-            serializeFunc(serializer);
+            serializeFunc(BitSerializer);
 
             if (IsSerializerLoggerEnabled)
-                Context.SerializerLogger.Log($"{LogPrefix}({typeof(T).Name}) Value: {serializer.Value}");
+                Context.SerializerLogger.Log($"{LogPrefix}({typeof(T).Name}) Value: {BitSerializer.Value}");
 
-            WriteInteger<T>(serializer.Value, "Value");
+            WriteInteger<T>(BitSerializer.Value, "Value");
         }
 
         #endregion
