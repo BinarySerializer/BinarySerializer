@@ -9,15 +9,15 @@ namespace BinarySerializer
         public SerializableCache(ISystemLogger? systemLogger)
         {
             SystemLogger = systemLogger;
-            Structs = new Dictionary<Type, Dictionary<Pointer, BinarySerializable>>();
+            Objects = new Dictionary<Type, Dictionary<Pointer, BinarySerializable>>();
+            Strings = new Dictionary<Pointer, CachedString>();
         }
 
-        protected ISystemLogger? SystemLogger { get; }
+        private ISystemLogger? SystemLogger { get; }
+        private Dictionary<Type, Dictionary<Pointer, BinarySerializable>> Objects { get; }
+        private Dictionary<Pointer, CachedString> Strings { get; }
 
-        // TODO: Optimize this by using single dictionary with some key being hash of type and pointer?
-        public Dictionary<Type, Dictionary<Pointer, BinarySerializable>> Structs { get; }
-
-        public T? FromOffset<T>(Pointer? pointer) 
+        public T? GetObject<T>(Pointer? pointer) 
             where T : BinarySerializable 
         {
             if (pointer == null) 
@@ -25,14 +25,25 @@ namespace BinarySerializer
 
             Type type = typeof(T);
 
-            if (Structs.TryGetValue(type, out Dictionary<Pointer, BinarySerializable>? dict) &&
+            if (Objects.TryGetValue(type, out Dictionary<Pointer, BinarySerializable>? dict) &&
                 dict.TryGetValue(pointer, out BinarySerializable? obj))
                 return obj as T;
             else
                 return null;
         }
 
-        public void Add<T>(T serializable) 
+        public CachedString? GetString(Pointer? pointer)
+        {
+            if (pointer == null) 
+                return null;
+
+            if (Strings.TryGetValue(pointer, out CachedString value))
+                return value;
+            else
+                return null;
+        }
+
+        public void AddObject<T>(T serializable) 
             where T : BinarySerializable 
         {
             if (serializable == null) 
@@ -41,22 +52,34 @@ namespace BinarySerializer
             Pointer pointer = serializable.Offset;
             Type type = typeof(T);
 
-            if (!Structs.ContainsKey(type))
-                Structs[type] = new Dictionary<Pointer, BinarySerializable>();
+            if (!Objects.ContainsKey(type))
+                Objects[type] = new Dictionary<Pointer, BinarySerializable>();
 
-            if (!Structs[type].ContainsKey(pointer)) 
-                Structs[type][pointer] = serializable;
+            if (!Objects[type].ContainsKey(pointer)) 
+                Objects[type][pointer] = serializable;
             else 
                 SystemLogger?.LogWarning("Duplicate pointer {0} for type {1}", pointer, type);
+        }
+
+        public void AddString(Pointer pointer, CachedString value)
+        {
+            if (pointer == null) 
+                throw new ArgumentNullException(nameof(pointer));
+
+            if (!Strings.ContainsKey(pointer))
+                Strings[pointer] = value;
+            else
+                SystemLogger?.LogWarning("Duplicate pointer {0} for string", pointer);
         }
 
         public void ClearForFile(BinaryFile file)
         {
             List<Pointer> pointersToRemove = new();
 
-            foreach (Dictionary<Pointer, BinarySerializable> structs in Structs.Values)
+            // Remove objects
+            foreach (Dictionary<Pointer, BinarySerializable> objs in Objects.Values)
             {
-                foreach (Pointer p in structs.Keys)
+                foreach (Pointer p in objs.Keys)
                 {
                     if (p.File == file)
                         pointersToRemove.Add(p);
@@ -65,12 +88,25 @@ namespace BinarySerializer
                 if (pointersToRemove.Count > 0)
                 {
                     foreach (Pointer p in pointersToRemove)
-                        structs.Remove(p);
+                        objs.Remove(p);
                     pointersToRemove.Clear();
                 }
             }
+
+            // Remove strings
+            foreach (Pointer p in Strings.Keys)
+            {
+                if (p.File == file)
+                    pointersToRemove.Add(p);
+            }
+            foreach (Pointer p in pointersToRemove)
+                Strings.Remove(p);
         }
 
-        public void Clear() => Structs.Clear();
+        public void Clear()
+        {
+            Objects.Clear();
+            Strings.Clear();
+        }
     }
 }

@@ -103,7 +103,7 @@ namespace BinarySerializer
 
             lock (context._threadLock)
             {
-                T? obj = context.Cache.FromOffset<T>(context.FilePointer(filePath));
+                T? obj = context.Cache.GetObject<T>(context.FilePointer(filePath));
 
                 if (obj == null)
                     throw new ContextException($"There is no cached object of type {typeof(T)} for {filePath}");

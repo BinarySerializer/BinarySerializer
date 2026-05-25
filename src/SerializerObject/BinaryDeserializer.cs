@@ -419,7 +419,7 @@ namespace BinarySerializer
             Pointer current = CurrentPointer;
 
             // Attempt to get a cached instance of the object if caching is enabled
-            T? instance = ignoreCacheOnRead ? null : Context.Cache.FromOffset<T>(current);
+            T? instance = ignoreCacheOnRead ? null : Context.Cache.GetObject<T>(current);
 
             // If we did not get a cached object we create a new one
             if (instance == null)
@@ -432,7 +432,7 @@ namespace BinarySerializer
 
                 // Cache the object if caching is enabled
                 if (!ignoreCacheOnRead)
-                    Context.Cache.Add<T>(instance);
+                    Context.Cache.AddObject<T>(instance);
 
                 string? logString = IsSerializerLoggerEnabled ? LogPrefix : null;
                 bool isLogTemporarilyDisabled = false;
@@ -565,6 +565,19 @@ namespace BinarySerializer
         {
             VerifyHasCurrentPointer();
 
+            bool ignoreCacheOnRead = CurrentFile.IgnoreCacheOnRead || Context.Settings.IgnoreCacheOnRead;
+
+            // Attempt to get a cached instance of the string if caching is enabled
+            if (!ignoreCacheOnRead)
+            {
+                CachedString? cachedString = Context.Cache.GetString(CurrentPointer);
+                if (cachedString != null)
+                {
+                    Reader.BaseStream.Position += cachedString.Value.SerializedSize;
+                    return cachedString.Value.StringValue;
+                }
+            }
+
             string? logString = LogPrefix;
 
             long origPos = Reader.BaseStream.Position;
@@ -572,6 +585,14 @@ namespace BinarySerializer
             encoding ??= Defaults?.StringEncoding ?? Context.DefaultEncoding;
 
             string t = length.HasValue ? Reader.ReadString(length.Value, encoding) : Reader.ReadNullDelimitedString(encoding);
+
+            // Cache the object if caching is enabled
+            if (!ignoreCacheOnRead)
+            {
+                int serializeSize = (int)(Reader.BaseStream.Position - origPos);
+                Pointer stringPtr = new(Reader.BaseStream.Position - serializeSize, CurrentBinaryFile, offsetType: Pointer.OffsetType.File);
+                Context.Cache.AddString(stringPtr, new CachedString(t, serializeSize));
+            }
 
             if (CurrentFile.ShouldUpdateReadMap)
                 CurrentFile.UpdateReadMap(origPos, Reader.BaseStream.Position - origPos);

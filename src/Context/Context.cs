@@ -438,7 +438,7 @@ namespace BinarySerializer
                 return null;
 
             Pointer ptr = file.StartPointer;
-            return Cache.FromOffset<T>(ptr);
+            return Cache.GetObject<T>(ptr);
         }
 
         #endregion
