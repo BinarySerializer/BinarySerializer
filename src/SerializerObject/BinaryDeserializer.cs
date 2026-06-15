@@ -410,6 +410,53 @@ namespace BinarySerializer
             return obj;
         }
 
+        public BinarySerializable SerializeObject(BinarySerializable obj, string? name = null)
+        {
+            if (obj == null) 
+                throw new ArgumentNullException(nameof(obj));
+            
+            VerifyHasCurrentPointer();
+
+            // Get the current pointer
+            Pointer current = CurrentPointer;
+
+            // Initialize the object
+            obj.Init(current);
+
+            string? logString = IsSerializerLoggerEnabled ? LogPrefix : null;
+            bool isLogTemporarilyDisabled = false;
+            if (!DisableSerializerLogForObject && obj is ISerializerShortLog)
+            {
+                DisableSerializerLogForObject = true;
+                isLogTemporarilyDisabled = true;
+            }
+
+            if (IsSerializerLoggerEnabled)
+                Context.SerializerLogger.Log($"{logString}(Object: {obj.GetType()}) {name ?? DefaultName}");
+
+            try
+            {
+                Depth++;
+                obj.Serialize(this);
+            }
+            finally
+            {
+                Depth--;
+
+                if (isLogTemporarilyDisabled)
+                {
+                    DisableSerializerLogForObject = false;
+                    if (IsSerializerLoggerEnabled)
+                    {
+                        string shortLog = (obj as ISerializerShortLog)?.ShortLog ?? "null";
+                        Context.SerializerLogger.Log($"{logString}({obj.GetType()}) {name ?? DefaultName}: {shortLog}");
+                    }
+                }
+            }
+
+            return obj;
+        }
+
         public override T SerializeObject<T>(T? obj, Action<T>? onPreSerialize = null, string? name = null)
             where T : class
         {

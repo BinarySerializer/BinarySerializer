@@ -88,6 +88,36 @@ namespace BinarySerializer
         }
 
         /// <summary>
+        /// Reads an object from an offset
+        /// </summary>
+        /// <param name="context">The context</param>
+        /// <param name="obj">The object to deserialize</param>
+        /// <param name="offset">The offset to read from</param>
+        /// <param name="name">Optional name for logging</param>
+        /// <returns>The file data</returns>
+        public static BinarySerializable Read(Context context, BinarySerializable obj, Pointer offset, string? name = null)
+        {
+            if (context == null) 
+                throw new ArgumentNullException(nameof(context));
+            if (obj == null) 
+                throw new ArgumentNullException(nameof(obj));
+            if (offset == null) 
+                throw new ArgumentNullException(nameof(offset));
+
+            lock (context._threadLock)
+            {
+                // Get a deserializer
+                BinaryDeserializer s = context.Deserializer;
+
+                // Deserialize the object
+                s.DoAt(offset, () => obj = s.SerializeObject(obj, name: name));
+
+                // Return the object
+                return obj;
+            }
+        }
+
+        /// <summary>
         /// Writes the data from the cache to the specified path
         /// </summary>
         /// <param name="context">The context</param>
