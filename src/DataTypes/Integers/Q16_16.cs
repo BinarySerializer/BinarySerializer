@@ -22,7 +22,7 @@ namespace BinarySerializer
         public static Q16_16 FromFloat(float value) => new((int)Math.Round(value * Scale));
 #endif
 
-        public static SerializeInto<Q16_16> SerializeInto = (s, x) =>
+        public static readonly SerializeInto<Q16_16> SerializeInto = (s, x) =>
         {
             int value = s.Serialize<int>(x.RawValue, name: nameof(RawValue));
             return new Q16_16(value);

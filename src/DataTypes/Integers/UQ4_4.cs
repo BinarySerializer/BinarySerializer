@@ -22,7 +22,7 @@ namespace BinarySerializer
         public static UQ4_4 FromFloat(float value) => new((byte)Math.Round(value * Scale));
 #endif
 
-        public static SerializeInto<UQ4_4> SerializeInto = (s, x) =>
+        public static readonly SerializeInto<UQ4_4> SerializeInto = (s, x) =>
         {
             byte value = s.Serialize<byte>(x.RawValue, name: nameof(RawValue));
             return new UQ4_4(value);

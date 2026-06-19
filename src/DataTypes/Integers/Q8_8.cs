@@ -22,7 +22,7 @@ namespace BinarySerializer
         public static Q8_8 FromFloat(float value) => new((short)Math.Round(value * Scale));
 #endif
 
-        public static SerializeInto<Q8_8> SerializeInto = (s, x) =>
+        public static readonly SerializeInto<Q8_8> SerializeInto = (s, x) =>
         {
             short value = s.Serialize<short>(x.RawValue, name: nameof(RawValue));
             return new Q8_8(value);
