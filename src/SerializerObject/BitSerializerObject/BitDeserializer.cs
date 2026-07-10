@@ -38,8 +38,7 @@ namespace BinarySerializer
 
             Position += length;
 
-            return CastTo<T>.From(value);
-
+            return value == null ? null : CastTo<T>.From(value);
         }
 
         public override T SerializeObject<T>(T? obj, Action<T>? onPreSerialize = null, string? name = null) 
@@ -83,6 +82,7 @@ namespace BinarySerializer
                         Context.SerializerLogger.Log($"{logString}{pos}_{instance.Size} ({typeof(T)}) {name ?? DefaultName}: {instance.ShortLog ?? "null"}");
                 }
             }
+
             return CastTo<T>.From(instance);
         }
 
